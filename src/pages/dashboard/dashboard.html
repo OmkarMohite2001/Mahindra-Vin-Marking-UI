@@ -1,0 +1,113 @@
+<div class="page">
+  <mat-card class="hero">
+    <div class="hero-left">
+      <div class="title">
+        <mat-icon class="title-icon">table_view</mat-icon>
+        <div>
+          <div class="h1">Excel Import</div>
+          <!-- <div class="sub">
+            File select करा → Sheets automatic tabs मध्ये → Blank row आला की reading stop ✅
+          </div> -->
+        </div>
+      </div>
+
+      <div class="actions">
+        <input #fileInput type="file" accept=".xlsx,.xls" hidden (change)="onFileSelected($event)" />
+        <button mat-raised-button color="primary" (click)="onPickFile(fileInput)">
+          <mat-icon>upload_file</mat-icon>
+          Select Excel
+        </button>
+
+        <button mat-stroked-button color="warn" (click)="clearAll()" [disabled]="!tables.length && !fileName">
+          <mat-icon>delete_outline</mat-icon>
+          Clear
+        </button>
+
+          <button mat-raised-button color="accent"
+          class="submitBtn"
+          [disabled]="!tables.length || loading"
+          (click)="onSubmit()">
+    <mat-icon>cloud_upload</mat-icon>
+    Submit
+  </button>
+      </div>
+
+      <div class="meta" *ngIf="fileName">
+        <mat-icon>description</mat-icon>
+        <span class="file">{{ fileName }}</span>
+        <span class="dot">•</span>
+        <span>{{ tables.length }} sheet(s) loaded</span>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="stat" *ngIf="tables.length">
+        <div class="stat-num">{{ tables[activeIndex]?.rawCount || 0 }}</div>
+        <div class="stat-label">Rows (until blank row)</div>
+      </div>
+    </div>
+  </mat-card>
+
+  <mat-progress-bar *ngIf="loading" mode="indeterminate"></mat-progress-bar>
+
+  <mat-card class="content" *ngIf="tables.length">
+    <div class="toolbar">
+      <mat-form-field appearance="outline" class="search">
+        <mat-label>Search in current sheet</mat-label>
+        <input matInput (input)="applyFilter(($any($event.target)).value)" placeholder="Type to filter..." />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+
+    </div>
+
+    <mat-tab-group (selectedIndexChange)="onTabChange($event)" class="tabs" [dynamicHeight]="true">
+      <mat-tab *ngFor="let t of tables; let i = index">
+        <ng-template mat-tab-label>
+          <span class="tabLabel">
+            <mat-icon class="mini">folder</mat-icon>
+            {{ t.sheetName }}
+          </span>
+        </ng-template>
+
+        <div class="tableWrap">
+
+          <div class="mat-elevation-z1 tableScroll">
+            <table mat-table [dataSource]="t.dataSource" matSort class="matTable">
+
+              <ng-container *ngFor="let col of t.columns" [matColumnDef]="col">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>{{ col }}</th>
+                <td mat-cell *matCellDef="let row">{{ row[col] }}</td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="t.columns"></tr>
+              <tr mat-row *matRowDef="let row; columns: t.columns;"></tr>
+
+              <tr class="empty" *matNoDataRow>
+                <td class="emptyCell" [attr.colspan]="t.columns.length">
+                  No matching data
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="pager">
+            <mat-paginator
+              [pageSize]="10"
+              [pageSizeOptions]="[5, 10, 25, 50, 100]"
+              showFirstLastButtons>
+            </mat-paginator>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card>
+
+  <mat-card class="emptyState" *ngIf="!loading && !tables.length">
+    <div class="emptyInner">
+      <!-- <mat-icon class="big">upload_file</mat-icon> -->
+      <!-- <div class="emptyTitle">Excel select </div> -->
+
+    </div>
+  </mat-card>
+</div>

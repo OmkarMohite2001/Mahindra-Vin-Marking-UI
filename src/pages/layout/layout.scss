@@ -1,0 +1,112 @@
+.shell { height: 100vh; background: #d9d2bf; }
+
+.side{
+  width: 200px;
+  min-width: 190px;
+  background: #e7dfc8;
+  border-right: 2px solid rgba(0,0,0,0.15);
+}
+
+.side-inner{ height: 100%; display:flex; flex-direction: column; }
+
+.side-logo{
+  padding: 10px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  img{ max-width: 96px; max-height: 48px; object-fit: contain; }
+}
+
+.nav{
+  padding-top: 6px;
+
+  a.mat-mdc-list-item{
+    margin: 6px 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.40);
+    border: 1px solid rgba(0,0,0,0.12);
+  }
+
+  a.active{
+    outline: 2px solid rgba(0, 110, 140, 0.35);
+    background: rgba(0, 195, 220, 0.12);
+  }
+}
+
+.nav-ic{ margin-right: 10px; }
+.nav-title{ font-weight: 850; letter-spacing: 0.4px; font-size: 12px; }
+
+.main{ background:#d9d2bf; }
+
+.topmenu{
+  height: 38px;
+  min-height: 38px;
+  padding: 0 8px;
+  background: #c8bfa7 !important;
+  color: #1f1f1f !important;
+
+  button{ font-weight: 650; }
+}
+
+.spacer{ flex: 1; }
+
+.header-strip{
+  height: 46px;
+  display:grid;
+  grid-template-columns: 160px 1fr 160px;
+  align-items:center;
+  gap: 10px;
+  padding: 0 10px;
+
+  background: linear-gradient(#2f56b7, #26479a);
+  border-top: 2px solid rgba(255,255,255,0.35);
+  border-bottom: 2px solid rgba(0,0,0,0.25);
+}
+
+.header-title{
+  text-align:center;
+  color:#0d1326;
+  font-weight: 900;
+  letter-spacing: 1px;
+  font-size: 18px;
+  background: rgba(255,255,255,0.25);
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+.header-left,.header-right{ display:flex; justify-content:center; align-items:center; }
+.mini-logo{
+  max-height: 28px;
+  max-width: 120px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
+}
+
+.workarea{
+  padding: 12px;
+  height: calc(100vh - 38px - 46px);
+  overflow:auto;
+  background:#d9d2bf;
+    overflow-x: hidden;
+
+}
+
+@media (max-width: 700px){
+  .header-strip{ grid-template-columns: 90px 1fr 90px; }
+  .header-title{ font-size: 14px; }
+}
+/* ✅ Global safe: page horizontal scroll बंद */
+:host, .shell, .main {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* ✅ Material container sometimes creates extra width */
+:host ::ng-deep .mat-drawer-container,
+:host ::ng-deep .mat-drawer-content {
+  overflow-x: hidden !important;
+}
+
+

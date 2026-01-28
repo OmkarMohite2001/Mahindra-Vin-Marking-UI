@@ -1,0 +1,66 @@
+<div class="page">
+  <div class="overlay"></div>
+
+  <header class="top">
+    <div class="brand">
+      <!-- <img class="logo" src="D:/CISPL/Mahindra/Frontend/Mahindra-Vin-Marking/src/assets/Mahindra-login-bg.jpg" alt="Mahindra" /> -->
+      <img class="logo" src="assets/Mahindra-Logo.png" alt="Mahindra" />
+      <div class="brand-text">
+        <div class="title">Mahindra VIN Marking</div>
+        <div class="sub">Secure Operator Login</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="content">
+    <section class="hero">
+      <div class="kicker">Traceability • Laser • Compliance</div>
+      <h1>Welcome back</h1>
+      <p>Login to continue marking cycle operations and reporting.</p>
+    </section>
+
+    <mat-card class="card" appearance="outlined">
+      <div class="card-head">
+        <div class="card-title">Sign in</div>
+        <div class="chip">Mahindra Plant</div>
+      </div>
+
+      <form class="form" [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          <mat-icon matSuffix>mail</mat-icon>
+          <mat-error *ngIf="email.touched && email.invalid">
+            <span *ngIf="email.errors?.['required']">Email is required</span>
+            <span *ngIf="email.errors?.['email']">Enter valid email</span>
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Password</mat-label>
+          <input matInput [type]="hide ? 'password' : 'text'" formControlName="password" autocomplete="current-password" />
+          <button mat-icon-button matSuffix type="button" (click)="hide = !hide">
+            <mat-icon>{{ hide ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="password.touched && password.invalid">
+            <span *ngIf="password.errors?.['required']">Password is required</span>
+            <span *ngIf="password.errors?.['minlength']">Minimum 4 characters</span>
+          </mat-error>
+        </mat-form-field>
+
+        <button mat-raised-button class="btn" type="submit" [disabled]="loading">
+          <span *ngIf="!loading">Sign In</span>
+          <span *ngIf="loading" class="loading">
+            <mat-progress-spinner diameter="18" mode="indeterminate"></mat-progress-spinner>
+            Signing in…
+          </span>
+        </button>
+
+        <div class="footer">
+          <span class="muted">Need access?</span>
+          <span class="muted">Contact Supervisor / IT</span>
+        </div>
+      </form>
+    </mat-card>
+  </main>
+</div>

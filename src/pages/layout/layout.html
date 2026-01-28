@@ -1,0 +1,96 @@
+<mat-sidenav-container class="shell">
+  <!-- Sidebar -->
+  <mat-sidenav class="side" mode="side" opened>
+    <div class="side-inner">
+      <div class="side-logo">
+        <img src="/assets/Mahindra-Logo.png" alt="Mahindra" />
+      </div>
+
+      <mat-nav-list class="nav">
+        <a mat-list-item routerLink="dashboard" routerLinkActive="active">
+          <mat-icon class="nav-ic">space_dashboard</mat-icon>
+          <div class="nav-title">DASHBOARD</div>
+        </a>
+
+        <a mat-list-item routerLink="marking" routerLinkActive="active">
+          <mat-icon class="nav-ic">precision_manufacturing</mat-icon>
+          <div class="nav-title">MARKING</div>
+        </a>
+
+        <a mat-list-item routerLink="settings" routerLinkActive="active">
+          <mat-icon class="nav-ic">settings</mat-icon>
+          <div class="nav-title">SETTINGS</div>
+        </a>
+
+        <a mat-list-item routerLink="reports" routerLinkActive="active">
+          <mat-icon class="nav-ic">description</mat-icon>
+          <div class="nav-title">REPORTS</div>
+        </a>
+
+        <mat-divider></mat-divider>
+
+        <a mat-list-item (click)="logout()">
+          <mat-icon class="nav-ic">power_settings_new</mat-icon>
+          <div class="nav-title">EXIT</div>
+        </a>
+      </mat-nav-list>
+    </div>
+  </mat-sidenav>
+
+  <!-- Main -->
+  <mat-sidenav-content class="main">
+    <!-- Top menu -->
+    <mat-toolbar class="topmenu">
+      <button mat-button [matMenuTriggerFor]="adminMenu">Admin</button>
+      <button mat-button [matMenuTriggerFor]="maintMenu">Maintenance</button>
+      <button mat-button [matMenuTriggerFor]="assocMenu">Associate</button>
+      <button mat-button [matMenuTriggerFor]="reportsMenu">Reports</button>
+      <button mat-button [matMenuTriggerFor]="helpMenu">Help</button>
+      <span class="spacer"></span>
+      <button mat-button (click)="logout()">Exit</button>
+    </mat-toolbar>
+
+    <mat-menu #adminMenu="matMenu">
+      <button mat-menu-item>Users</button>
+      <button mat-menu-item>Roles</button>
+    </mat-menu>
+
+    <mat-menu #maintMenu="matMenu">
+      <button mat-menu-item>Device Config</button>
+      <button mat-menu-item>Calibration</button>
+    </mat-menu>
+
+    <mat-menu #assocMenu="matMenu">
+      <button mat-menu-item>Operator</button>
+      <button mat-menu-item>Shift</button>
+    </mat-menu>
+
+    <mat-menu #reportsMenu="matMenu">
+      <button mat-menu-item>Daily</button>
+      <button mat-menu-item>Monthly</button>
+    </mat-menu>
+
+    <mat-menu #helpMenu="matMenu">
+      <button mat-menu-item>About</button>
+      <button mat-menu-item>Support</button>
+    </mat-menu>
+
+    <!-- Header strip -->
+    <div class="header-strip">
+      <div class="header-left">
+        <img class="mini-logo" src="/assets/Mahindra-Logo.png" alt="Logo" />
+      </div>
+
+      <div class="header-title">MARKING CYCLE</div>
+
+      <div class="header-right">
+        <img class="mini-logo" src="/assets/mahindra-new-logo.jpg" alt="Company" />
+      </div>
+    </div>
+
+    <!-- ✅ VERY IMPORTANT -->
+    <div class="workarea">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

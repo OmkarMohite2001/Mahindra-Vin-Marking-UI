@@ -1,3 +1,40 @@
 import { Routes } from '@angular/router';
+import { Login } from '../pages/login/login';
+import { Layout } from '../pages/layout/layout';
 
-export const routes: Routes = [];
+export const routes: Routes = [
+ { path: 'login', component: Login },
+
+  // Layout shell after login
+  {
+    path: 'app',
+    component: Layout,
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () =>
+          import('../pages/dashboard/dashboard').then(m => m.Dashboard),
+      },
+      {
+        path: 'marking',
+        loadComponent: () =>
+          import('../pages/marking/marking').then(m => m.Marking),
+      },
+      {
+        path: 'settings',
+        loadComponent: () =>
+          import('../pages/settings/settings').then(m => m.Settings),
+      },
+      {
+        path: 'reports',
+        loadComponent: () =>
+          import('../pages/reports/reports').then(m => m.Reports),
+      },
+
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+    ],
+  },
+
+  { path: '', pathMatch: 'full', redirectTo: 'login' },
+  { path: '**', redirectTo: 'login' },
+];
