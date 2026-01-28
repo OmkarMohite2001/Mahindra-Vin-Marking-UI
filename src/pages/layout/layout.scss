@@ -40,14 +40,27 @@
 .main{ background:#d9d2bf; }
 
 .topmenu{
-  height: 38px;
+  height: auto;              /* ✅ fixed 38px नको */
   min-height: 38px;
   padding: 0 8px;
   background: #c8bfa7 !important;
   color: #1f1f1f !important;
 
-  button{ font-weight: 650; }
+  display: flex;             /* ✅ */
+  flex-wrap: wrap;           /* ✅ main fix */
+  align-items: center;
+  gap: 4px;                  /* ✅ buttons मध्ये gap */
+
+  overflow-x: hidden;        /* ✅ */
 }
+
+.topmenu button{
+  font-weight: 650;
+  padding: 0 8px;            /* ✅ compact */
+  min-width: auto;           /* ✅ mat-button default wide असतो */
+  white-space: nowrap;       /* ✅ button text तुटणार नाही */
+}
+
 
 .spacer{ flex: 1; }
 
@@ -89,6 +102,8 @@
   height: calc(100vh - 38px - 46px);
   overflow:auto;
   background:#d9d2bf;
+   box-sizing: border-box;
+  overflow-y: auto;
     overflow-x: hidden;
 
 }
@@ -97,6 +112,13 @@
   .header-strip{ grid-template-columns: 90px 1fr 90px; }
   .header-title{ font-size: 14px; }
 }
+@media (max-width: 1100px){
+  .topmenu button{
+    font-size: 12px;
+    padding: 0 6px;
+  }
+}
+
 /* ✅ Global safe: page horizontal scroll बंद */
 :host, .shell, .main {
   width: 100%;
