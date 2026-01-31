@@ -6,8 +6,15 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
-html {
+html, body {
   height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+html {
   @include mat.theme((
     color: (
       primary: mat.$azure-palette,
@@ -16,6 +23,17 @@ html {
     typography: Roboto,
     density: 0,
   ));
+}
+
+/* Global responsive fixes */
+* {
+  box-sizing: border-box;
+}
+
+/* Prevent horizontal scroll */
+html, body, app-root {
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 body {

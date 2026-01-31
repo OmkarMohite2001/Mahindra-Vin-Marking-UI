@@ -13,6 +13,9 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ExcelImport } from '../../services/excel-import';
 
 type SheetTable = {
   sheetName: string;
@@ -21,13 +24,11 @@ type SheetTable = {
   rawCount: number; // blank row नंतरचे न धरता count
 };
 
-;
-
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-     CommonModule,
+    CommonModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -38,18 +39,25 @@ type SheetTable = {
     MatPaginatorModule,
     MatSortModule,
     MatProgressBarModule,
+    HttpClientModule,
+    MatSnackBarModule,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
 })
 export class Dashboard {
-
-   fileName = '';
+  fileName = '';
   loading = false;
   tables: SheetTable[] = [];
   activeIndex = 0;
 
-  constructor(private cdr: ChangeDetectorRef, private zone: NgZone) {}
+  constructor(
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone,
+    private http: HttpClient,
+    private snackBar: MatSnackBar,
+    private excelService: ExcelImport,
+  ) {}
   @ViewChild(MatPaginator) paginator?: MatPaginator;
   @ViewChild(MatSort) sort?: MatSort;
 
@@ -57,123 +65,74 @@ export class Dashboard {
     input.click();
   }
 
-  // async onFileSelected(event: Event) {
-  //   const input = event.target as HTMLInputElement;
-  //   const file = input.files?.[0];
-  //   if (!file) return;
+  async onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
 
-  //   this.fileName = file.name;
-  //   this.loading = true;
-  //   this.tables = [];
+    this.loading = true;
+    this.fileName = file.name;
+    this.tables = [];
+    this.activeIndex = 0;
 
-  //   try {
-  //     const buffer = await file.arrayBuffer();
-  //     const workbook = XLSX.read(buffer, { type: 'array' });
+    this.cdr.detectChanges();
 
-  //     const sheetNames = workbook.SheetNames ?? [];
-  //     for (const sheetName of sheetNames) {
-  //       const ws = workbook.Sheets[sheetName];
-  //       if (!ws) continue;
+    try {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: 'array' });
 
-  //       // 2D array - header:1 => rows as arrays, blank cells preserved
-  //       const rows: any[][] = XLSX.utils.sheet_to_json(ws, {
-  //         header: 1,
-  //         defval: '',
-  //         blankrows: true,
-  //         raw: false,
-  //         dateNF: 'yyyy-mm-dd',
-  //       });
+      const tempTables: SheetTable[] = [];
 
-  //       const parsed = this.parseUntilBlankRow(rows);
-  //       if (!parsed || parsed.data.length === 0) continue;
+      for (const sheetName of workbook.SheetNames ?? []) {
+        const ws = workbook.Sheets[sheetName];
+        if (!ws) continue;
 
-  //       const ds = new MatTableDataSource<Record<string, any>>(parsed.data);
-  //       ds.filterPredicate = (row, filter) => {
-  //         const f = (filter || '').toLowerCase().trim();
-  //         if (!f) return true;
-  //         return Object.values(row).some(v => String(v ?? '').toLowerCase().includes(f));
-  //       };
+        const rows: any[][] = XLSX.utils.sheet_to_json(ws, {
+          header: 1,
+          defval: '',
+          blankrows: true,
+          raw: false,
+        });
 
-  //       this.tables.push({
-  //         sheetName,
-  //         columns: parsed.headers,
-  //         dataSource: ds,
-  //         rawCount: parsed.data.length,
-  //       });
-  //     }
+        const parsed = this.parseUntilBlankRow(rows);
+        if (!parsed || parsed.data.length === 0) continue;
 
-  //     // attach paginator/sort to first tab
-  //     setTimeout(() => this.attachPagingSorting(), 0);
-  //   } finally {
-  //     this.loading = false;
-  //     // same file पुन्हा select करायचा असेल म्हणून reset
-  //     input.value = '';
-  //   }
-  // }
-async onFileSelected(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  if (!file) return;
+        const ds = new MatTableDataSource<Record<string, any>>(parsed.data);
+        ds.filterPredicate = (row, filter) => {
+          const f = (filter || '').toLowerCase().trim();
+          if (!f) return true;
+          return Object.values(row).some((v) =>
+            String(v ?? '')
+              .toLowerCase()
+              .includes(f),
+          );
+        };
 
-  this.loading = true;
-  this.fileName = file.name;
-  this.tables = [];
-  this.activeIndex = 0;
+        tempTables.push({
+          sheetName,
+          columns: parsed.headers,
+          dataSource: ds,
+          rawCount: parsed.data.length,
+        });
+      }
 
-  this.cdr.detectChanges();
+      this.zone.run(() => {
+        this.tables = tempTables;
+        this.activeIndex = 0;
+        this.loading = false;
 
-  try {
-    const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: 'array' });
-
-    const tempTables: SheetTable[] = [];
-
-    for (const sheetName of workbook.SheetNames ?? []) {
-      const ws = workbook.Sheets[sheetName];
-      if (!ws) continue;
-
-      const rows: any[][] = XLSX.utils.sheet_to_json(ws, {
-        header: 1,
-        defval: '',
-        blankrows: true,
-        raw: false,
+        this.cdr.detectChanges(); // force paint now
+        setTimeout(() => this.attachPagingSorting(), 0);
       });
-
-      const parsed = this.parseUntilBlankRow(rows);
-      if (!parsed || parsed.data.length === 0) continue;
-
-      const ds = new MatTableDataSource<Record<string, any>>(parsed.data);
-      ds.filterPredicate = (row, filter) => {
-        const f = (filter || '').toLowerCase().trim();
-        if (!f) return true;
-        return Object.values(row).some(v => String(v ?? '').toLowerCase().includes(f));
-      };
-
-      tempTables.push({
-        sheetName,
-        columns: parsed.headers,
-        dataSource: ds,
-        rawCount: parsed.data.length,
+    } catch (e) {
+      this.zone.run(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
       });
+    } finally {
+      input.value = '';
     }
-
-    this.zone.run(() => {
-      this.tables = tempTables;
-      this.activeIndex = 0;
-      this.loading = false;
-
-      this.cdr.detectChanges(); // force paint now
-      setTimeout(() => this.attachPagingSorting(), 0);
-    });
-  } catch (e) {
-    this.zone.run(() => {
-      this.loading = false;
-      this.cdr.detectChanges();
-    });
-  } finally {
-    input.value = '';
   }
-}
 
   onTabChange(index: number) {
     this.activeIndex = index;
@@ -192,10 +151,34 @@ async onFileSelected(event: Event) {
     this.tables = [];
     this.activeIndex = 0;
   }
-onSubmit() {
-  // next step: इथे tables -> JSON बनवून API ला send करायचं
-  console.log('Submit clicked. Sheets:', this.tables.length);
-}
+  onSubmit() {
+// 1. Check Data
+    if (!this.tables.length) return;
+    const currentSheet = this.tables[this.activeIndex];
+    this.loading = true;
+
+    this.excelService.uploadData(currentSheet.sheetName, currentSheet.dataSource.data)
+      .subscribe({
+        next: (res) => {
+          this.loading = false;
+          this.showSnackbar(`${currentSheet.sheetName} ${res.message}`, 'success');
+        },
+        error: (err) => {
+          this.loading = false;
+          console.error(err);
+          this.showSnackbar(`Upload Failed. ${err}`, 'error');
+        }
+      });
+  }
+
+  showSnackbar(message: string, type: 'success' | 'error') {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'center', // Top Center
+      verticalPosition: 'top', // Top Center
+      panelClass: type === 'error' ? ['error-snackbar'] : ['success-snackbar'],
+    });
+  }
 
   private attachPagingSorting() {
     const t = this.tables[this.activeIndex];
@@ -205,13 +188,14 @@ onSubmit() {
     if (this.sort) t.dataSource.sort = this.sort;
   }
 
-  private parseUntilBlankRow(rows: any[][]): { headers: string[]; data: Record<string, any>[] } | null {
+  private parseUntilBlankRow(
+    rows: any[][],
+  ): { headers: string[]; data: Record<string, any>[] } | null {
     if (!rows || rows.length === 0) return null;
 
     const isBlankRow = (r: any[]) =>
-      !r || r.length === 0 || r.every(c => String(c ?? '').trim() === '');
+      !r || r.length === 0 || r.every((c) => String(c ?? '').trim() === '');
 
-    // header row = first non-blank row
     let headerIndex = -1;
     for (let i = 0; i < rows.length; i++) {
       if (!isBlankRow(rows[i])) {
@@ -221,24 +205,20 @@ onSubmit() {
     }
     if (headerIndex === -1) return null;
 
-    const headerRow = rows[headerIndex].map(h => String(h ?? '').trim());
+    const headerRow = rows[headerIndex].map((h) => String(h ?? '').trim());
     const headers = headerRow.map((h, idx) => (h ? h : `Column_${idx + 1}`));
 
     const data: Record<string, any>[] = [];
 
     for (let r = headerIndex + 1; r < rows.length; r++) {
       const row = rows[r] ?? [];
-
-      // blank row आला की reading stop
       if (isBlankRow(row)) break;
 
       const obj: Record<string, any> = {};
       for (let c = 0; c < headers.length; c++) {
         obj[headers[c]] = (row[c] ?? '').toString().trim();
       }
-
-      // जर row मध्ये values असतीलच तर push
-      const hasAny = Object.values(obj).some(v => String(v ?? '').trim() !== '');
+      const hasAny = Object.values(obj).some((v) => String(v ?? '').trim() !== '');
       if (hasAny) data.push(obj);
     }
 

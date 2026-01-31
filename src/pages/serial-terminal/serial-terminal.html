@@ -1,0 +1,21 @@
+<div class="container">
+  <h2>Serial Monitor</h2>
+
+  <div *ngIf="!isConnected" class="controls">
+    <p>Auto-connect failed or first time use.</p>
+    <button (click)="connectManual()" >Connect Device 🔌</button>
+  </div>
+
+  <div *ngIf="isConnected" class="status success">
+    ✅ Device Connected
+  </div>
+
+  <div class="terminal-window" #scrollMe>
+    <div *ngFor="let line of terminalData">
+      <span class="prompt">></span> {{ line }}
+    </div>
+    <div *ngIf="terminalData.length === 0" class="placeholder">
+      Waiting for data...
+    </div>
+  </div>
+</div>

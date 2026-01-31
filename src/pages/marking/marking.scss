@@ -6,10 +6,15 @@
 /* whole page */
 .marking-page {
   height: 100%;
-  background: #d7d0be; /* screenshot सारखा sand bg */
-  padding: 10px;
+  background: #d7d0be;
+  padding: 0;
   box-sizing: border-box;
   font-family: Arial, Helvetica, sans-serif;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* top header */
@@ -55,12 +60,16 @@
 
 /* main split */
 .main {
-  margin-top: 10px;
-  height: calc(100% - 66px);
+  margin-top: 0;
+  height: 100%;
   display: grid;
-  grid-template-columns: 430px 1fr;
+  grid-template-columns: minmax(300px, 400px) 1fr;
   gap: 12px;
   min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  padding: 10px;
 }
 
 /* LEFT PANEL */
@@ -69,6 +78,7 @@
   flex-direction: column;
   gap: 10px;
   min-height: 0;
+  overflow-y: auto;
 }
 
 .card {
@@ -217,7 +227,7 @@
 
 /* RIGHT PANEL */
 .right-panel {
-  background: #79a9bd; /* blue area */
+  background: #79a9bd;
   border: 3px solid rgba(255, 255, 255, 0.7);
   border-radius: 4px;
   padding: 10px;
@@ -225,6 +235,7 @@
   display: grid;
   grid-template-rows: 1fr 0.85fr;
   gap: 12px;
+  overflow-y: auto;
 }
 
 /* empty preview boxes */
@@ -263,5 +274,44 @@
   }
   .right-panel {
     min-height: 360px;
+  }
+  .marking-page {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    height: auto;
+  }
+  .left-panel {
+    gap: 8px;
+  }
+  .card {
+    padding: 8px;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .field {
+    grid-template-columns: 100px 1fr;
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .field label {
+    font-size: 12px;
+  }
+  .btn-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .preview-row {
+    grid-template-columns: 1fr;
+  }
+  .preview.small {
+    max-width: 100%;
+    justify-self: auto;
   }
 }
