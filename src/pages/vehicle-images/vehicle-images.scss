@@ -1,0 +1,182 @@
+.vehicle-images-page {
+  padding: 20px;
+  position: relative;
+
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .page-header {
+    margin-bottom: 30px;
+
+    h1 {
+      color: #333;
+      font-size: 2rem;
+      font-weight: 600;
+      margin: 0;
+    }
+  }
+
+  // Spinner overlay
+  .spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+
+    mat-spinner {
+      margin: 0 auto;
+    }
+  }
+
+  .card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+
+    h2 {
+      color: #333;
+      font-size: 1.3rem;
+      margin: 0 0 20px 0;
+      font-weight: 600;
+      border-bottom: 2px solid #f0f0f0;
+      padding-bottom: 15px;
+    }
+
+    h3 {
+      color: #555;
+      font-size: 1rem;
+      margin: 0 0 15px 0;
+      font-weight: 500;
+    }
+  }
+
+  .upload-section {
+    margin-bottom: 25px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 15px;
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    input[type='file'] {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border: 2px dashed #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: #007bff;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      }
+    }
+
+    .file-name,
+    .file-count {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 12px;
+      background-color: #e9ecef;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      color: #555;
+    }
+  }
+
+  .button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+    }
+  }
+
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &.btn-primary {
+      background-color: #007bff;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+      }
+    }
+
+    &.btn-secondary {
+      background-color: #6c757d;
+      color: white;
+
+      &:hover:not(:disabled) {
+        background-color: #545b62;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+      }
+    }
+  }
+}
+
+// Snackbar custom styles
+::ng-deep {
+  .success-snackbar {
+    background-color: #4caf50 !important;
+    color: white !important;
+
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+      font-weight: 500;
+    }
+  }
+
+  .error-snackbar {
+    background-color: #f44336 !important;
+    color: white !important;
+
+    .mat-mdc-snack-bar-label {
+      color: white !important;
+      font-weight: 500;
+    }
+  }
+}

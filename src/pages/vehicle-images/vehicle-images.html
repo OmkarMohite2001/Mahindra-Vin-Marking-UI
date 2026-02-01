@@ -1,0 +1,85 @@
+<div class="vehicle-images-page">
+  <div class="container">
+    <!-- Header -->
+    <div class="page-header">
+      <h1>Vehicle Images Upload</h1>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="spinner-overlay">
+      <mat-spinner diameter="50"></mat-spinner>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="card upload-card">
+      <h2>Upload Vehicle Images</h2>
+
+      <!-- Single Upload -->
+      <div class="upload-section">
+        <h3>Single Image Upload</h3>
+        <div class="form-group">
+          <label for="singleFile">Select Image</label>
+          <input
+            type="file"
+            id="singleFile"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+          />
+          <span *ngIf="selectedFile" class="file-name">
+            {{ selectedFile.name }}
+          </span>
+        </div>
+        <div class="button-group">
+          <button
+            class="btn btn-primary"
+            (click)="uploadSingleImage()"
+            [disabled]="loading || !selectedFile"
+          >
+            {{ loading ? 'Uploading...' : 'Upload' }}
+          </button>
+          <button
+            class="btn btn-secondary"
+            (click)="clearSingleFile()"
+            [disabled]="loading || !selectedFile"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Bulk Upload -->
+      <div class="upload-section">
+        <h3>Bulk Upload Images</h3>
+        <div class="form-group">
+          <label for="multipleFiles">Select Images (Multiple)</label>
+          <input
+            type="file"
+            id="multipleFiles"
+            accept="image/*"
+            multiple
+            (change)="onMultipleFilesSelected($event)"
+          />
+          <span *ngIf="selectedFiles.length > 0" class="file-count">
+            {{ selectedFiles.length }} file(s) selected
+          </span>
+        </div>
+        <div class="button-group">
+          <button
+            class="btn btn-primary"
+            (click)="bulkUploadImages()"
+            [disabled]="loading || selectedFiles.length === 0"
+          >
+            {{ loading ? 'Uploading...' : 'Bulk Upload' }}
+          </button>
+          <button
+            class="btn btn-secondary"
+            (click)="clearMultipleFiles()"
+            [disabled]="loading || selectedFiles.length === 0"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

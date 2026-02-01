@@ -41,6 +41,11 @@ export const routes: Routes = [
         loadComponent:()=>
           import('../pages/marking-demo/marking-demo').then(m => m.MarkingDemo),
       },
+      {
+        path: 'vehicle-images',
+        loadComponent: () =>
+          import('../pages/vehicle-images/vehicle-images').then(m => m.VehicleImages),
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
     ],
