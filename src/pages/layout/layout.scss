@@ -86,13 +86,14 @@
   border: 1px solid rgba(0,0,0,0.08);
   transition: all 0.22s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-  padding: 6px 10px;
-  min-height: 40px;
+  padding: 10px 12px;
+  min-height: 56px;
   display: flex;
   align-items: center;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 15px;
   white-space: normal;
+  gap: 12px;
 }
 
 .nav a.mat-mdc-list-item:hover{
@@ -112,11 +113,11 @@
 
 .nav a.active:hover{ background: linear-gradient(135deg, rgba(0,195,220,0.35), rgba(0,150,180,0.25)); }
 
-.nav-ic{ margin-right: 8px; font-size: 18px; color: #1f4da8; transition: all 0.2s ease; flex-shrink: 0; }
+.nav-ic{ margin-right: 8px; font-size: 28px; color: #1f4da8; transition: all 0.2s ease; flex-shrink: 0; }
 .nav a.mat-mdc-list-item:hover .nav-ic{ color: #0d2a5c; }
 .nav a.active .nav-ic{ color: #006e8c; }
 
-.nav-title{ font-weight: 750; letter-spacing: 0px; font-size: 13px; color: #1f1f1f; flex: 1; white-space: normal; overflow: visible; text-overflow: clip; }
+.nav-title{ font-weight: 750; letter-spacing: 0px; font-size: 14px; color: #1f1f1f; flex: 1; white-space: normal; overflow: visible; text-overflow: clip; }
 
 /* EXIT button special styling */
 .nav a:last-child{ background: linear-gradient(135deg, rgba(212,90,78,0.15), rgba(180,60,50,0.1)) !important; border: 1px solid rgba(212,90,78,0.3) !important; margin-top: auto; }
