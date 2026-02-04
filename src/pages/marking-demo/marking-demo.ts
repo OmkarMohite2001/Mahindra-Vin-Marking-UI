@@ -1,5 +1,5 @@
-import { ChangeDetectorRef, Component, inject, model, NgZone, Inject, ViewChild, ElementRef } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectorRef, Component, inject, NgZone, Inject, ViewChild, ElementRef } from '@angular/core';
+import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Serial } from '../../services/serial';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -7,6 +7,7 @@ import { ModelsApi } from '../../services/models-api';
 import { VehicleImageApi } from '../../services/vehicle-image-api';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { VehicleUtils } from '../../services/vehicle-utils';
 
 @Component({
   selector: 'app-marking-demo',
@@ -24,6 +25,7 @@ private fb = inject(FormBuilder);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
   private sanitizer = inject(DomSanitizer);
+  private vehicleUtils = inject(VehicleUtils);
 
   @ViewChild('nameplatCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
@@ -42,7 +44,6 @@ private fb = inject(FormBuilder);
   };
 
   form = this.fb.group({
-  // --- जुने ---
   modelNo: [''],
   description: [''],
   description1: [''],
@@ -60,14 +61,14 @@ private fb = inject(FormBuilder);
   bsStage: [''],
   batchNo: [''],
   date: [''],
-  vinNo: [''],        // HTML: formControlName="vinNo"
-  engineSrNo: [''],   // HTML: formControlName="engineSrNo"
-  cngTankId: [''],      // HTML: formControlName="cngTankId"
-  cngInstallDate: [''], // HTML: formControlName="cngInstallDate"
-  cngRetestDate: [''],  // HTML: formControlName="cngRetestDate"
-  waterCapacity: [''],  // HTML: formControlName="waterCapacity"
-  vinLast8: [''],       // HTML: formControlName="vinLast8"
-  sticker: ['vin']      // HTML: formControlName="sticker"
+  vinNo: [''],
+  engineSrNo: [''],
+  cngTankId: [''],
+  cngInstallDate: [''],
+  cngRetestDate: [''],
+  waterCapacity: [''],
+  vinLast8: [''],
+  sticker: ['vin']
 });
 
   ngOnInit(): void {
@@ -81,10 +82,13 @@ private fb = inject(FormBuilder);
       }
     });
 
+    // Listen for changes in Model, VIN, and Engine fields to update the canvas automatically
+    ['modelNo', 'vinNo', 'engineSrNo'].forEach(field => {
+      this.form.get(field)?.valueChanges.subscribe(() => this.updateCanvas());
+    });
+
     this.serialService.dataSubject.subscribe((scannedData) => {
       this.ngZone.run(() => {
-        console.log("Scanner Scanned:", scannedData);
-
         // Check if it's a combined QR code (contains underscores)
         if (scannedData.includes('_')) {
           this.processCombinedQRCode(scannedData);
@@ -109,11 +113,11 @@ private fb = inject(FormBuilder);
       const color = parts.length >= 3 ? parts.slice(2).join('_') : null; // color may contain spaces/underscores
 
       // Validate VIN and Model
-      if (!this.isValidVIN(vinNumber)) {
+      if (!this.vehicleUtils.isValidVIN(vinNumber)) {
         this.snackBar.open('Invalid VIN format in QR code (expected 17 digits)', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         return;
       }
-      if (!this.isValidModelNumber(modelNumber)) {
+      if (!this.vehicleUtils.isValidModelNumber(modelNumber)) {
         this.snackBar.open('Invalid Model Number format in QR code (expected 18 digits)', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         return;
       }
@@ -135,81 +139,50 @@ private fb = inject(FormBuilder);
 
   // Process single scan based on length
   private processSingleScan(scannedData: string) {
-    const cleanedData  = scannedData.replace(/[^A-Za-z0-9]/g, ''); // Extract only digits
+    const cleanedData = scannedData.replace(/[^A-Za-z0-9]/g, '');
 
-    if (this.isValidVIN(cleanedData)) {
+    if (this.vehicleUtils.isValidVIN(cleanedData)) {
       this.processVINScan(cleanedData);
-    } else if (this.isValidModelNumber(cleanedData)) {
+    } else if (this.vehicleUtils.isValidModelNumber(cleanedData)) {
       this.processModelScan(cleanedData);
-    } else if (this.isValidEngineNumber(cleanedData)) {
+    } else if (this.vehicleUtils.isValidEngineNumber(cleanedData)) {
       this.processEngineScan(cleanedData);
     } else {
       this.snackBar.open('Invalid scan data! Expected VIN (17), Model (18), or Engine (10) digits', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
     }
   }
 
-  // Validate VIN (17 digits)
-  private isValidVIN(data: string): boolean {
-    // VINs are alphanumeric (17 characters). Accept letters & digits, ignore other chars.
-    const cleaned = data.replace(/[^A-Za-z0-9]/g, '');
-    return cleaned.length === 17;
-  }
-
-  // Validate Model Number (18 digits)
-  private isValidModelNumber(data: string): boolean {
-    // Model number may contain letters and digits — count alphanumeric characters.
-    const cleaned = data.replace(/[^A-Za-z0-9]/g, '');
-    return cleaned.length === 18;
-  }
-
-  // Validate Engine Number (10 digits)
-  private isValidEngineNumber(data: string): boolean {
-    // Engine number can be alphanumeric; validate by alphanumeric length.
-    const cleaned = data.replace(/[^A-Za-z0-9]/g, '');
-    return cleaned.length === 10;
-  }
-
   // Process VIN scan
   private processVINScan(vinNumber: string) {
     this.form.patchValue({ vinNo: vinNumber });
+    this.updateCanvas();
     this.snackBar.open('VIN Number scanned successfully ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 
   // Process Engine scan
   private processEngineScan(engineNumber: string) {
     this.form.patchValue({ engineSrNo: engineNumber });
+    this.updateCanvas();
     this.snackBar.open('Engine Number scanned successfully ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 
   // Process Model scan
   private processModelScan(modelNumber: string) {
     // Extract 2-letter code from model number
-    const twoLetterCode = this.extractTwoLetterCode(modelNumber);
+    const twoLetterCode = this.vehicleUtils.extractTwoLetterCode(modelNumber);
     if (!twoLetterCode) {
       this.snackBar.open('Cannot extract letter code from model number', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
       return;
     }
 
-    console.log("Two Letter Code:", twoLetterCode);
-
     // Fetch vehicle image using GET API
     this.fetchVehicleImage(twoLetterCode, modelNumber);
-  }
-
-  // Extract 2-letter code from scanned data
-  private extractTwoLetterCode(scannedData: string): string | null {
-    // Collect all alphabetic characters and take the last two letters.
-    const letters = scannedData.match(/[A-Za-z]/g);
-    if (!letters || letters.length < 2) return null;
-    const lastTwo = letters.slice(-2).join('').toUpperCase();
-    return lastTwo;
   }
 
   // Fetch vehicle image by image name
   private fetchVehicleImage(imageName: string, modelNumber: string) {
     // Prevent duplicate API calls
     if (this.isFetchingImage) {
-      console.log('Image fetch already in progress, ignoring duplicate request');
       return;
     }
 
@@ -217,7 +190,6 @@ private fb = inject(FormBuilder);
     this.vehicleImageService.getVehicleImages({ imageName }).subscribe({
       next: (response: any) => {
         this.isFetchingImage = false;
-        console.log("Vehicle Image Response:", response);
 
         if (response?.success && response?.data) {
           // API may return the base64 under different keys or already include the data: prefix.
@@ -279,8 +251,6 @@ private fb = inject(FormBuilder);
 
     this.modelService.getModelDetails(modelNo).subscribe({
       next: (response: any) => {
-        console.log("API Response:", response);
-
         if (response.success && response.data) {
           const apiData = response.data;
           this.form.patchValue({
@@ -296,6 +266,7 @@ private fb = inject(FormBuilder);
             bsStage: apiData.bsStage
           });
 
+          this.updateCanvas();
           this.snackBar.open('Data Auto-filled Successfully! ✅', 'OK', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         } else {
           this.snackBar.open('Model not found in Database ❌', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
@@ -319,6 +290,41 @@ private fb = inject(FormBuilder);
     this.cdr.markForCheck();
   }
 
+  // Update the canvas with current form data (Number Plate)
+  private updateCanvas() {
+    // Use setTimeout to ensure the DOM is ready and values are updated
+    setTimeout(() => {
+      this.cdr.detectChanges(); // Force UI update before drawing
+      if (!this.canvasRef || !this.canvasRef.nativeElement) {
+        console.warn("Canvas element not found!");
+        return;
+      }
+
+      const canvas = this.canvasRef.nativeElement;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Set Background & Border
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Text
+      ctx.fillStyle = '#000000';
+      ctx.font = 'bold 16px Arial'; // Slightly larger font
+      const data = this.form.getRawValue(); // Get all values including disabled ones
+
+      ctx.fillText(`Model : ${data.modelNo || ''}`, 15, 35);
+      ctx.fillText(`VIN   : ${data.vinNo || ''}`, 15, 65);
+      ctx.fillText(`Engine: ${data.engineSrNo || ''}`, 15, 95);
+    }, 50);
+  }
+
   // Clear all form fields (Refresh button)
   clearForm() {
     this.form.reset({
@@ -326,6 +332,7 @@ private fb = inject(FormBuilder);
       sticker: 'vin'
     });
     this.loadCountryImage('INDIA');
+    this.updateCanvas();
     this.snackBar.open('Form cleared ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 }
