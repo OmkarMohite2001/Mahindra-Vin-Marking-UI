@@ -10,42 +10,35 @@
       </div>
 
       <div class="actions">
-        <input #fileInput type="file" accept=".xlsx,.xls" hidden (change)="onFileSelected($event)" />
-        <button mat-raised-button color="primary" (click)="onPickFile(fileInput)">
-          <mat-icon>upload_file</mat-icon>
-          Select Excel
-        </button>
+        <div class="action-buttons">
+          <input #fileInput type="file" accept=".xlsx,.xls" hidden (change)="onFileSelected($event)" />
+          <button mat-raised-button color="primary" (click)="onPickFile(fileInput)">
+            <mat-icon>upload_file</mat-icon>
+            Select Excel
+          </button>
 
-        <button mat-stroked-button color="warn" (click)="clearAll()" [disabled]="!tables.length && !fileName">
-          <mat-icon>delete_outline</mat-icon>
-          Clear
-        </button>
+          <button mat-stroked-button color="warn" (click)="clearAll()" [disabled]="!tables.length && !fileName">
+            <mat-icon>delete_outline</mat-icon>
+            Clear
+          </button>
 
-        <button mat-raised-button color="accent" class="submitBtn" [disabled]="!tables.length || loading"
-          (click)="onSubmit()">
-          <mat-icon>cloud_upload</mat-icon>
-          Submit
-        </button>
-        <button mat-raised-button color="accent" class="submitBtn" [disabled]="!tables.length || loading"
-          (click)="onSubmitAll()">
-          <mat-icon>done_all</mat-icon>
-          Submit All
-        </button>
+          <button mat-raised-button color="accent" class="submitBtn" [disabled]="!tables.length || loading"
+            (click)="onSubmit()">
+            <mat-icon>cloud_upload</mat-icon>
+            Submit
+          </button>
+          <button mat-raised-button color="accent" class="submitBtn" [disabled]="!tables.length || loading"
+            (click)="onSubmitAll()">
+            <mat-icon>done_all</mat-icon>
+            Submit All
+          </button>
+        </div>
+        <div class="stat" *ngIf="tables.length">
+          <span class="stat-label">Total rows</span>
+          <span class="stat-num">{{ tables[activeIndex]?.rawCount || 0 }}</span>
+        </div>
       </div>
 
-      <div class="meta" *ngIf="fileName">
-        <mat-icon>description</mat-icon>
-        <span class="file">{{ fileName }}</span>
-        <span class="dot">•</span>
-        <span>{{ tables.length }} sheet(s) loaded</span>
-      </div>
-    </div>
-
-    <div class="hero-right">
-      <div class="stat" *ngIf="tables.length">
-        <div class="stat-num">{{ tables[activeIndex]?.rawCount || 0 }}</div>
-        <div class="stat-label">Rows (until blank row)</div>
-      </div>
     </div>
   </mat-card>
 
