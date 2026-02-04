@@ -29,6 +29,7 @@ private fb = inject(FormBuilder);
 
   countryFlag: SafeUrl | null = null;
   private isFetchingImage = false; // Flag to prevent duplicate image API calls
+  private activeDialogRef: MatDialogRef<any> | null = null;
 
   // Mapping of backend country names to image names
   countryImageMap: { [key: string]: string } = {
@@ -109,11 +110,11 @@ private fb = inject(FormBuilder);
 
       // Validate VIN and Model
       if (!this.isValidVIN(vinNumber)) {
-        this.snackBar.open('Invalid VIN format in QR code (expected 17 digits)', 'Close', { duration: 3000 });
+        this.snackBar.open('Invalid VIN format in QR code (expected 17 digits)', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         return;
       }
       if (!this.isValidModelNumber(modelNumber)) {
-        this.snackBar.open('Invalid Model Number format in QR code (expected 18 digits)', 'Close', { duration: 3000 });
+        this.snackBar.open('Invalid Model Number format in QR code (expected 18 digits)', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         return;
       }
 
@@ -126,9 +127,9 @@ private fb = inject(FormBuilder);
         this.form.patchValue({ color: color });
       }
 
-      this.snackBar.open('QR code processed ✅', 'OK', { duration: 2500 });
+      this.snackBar.open('QR code processed ✅', 'OK', { duration: 2500, verticalPosition: 'top', horizontalPosition: 'center' });
     } else {
-      this.snackBar.open('Invalid QR code format (expected VIN_MODEL_... )', 'Close', { duration: 3000 });
+      this.snackBar.open('Invalid QR code format (expected VIN_MODEL_... )', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
     }
   }
 
@@ -143,7 +144,7 @@ private fb = inject(FormBuilder);
     } else if (this.isValidEngineNumber(cleanedData)) {
       this.processEngineScan(cleanedData);
     } else {
-      this.snackBar.open('Invalid scan data! Expected VIN (17), Model (18), or Engine (10) digits', 'Close', { duration: 3000 });
+      this.snackBar.open('Invalid scan data! Expected VIN (17), Model (18), or Engine (10) digits', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
     }
   }
 
@@ -171,13 +172,13 @@ private fb = inject(FormBuilder);
   // Process VIN scan
   private processVINScan(vinNumber: string) {
     this.form.patchValue({ vinNo: vinNumber });
-    this.snackBar.open('VIN Number scanned successfully ✅', 'OK', { duration: 2000 });
+    this.snackBar.open('VIN Number scanned successfully ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 
   // Process Engine scan
   private processEngineScan(engineNumber: string) {
     this.form.patchValue({ engineSrNo: engineNumber });
-    this.snackBar.open('Engine Number scanned successfully ✅', 'OK', { duration: 2000 });
+    this.snackBar.open('Engine Number scanned successfully ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 
   // Process Model scan
@@ -185,7 +186,7 @@ private fb = inject(FormBuilder);
     // Extract 2-letter code from model number
     const twoLetterCode = this.extractTwoLetterCode(modelNumber);
     if (!twoLetterCode) {
-      this.snackBar.open('Cannot extract letter code from model number', 'Close', { duration: 3000 });
+      this.snackBar.open('Cannot extract letter code from model number', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
       return;
     }
 
@@ -224,7 +225,7 @@ private fb = inject(FormBuilder);
           const rawBase64 = data.imageBase64 || data.base64Image || data.base64 || data.base64Img || null;
 
           if (!rawBase64) {
-            this.snackBar.open('Vehicle image not found', 'Close', { duration: 3000 });
+            this.snackBar.open('Vehicle image not found', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
             return;
           }
 
@@ -236,25 +237,35 @@ private fb = inject(FormBuilder);
           // Show image in popup
           this.showImagePopup(dataUrl, modelNumber);
         } else {
-          this.snackBar.open('Vehicle image not found', 'Close', { duration: 3000 });
+          this.snackBar.open('Vehicle image not found', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         }
       },
       error: (err: any) => {
         this.isFetchingImage = false;
         console.error("Image Fetch Error:", err);
-        this.snackBar.open('Failed to fetch vehicle image', 'Close', { duration: 3000 });
+        this.snackBar.open('Failed to fetch vehicle image', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
       }
     });
   }
 
   // Show image popup with OK/Cancel buttons
   private showImagePopup(imageBase64: string, modelNumber: string) {
+    // जर आधीच एखादा डायलॉग ओपन असेल तर तो बंद करा
+    if (this.activeDialogRef) {
+      this.activeDialogRef.close();
+    }
+
     const dialogRef = this.dialog.open(ImagePreviewDialog, {
       width: '400px',
       data: { imageBase64 }
     });
 
+    this.activeDialogRef = dialogRef;
+
     dialogRef.afterClosed().subscribe((result) => {
+      if (this.activeDialogRef === dialogRef) {
+        this.activeDialogRef = null;
+      }
       if (result === 'ok') {
         // User clicked OK - proceed to fetch model details
         this.form.patchValue({ modelNo: modelNumber });
@@ -285,14 +296,14 @@ private fb = inject(FormBuilder);
             bsStage: apiData.bsStage
           });
 
-          this.snackBar.open('Data Auto-filled Successfully! ✅', 'OK', { duration: 3000 });
+          this.snackBar.open('Data Auto-filled Successfully! ✅', 'OK', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         } else {
-          this.snackBar.open('Model not found in Database ❌', 'Close', { duration: 3000 });
+          this.snackBar.open('Model not found in Database ❌', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         }
       },
       error: (err: any) => {
         console.error("API Error:", err);
-        this.snackBar.open('API Connection Failed ⚠️', 'Close', { duration: 3000 });
+        this.snackBar.open('API Connection Failed ⚠️', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
       }
     });
   }
@@ -315,7 +326,7 @@ private fb = inject(FormBuilder);
       sticker: 'vin'
     });
     this.loadCountryImage('INDIA');
-    this.snackBar.open('Form cleared ✅', 'OK', { duration: 2000 });
+    this.snackBar.open('Form cleared ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 }
 
