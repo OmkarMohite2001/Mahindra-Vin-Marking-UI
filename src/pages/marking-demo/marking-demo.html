@@ -20,9 +20,7 @@
       <input type="text" formControlName="market">
 
       <label class="text-right">Country</label>
-      <select formControlName="country">
-        <option value="INDIA">INDIA</option>
-      </select>
+      <input type="text" formControlName="country" readonly>
 
       <label>Drive Type</label>
       <input type="text" formControlName="driveType">
@@ -116,13 +114,34 @@
        <button class="btn-green">Print</button>
        <button class="btn-blue">Engrave</button>
        <button class="btn-red">Abort</button>
+       <button class="btn-yellow" (click)="clearForm()">Refresh</button>
     </div>
 
   </div>
 
   <div class="right-section">
     <div class="display-box large-box">
+      <div class="country-image-container">
+        <div class="image-wrapper">
+          <img *ngIf="countryFlag" [src]="countryFlag" alt="Country Image" class="country-image">
+
+          <!-- Overlay text fields positioned over the plate image. They bind to form values. -->
+          <div class="overlay model-overlay" *ngIf="form.get('modelNo')?.value">
+            {{ form.get('modelNo')?.value }}
+          </div>
+
+          <div class="overlay vin-overlay" *ngIf="form.get('vinNo')?.value">
+            {{ form.get('vinNo')?.value }}
+          </div>
+
+          <div class="overlay engine-overlay" *ngIf="form.get('engineSrNo')?.value">
+            {{ form.get('engineSrNo')?.value }}
+          </div>
+
+          <p *ngIf="!countryFlag" class="fallback-text">Cannot Preview</p>
+        </div>
       </div>
+    </div>
 
     <div class="bottom-panels">
       <div class="display-box medium-box">
