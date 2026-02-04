@@ -11,15 +11,15 @@ private baseUrl = 'https://localhost:7192/api';
   // Endpoint Configuration
   private apiEndpoints: Record<string, string> = {
     'ModelMaster':  '/model/bulk-add',
-    'COLOR_CODE':   '/color/bulk-add',
-    'ENGINE_TYPE':  '/engine/bulk-add',
-    'BS Stage':     '/bs-stage/bulk-add',
-    'MARKET_NAME':  '/market/bulk-add',
-    'DRIVE_TYPE':   '/drive/bulk-add',
+    'COLOR_CODE':   '/colorcode/bulk-add',
+    'ENGINE_TYPE':  '/enginetype/bulk-add',
+    'BS Stage':     '/bsstage/bulk-add',
+    'MARKET_NAME':  '/marketname/bulk-add',
+    'DRIVE_TYPE':   '/drivetype/bulk-add',
     'NAMEPLATE':    '/nameplate/bulk-add',
-    'SEAT_CODE':    '/seat/bulk-add',
-    'TRIM_CODE':    '/trim/bulk-add',
-    'COUNTRY_CODE': '/country/bulk-add'
+    'SEAT_CODE':    '/seatcode/bulk-add',
+    'TRIM_CODE':    '/trimcode/bulk-add',
+    'COUNTRY_CODE': '/countrycode/bulk-add'
   };
 
   constructor(private http: HttpClient) {}
