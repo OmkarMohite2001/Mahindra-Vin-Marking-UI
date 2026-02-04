@@ -8,6 +8,7 @@ import { VehicleImageApi } from '../../services/vehicle-image-api';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { VehicleUtils } from '../../services/vehicle-utils';
+import { ImagePreviewDialog } from '../image-preview-dialog/image-preview-dialog';
 
 @Component({
   selector: 'app-marking-demo',
@@ -31,7 +32,7 @@ private fb = inject(FormBuilder);
 
   countryFlag: SafeUrl | null = null;
   private isFetchingImage = false; // Flag to prevent duplicate image API calls
-  private activeDialogRef: MatDialogRef<any> | null = null;
+  private activeDialogRef: MatDialogRef<ImagePreviewDialog> | null = null;
 
   // Mapping of backend country names to image names
   countryImageMap: { [key: string]: string } = {
@@ -334,56 +335,5 @@ private fb = inject(FormBuilder);
     this.loadCountryImage('INDIA');
     this.updateCanvas();
     this.snackBar.open('Form cleared ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
-  }
-}
-
-// Image Preview Dialog Component
-@Component({
-  selector: 'app-image-preview-dialog',
-  template: `
-    <div style="text-align: center;">
-      <h2 mat-dialog-title>Vehicle Image Preview</h2>
-      <div style="margin: 20px 0;">
-        <img [src]="getImageUrl()" alt="Vehicle" style="max-width: 100%; max-height: 400px; border-radius: 8px;">
-      </div>
-      <div style="display: flex; gap: 10px; justify-content: center;">
-        <button (click)="onOk()" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
-          OK
-        </button>
-        <button (click)="onCancel()" style="padding: 10px 20px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">
-          Cancel
-        </button>
-      </div>
-    </div>
-  `,
-  standalone: true,
-  imports: []
-})
-export class ImagePreviewDialog {
-  constructor(
-    public dialogRef: MatDialogRef<ImagePreviewDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    private sanitizer: DomSanitizer
-  ) {}
-
-  getImageUrl(): SafeUrl {
-    const imageBase64 = this.data?.imageBase64 || this.data?.base64Image || this.data?.base64 || '';
-    if (!imageBase64) return '';
-
-    // If caller already passed a full data URL, use it. Otherwise, prefix with content type.
-    if (typeof imageBase64 === 'string' && imageBase64.startsWith('data:')) {
-      return this.sanitizer.bypassSecurityTrustUrl(imageBase64);
-    }
-
-    const prefix = this.data?.contentType ? `data:${this.data.contentType};base64,` : 'data:image/png;base64,';
-    return this.sanitizer.bypassSecurityTrustUrl(`${prefix}${imageBase64}`);
-  }
-
-  onOk() {
-    this.dialogRef.close('ok');
-  }
-
-  onCancel() {
-    this.dialogRef.close('cancel');
   }
 }

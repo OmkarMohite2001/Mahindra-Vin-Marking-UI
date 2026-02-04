@@ -1,0 +1,14 @@
+ <div style="text-align: center;">
+      <h2 mat-dialog-title>Vehicle Image Preview</h2>
+      <div style="margin: 20px 0;">
+        <img [src]="getImageUrl()" alt="Vehicle" style="max-width: 100%; max-height: 400px; border-radius: 8px;">
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button (click)="onOk()" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          OK
+        </button>
+        <button (click)="onCancel()" style="padding: 10px 20px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          Cancel
+        </button>
+      </div>
+    </div>
