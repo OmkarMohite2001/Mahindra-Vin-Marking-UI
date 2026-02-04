@@ -23,6 +23,76 @@
 /* top card fixed */
 .hero {
   border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.hero-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.title-icon {
+  font-size: 36px;
+  width: 36px;
+  height: 36px;
+  color: rgba(0,0,0,0.6);
+}
+
+.h1 {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(0,0,0,0.7);
+  padding-left: 4px;
+}
+
+.hero-right {
+  flex-shrink: 0;
+}
+
+.stat {
+  text-align: right;
+  padding: 4px 8px;
+}
+
+.stat-num {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #673ab7; /* deep-purple */
+}
+
+.stat-label {
+  font-size: 13px;
+  margin-top: 2px;
+  color: rgba(0,0,0,0.55);
 }
 
 /* content card takes remaining height */
@@ -167,13 +237,7 @@
   position: sticky;
   top: 0;
   z-index: 3;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.02));
-}
-:host ::ng-deep .mat-mdc-header-row {
-  position: sticky;
-  top: 0;
-  z-index: 3;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.05), rgba(0,0,0,0.02));
+  background: white;
 }
 
 :host ::ng-deep .mat-mdc-header-cell {

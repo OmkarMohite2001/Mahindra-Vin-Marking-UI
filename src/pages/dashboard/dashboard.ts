@@ -171,6 +171,11 @@ export class Dashboard {
       });
   }
 
+  onSubmitAll() {
+    // TODO: Implement logic to submit all sheets
+    console.log('Submitting all sheets...');
+  }
+
   showSnackbar(message: string, type: 'success' | 'error') {
     this.snackBar.open(message, 'Close', {
       duration: 3000,

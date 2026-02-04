@@ -21,13 +21,16 @@
           Clear
         </button>
 
-          <button mat-raised-button color="accent"
-          class="submitBtn"
-          [disabled]="!tables.length || loading"
+        <button mat-raised-button color="accent" class="submitBtn" [disabled]="!tables.length || loading"
           (click)="onSubmit()">
-    <mat-icon>cloud_upload</mat-icon>
-    Submit
-  </button>
+          <mat-icon>cloud_upload</mat-icon>
+          Submit
+        </button>
+        <button mat-raised-button color="accent" class="submitBtn" [disabled]="!tables.length || loading"
+          (click)="onSubmitAll()">
+          <mat-icon>done_all</mat-icon>
+          Submit All
+        </button>
       </div>
 
       <div class="meta" *ngIf="fileName">
@@ -90,10 +93,7 @@
           </div>
 
           <div class="pager">
-            <mat-paginator
-              [pageSize]="10"
-              [pageSizeOptions]="[5, 10, 25, 50, 100]"
-              showFirstLastButtons>
+            <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 50, 100]" showFirstLastButtons>
             </mat-paginator>
           </div>
         </div>

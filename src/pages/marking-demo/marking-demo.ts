@@ -41,7 +41,7 @@ private fb = inject(FormBuilder);
     'UK': 'uk',
     'JAPAN': 'japan',
     'GERMANY': 'germany',
-    'AUSTRALIA': 'australia'
+    'AUSTRALIA': 'AUSTRALIA'
   };
 
   form = this.fb.group({
@@ -49,7 +49,7 @@ private fb = inject(FormBuilder);
   description: [''],
   description1: [''],
   market: [''],
-  country: ['INDIA'],
+  country: [null],
   driveType: [''],
   trim: [''],
   flw: [''],
@@ -73,13 +73,12 @@ private fb = inject(FormBuilder);
 });
 
   ngOnInit(): void {
-    // Load default country image (INDIA)
-    this.loadCountryImage('INDIA');
-
     // Listen for country changes from form
     this.form.get('country')?.valueChanges.subscribe((countryName) => {
       if (countryName) {
         this.loadCountryImage(countryName);
+      } else {
+        this.countryFlag = null;
       }
     });
 
@@ -285,7 +284,8 @@ private fb = inject(FormBuilder);
     const imageName = this.countryImageMap[countryName] || countryName;
 
     // Check if image is jpeg or svg
-    const extension = imageName === 'INDIA' ? '.jpeg' : '.svg';
+    // const extension = imageName === 'INDIA' ? '.jpeg' : '.svg';
+    const extension ='.jpeg';
     const imagePath = `/assets/countries/${imageName}${extension}`;
     this.countryFlag = this.sanitizer.bypassSecurityTrustUrl(imagePath);
     this.cdr.markForCheck();
@@ -329,10 +329,9 @@ private fb = inject(FormBuilder);
   // Clear all form fields (Refresh button)
   clearForm() {
     this.form.reset({
-      country: 'INDIA',
+      country: null,
       sticker: 'vin'
     });
-    this.loadCountryImage('INDIA');
     this.updateCanvas();
     this.snackBar.open('Form cleared ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
