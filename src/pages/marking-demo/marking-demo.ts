@@ -324,7 +324,11 @@ private fb = inject(FormBuilder);
       },
       error: (err) => {
         console.error('Print API Error:', err);
-        this.snackBar.open('Failed to print label ❌', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+        let msg = 'Failed to print label ';
+        if (err.error?.errors?.PrintData?.[0]) {
+          msg = err.error.errors.PrintData[0];
+        }
+        this.snackBar.open(msg, 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
       }
     });
   }
