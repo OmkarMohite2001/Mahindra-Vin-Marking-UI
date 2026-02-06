@@ -222,7 +222,6 @@ private fb = inject(FormBuilder);
 
   // Show image popup with OK/Cancel buttons
   private showImagePopup(imageBase64: string, modelNumber: string) {
-    // जर आधीच एखादा डायलॉग ओपन असेल तर तो बंद करा
     if (this.activeDialogRef) {
       this.activeDialogRef.close();
     }
