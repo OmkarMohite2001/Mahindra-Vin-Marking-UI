@@ -1,12 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
+import { API_BASE_URL } from './api-config';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ExcelImport {
-private baseUrl = 'https://localhost:7192/api';
+  private baseUrl = API_BASE_URL;
 
   // Endpoint Configuration
   private apiEndpoints: Record<string, string> = {
@@ -71,6 +72,14 @@ private baseUrl = 'https://localhost:7192/api';
           colorName: row['COLOR_NAME'] || '',
           isActive: true
         }));
+
+      case 'BS Stage':
+        return data.map(row => ({
+          bsStage: row['BS_STAGE'] || '',
+          description: row['DESCRIPTION'] || '',
+          isActive: true
+        }));
+
       default:
         console.warn(`No mapping logic for ${sheetName}, sending raw data.`);
         return data;

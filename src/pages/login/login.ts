@@ -59,6 +59,14 @@ get username() { return this.form.controls.username; }
       next: (res: any) => {
         this.loading = false;
         localStorage.setItem('token', res.token);
+
+        // Static Role Validation logic
+        if (this.form.value.username === 'Admin' && this.form.value.password === 'Admin') {
+          localStorage.setItem('role', 'Admin');
+        } else {
+          localStorage.setItem('role', 'User');
+        }
+
         this.router.navigateByUrl('/app/dashboard');
       },
       error: (err) => {

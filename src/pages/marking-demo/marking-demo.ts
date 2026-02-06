@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { VehicleUtils } from '../../services/vehicle-utils';
 import { ImagePreviewDialog } from '../image-preview-dialog/image-preview-dialog';
+import { PrinterApi } from '../../services/printer-api';
 
 @Component({
   selector: 'app-marking-demo',
@@ -17,6 +18,7 @@ import { ImagePreviewDialog } from '../image-preview-dialog/image-preview-dialog
   styleUrl: './marking-demo.scss',
 })
 export class MarkingDemo {
+  private printerService = inject(PrinterApi);
 private fb = inject(FormBuilder);
   private serialService = inject(Serial);
   private modelService = inject(ModelsApi);
@@ -31,6 +33,8 @@ private fb = inject(FormBuilder);
   @ViewChild('nameplatCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
   countryFlag: SafeUrl | null = null;
+  labelPreviewImage: SafeUrl | null = null;
+  scannedQrCode: string = '';
   private isFetchingImage = false; // Flag to prevent duplicate image API calls
   private activeDialogRef: MatDialogRef<ImagePreviewDialog> | null = null;
 
@@ -104,6 +108,7 @@ private fb = inject(FormBuilder);
 
   // Process combined QR code (VIN_MODEL_ENGINE format)
   private processCombinedQRCode(qrData: string) {
+    this.scannedQrCode = qrData;
     // Expected format: VIN_MODEL_COLOR (underscore separated)
     const parts = qrData.split('_');
 
@@ -139,6 +144,7 @@ private fb = inject(FormBuilder);
 
   // Process single scan based on length
   private processSingleScan(scannedData: string) {
+    this.scannedQrCode = scannedData;
     const cleanedData = scannedData.replace(/[^A-Za-z0-9]/g, '');
 
     if (this.vehicleUtils.isValidVIN(cleanedData)) {
@@ -266,6 +272,7 @@ private fb = inject(FormBuilder);
           });
 
           this.updateCanvas();
+          this.fetchLabelPreview();
           this.snackBar.open('Data Auto-filled Successfully! ✅', 'OK', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         } else {
           this.snackBar.open('Model not found in Database ❌', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
@@ -274,6 +281,50 @@ private fb = inject(FormBuilder);
       error: (err: any) => {
         console.error("API Error:", err);
         this.snackBar.open('API Connection Failed ⚠️', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+      }
+    });
+  }
+
+  fetchLabelPreview() {
+    const formData = this.form.getRawValue();
+    const payload = {
+      modelNo: formData.modelNo,
+      vinNo: formData.vinNo,
+      engineSrNo: formData.engineSrNo,
+      description: formData.description,
+      qr: this.scannedQrCode || formData.vinNo // Use scanned QR or fallback to VIN
+    };
+
+    this.printerService.getLabelPreview(payload).subscribe({
+      next: (blob: any) => {
+        const objectUrl = URL.createObjectURL(blob);
+        this.labelPreviewImage = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Label Preview API Error:', err);
+      }
+    });
+  }
+
+  onPrint() {
+    const formData = this.form.getRawValue();
+    const payload = {
+      modelNo: formData.modelNo,
+      vinNo: formData.vinNo,
+      engineSrNo: formData.engineSrNo,
+      description: formData.description,
+      qr: this.scannedQrCode || formData.vinNo
+    };
+
+    this.printerService.printLabel(payload).subscribe({
+      next: (response: any) => {
+        const msg = response?.message || 'Print command sent successfully';
+        this.snackBar.open(msg, 'OK', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+      },
+      error: (err) => {
+        console.error('Print API Error:', err);
+        this.snackBar.open('Failed to print label ❌', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
       }
     });
   }
