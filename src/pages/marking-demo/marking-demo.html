@@ -111,10 +111,10 @@
     </fieldset>
 
     <div class="action-buttons">
-       <button class="btn-green" (click)="onPrint()">Print</button>
-       <button class="btn-blue">Engrave</button>
-       <button class="btn-red">Abort</button>
-       <button class="btn-yellow" (click)="clearForm()">Refresh</button>
+      <button class="btn-green" (click)="onPrint()">Print</button>
+      <button class="btn-blue">Engrave</button>
+      <button class="btn-red">Abort</button>
+      <button class="btn-yellow" (click)="clearForm()">Refresh</button>
     </div>
 
   </div>
@@ -145,9 +145,17 @@
 
     <div class="bottom-panels">
       <div class="display-box medium-box">
+        <div class="label-preview-wrap">
+          <img *ngIf="labelPreviewImage" [src]="labelPreviewImage" alt="Label Preview" class="label-preview-img" />
+
+          <p *ngIf="!labelPreviewImage" class="fallback-text">
+            Label preview will appear here
+          </p>
         </div>
+      </div>
+
       <div class="display-box small-box">
-        </div>
+      </div>
     </div>
   </div>
 </div>

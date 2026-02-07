@@ -29,6 +29,7 @@ private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private sanitizer = inject(DomSanitizer);
   private vehicleUtils = inject(VehicleUtils);
+private lastLabelUrl: string | null = null;
 
   @ViewChild('nameplatCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
@@ -296,15 +297,22 @@ private fb = inject(FormBuilder);
     };
 
     this.printerService.getLabelPreview(payload).subscribe({
-      next: (blob: any) => {
-        const objectUrl = URL.createObjectURL(blob);
-        this.labelPreviewImage = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error('Label Preview API Error:', err);
-      }
-    });
+      next: (blob: Blob) => {
+      // जुना URL release
+      if (this.lastLabelUrl) URL.revokeObjectURL(this.lastLabelUrl);
+
+      const objectUrl = URL.createObjectURL(blob);
+      this.lastLabelUrl = objectUrl;
+
+      this.labelPreviewImage = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+      this.cdr.markForCheck();
+    },
+    error: (err) => {
+      console.error('Label Preview API Error:', err);
+      this.labelPreviewImage = null;
+      this.cdr.markForCheck();
+    }
+  });
   }
 
   onPrint() {
