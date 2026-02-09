@@ -80,6 +80,52 @@ export class ExcelImport {
           isActive: true
         }));
 
+      case 'TRIM_CODE':
+        return data.map(row => ({
+          trimCode: row['TRIM_CODE'] || '',
+          description: row['DESCRIPTION'] || '',
+          isActive: true
+        }));
+
+      case 'COUNTRY_CODE':
+        return data.map(row => ({
+          COUNTRY_CODE: row['COUNTRY_CODE'] || '',
+          countryName: row['COUNTRY_NAME'] || '',
+          remarks: row['REMARKS'] || '',
+          isActive: true
+        }));
+
+      case 'ENGINE_TYPE':
+        return data.map((row) => ({
+          ENGINE_TYPE: row['ENGINE_TYPE'] || '',
+          isActive: true,
+        }));
+
+      case 'MARKET_NAME':
+        return data.map((row) => ({
+          MARKET_NAME: row['MARKET_NAME'] || '',
+          isActive: true,
+        }));
+
+      case 'DRIVE_TYPE':
+        return data.map((row) => ({
+          DRIVE_TYPE: row['DRIVE_TYPE'] || '',
+          isActive: true,
+        }));
+
+      case 'NAMEPLATE':
+        return data.map((row) => ({
+          namePlate: row['NAMEPLATE'] || '',
+          description: row['DESCRIPTION'] || '',
+          isActive: true,
+        }));
+
+      case 'SEAT_CODE':
+        return data.map((row) => ({
+          SEAT_CODE: row['SEAT_CODE'] || '',
+          isActive: true,
+        }));
+
       default:
         console.warn(`No mapping logic for ${sheetName}, sending raw data.`);
         return data;

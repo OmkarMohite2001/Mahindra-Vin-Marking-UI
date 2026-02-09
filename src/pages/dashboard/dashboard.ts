@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild } from '@angular/core';
 import * as XLSX from 'xlsx';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map, finalize } from 'rxjs/operators';
 import { ChangeDetectorRef, NgZone } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -158,13 +160,12 @@ export class Dashboard {
     this.loading = true;
 
     this.excelService.uploadData(currentSheet.sheetName, currentSheet.dataSource.data)
+      .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: (res) => {
-          this.loading = false;
           this.showSnackbar(`${currentSheet.sheetName} ${res.message}`, 'success');
         },
         error: (err) => {
-          this.loading = false;
           console.error(err);
           this.showSnackbar(`Upload Failed. ${err}`, 'error');
         }
@@ -172,8 +173,38 @@ export class Dashboard {
   }
 
   onSubmitAll() {
-    // TODO: Implement logic to submit all sheets
-    console.log('Submitting all sheets...');
+    if (!this.tables.length) return;
+    this.loading = true;
+
+    const requests = this.tables.map((table) =>
+      this.excelService.uploadData(table.sheetName, table.dataSource.data).pipe(
+        map((res) => ({ status: 'success', sheetName: table.sheetName, res })),
+        catchError((err) => of({ status: 'error', sheetName: table.sheetName, err })),
+      ),
+    );
+
+    forkJoin(requests)
+      .pipe(finalize(() => (this.loading = false)))
+      .subscribe({
+      next: (results) => {
+        const failures = results.filter((r) => r.status === 'error');
+        const successes = results.filter((r) => r.status === 'success');
+
+        if (failures.length > 0) {
+          const failedNames = failures.map((f: any) => f.sheetName).join(', ');
+          this.showSnackbar(
+            `Uploaded: ${successes.length}. Failed: ${failedNames}`,
+            'error',
+          );
+        } else {
+          this.showSnackbar('All sheets uploaded successfully', 'success');
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        this.showSnackbar(`Upload Failed. ${err}`, 'error');
+      },
+    });
   }
 
   showSnackbar(message: string, type: 'success' | 'error') {
