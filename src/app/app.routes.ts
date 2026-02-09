@@ -1,3 +1,4 @@
+import { EngravingTesting } from './../pages/engraving-testing/engraving-testing';
 import { MarkingDemo } from './../pages/marking-demo/marking-demo';
 import { Routes } from '@angular/router';
 import { Login } from '../pages/login/login';
@@ -45,6 +46,11 @@ export const routes: Routes = [
         path: 'vehicle-images',
         loadComponent: () =>
           import('../pages/vehicle-images/vehicle-images').then(m => m.VehicleImages),
+      },
+       {
+        path: 'engraving-testing',
+        loadComponent: () =>
+          import('../pages/engraving-testing/engraving-testing').then(m => m.EngravingTesting),
       },
 
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
