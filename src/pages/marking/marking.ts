@@ -349,9 +349,9 @@ private lastLabelUrl: string | null = null;
       qr: this.scannedQrCode || formData.vinNo // Use scanned QR or fallback to VIN
     };
 
-    this.showPrintLoader('Preparing Preview', 'Generating print preview...');
+    this.showScanLoader('Scanning QR Code', 'Generating print preview...');
     this.printerService.getLabelPreview(payload).pipe(
-      finalize(() => this.hidePrintLoader())
+      finalize(() => this.hideScanLoader())
     ).subscribe({
       next: (blob: Blob) => {
       // जुना URL release
@@ -601,4 +601,5 @@ private lastLabelUrl: string | null = null;
     this.cdr.markForCheck();
   }
 }
+
 
