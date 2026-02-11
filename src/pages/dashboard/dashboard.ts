@@ -19,6 +19,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ExcelImport } from '../../services/excel-import';
 import { ExcelLoader } from '../../loaders/excel-loader/excel-loader';
+import { TableConvertLoader } from '../../loaders/table-convert-loader/table-convert-loader';
 
 type SheetTable = {
   sheetName: string;
@@ -45,6 +46,7 @@ type SheetTable = {
     HttpClientModule,
     MatSnackBarModule,
     ExcelLoader,
+    TableConvertLoader,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
@@ -56,6 +58,9 @@ export class Dashboard {
   excelMainMessage = 'Uploading Excel Sheet...';
   excelSubMessage = 'Validating and importing data...';
   private excelLoadingCount = 0;
+  isTableConvertLoading = false;
+  tableConvertMainMessage = 'Converting Table Data...';
+  tableConvertSubMessage = 'Reading sheets and building grid...';
   tables: SheetTable[] = [];
   activeIndex = 0;
 
@@ -79,6 +84,7 @@ export class Dashboard {
     if (!file) return;
 
     this.loading = true;
+    this.showTableConvertLoader('Converting Table Data...', `Reading ${file.name}...`);
     this.fileName = file.name;
     this.tables = [];
     this.activeIndex = 0;
@@ -128,6 +134,7 @@ export class Dashboard {
         this.tables = tempTables;
         this.activeIndex = 0;
         this.loading = false;
+        this.hideTableConvertLoader();
 
         this.cdr.detectChanges(); // force paint now
         setTimeout(() => this.attachPagingSorting(), 0);
@@ -135,6 +142,7 @@ export class Dashboard {
     } catch (e) {
       this.zone.run(() => {
         this.loading = false;
+        this.hideTableConvertLoader();
         this.cdr.detectChanges();
       });
     } finally {
@@ -244,6 +252,18 @@ export class Dashboard {
       this.isExcelLoading = false;
       this.cdr.markForCheck();
     }
+  }
+
+  private showTableConvertLoader(mainMessage: string, subMessage: string) {
+    this.tableConvertMainMessage = mainMessage;
+    this.tableConvertSubMessage = subMessage;
+    this.isTableConvertLoading = true;
+    this.cdr.markForCheck();
+  }
+
+  private hideTableConvertLoader() {
+    this.isTableConvertLoading = false;
+    this.cdr.markForCheck();
   }
 
   private attachPagingSorting() {

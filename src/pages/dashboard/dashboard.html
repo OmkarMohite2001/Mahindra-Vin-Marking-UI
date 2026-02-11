@@ -1,4 +1,10 @@
 <div class="page">
+  <app-table-convert-loader
+    *ngIf="isTableConvertLoading"
+    [mainMessage]="tableConvertMainMessage"
+    [subMessage]="tableConvertSubMessage">
+  </app-table-convert-loader>
+
   <app-excel-loader
     *ngIf="isExcelLoading"
     [mainMessage]="excelMainMessage"
