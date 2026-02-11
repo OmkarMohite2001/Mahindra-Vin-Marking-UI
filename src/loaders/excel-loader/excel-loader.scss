@@ -3,167 +3,192 @@
   inset: 0;
   width: 100%;
   height: 100vh;
-  background-color: rgba(8, 14, 24, 0.45);
+  background-color: rgba(8, 14, 24, 0.5);
   display: grid;
   place-items: center;
   z-index: 10002;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
 }
 
 .loader-card {
   width: 380px;
   height: 380px;
   border-radius: 16px;
-  background: linear-gradient(180deg, rgba(247, 250, 248, 0.96), rgba(235, 241, 236, 0.96));
-  border: 1px solid rgba(33, 115, 70, 0.25);
-  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
-  padding: 18px 14px 14px;
+  background: linear-gradient(180deg, rgba(9, 13, 11, 0.97), rgba(8, 11, 9, 0.95));
+  border: 1px solid rgba(48, 95, 72, 0.5);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+  padding: 22px 16px 16px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.upload-container {
+.loader-shell {
   position: relative;
-  width: 250px;
-  height: 300px;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 28px;
 }
 
-.cloud {
-  width: 100px;
-  height: 40px;
-  background: #e0e0e0;
-  border-radius: 50px;
+.upload-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.excel-source {
+  width: 70px;
+  height: 90px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fcfffd, #ecf6ef);
+  border: 1px solid #2d7d53;
+  border-bottom: 5px solid #1d6f42;
+  color: #1d6f42;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 1px;
   position: relative;
-  margin-bottom: 60px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  animation: cloudPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 18px rgba(29, 111, 66, 0.28);
+  animation: fileShake 0.55s ease-in-out infinite;
 }
 
-.cloud::before,
-.cloud::after {
+.excel-source::after {
   content: '';
   position: absolute;
-  background: #e0e0e0;
-  border-radius: 50%;
+  top: 0;
+  right: 0;
+  border-width: 0 16px 16px 0;
+  border-style: solid;
+  border-color: #d8e8dc #0f1612 #d8e8dc #d8e8dc;
+  border-top-right-radius: 6px;
 }
 
-.cloud::before {
-  width: 50px;
-  height: 50px;
-  top: -25px;
-  left: 15px;
+.binary-stream {
+  width: 170px;
+  height: 44px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px dashed rgba(74, 111, 91, 0.75);
+  background:
+    linear-gradient(90deg, rgba(0, 255, 149, 0.06), rgba(0, 255, 149, 0.01)),
+    rgba(8, 20, 13, 0.75);
+  box-shadow: inset 0 0 20px rgba(0, 255, 153, 0.08);
 }
 
-.cloud::after {
-  width: 40px;
-  height: 40px;
-  top: -15px;
-  right: 15px;
-}
-
-.excel-file {
-  width: 50px;
-  height: 70px;
-  background: #fff;
-  border: 2px solid #217346;
-  border-radius: 4px;
+.digit {
   position: absolute;
-  bottom: 80px;
+  top: 10px;
+  color: #00ff99;
+  font-size: 14px;
+  opacity: 0;
+  text-shadow: 0 0 8px rgba(0, 255, 153, 0.7);
+  animation: moveDigits 1.4s linear infinite;
+}
+
+.d1 { animation-delay: 0s; }
+.d2 { animation-delay: 0.28s; }
+.d3 { animation-delay: 0.56s; }
+.d4 { animation-delay: 0.84s; }
+.d5 { animation-delay: 1.12s; }
+.d1::before { content: '1'; }
+.d2::before { content: '0'; }
+.d3::before { content: '1'; }
+.d4::before { content: '0'; }
+.d5::before { content: '1'; }
+
+.server-dest {
+  width: 70px;
+  height: 90px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2a2f2c, #171b19);
+  border: 1px solid #47554d;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  box-shadow: 0 0 22px rgba(0, 0, 0, 0.45);
+}
+
+.led-row {
+  width: 78%;
+  height: 6px;
+  border-radius: 3px;
+  background: #37453d;
+  position: relative;
+  overflow: hidden;
+}
+
+.led-row::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 255, 153, 0), rgba(0, 255, 153, 0.95), rgba(0, 255, 153, 0));
+  transform: translateX(-110%);
+  animation: writeData 1s linear infinite;
+}
+
+.l1::after { animation-delay: 0s; }
+.l2::after { animation-delay: 0.2s; }
+.l3::after { animation-delay: 0.4s; }
+
+.status-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  animation: uploadMove 2s ease-in-out infinite;
-  z-index: -1;
-}
-
-.excel-header {
-  width: 100%;
-  height: 20px;
-  background: #217346;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #fff;
-  font-size: 10px;
-  font-weight: bold;
-}
-
-.excel-grid {
-  width: 100%;
-  height: 100%;
-  background-image:
-    linear-gradient(#e0e0e0 1px, transparent 1px),
-    linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
-  background-size: 12px 12px;
-  background-position: center;
-}
-
-.excel-logo {
-  position: absolute;
-  bottom: 5px;
-  right: 5px;
-  background: #217346;
-  color: #fff;
-  width: 15px;
-  height: 15px;
-  font-size: 10px;
-  text-align: center;
-  line-height: 15px;
-  border-radius: 2px;
-  font-weight: bold;
-}
-
-.progress-track {
-  width: 200px;
-  height: 6px;
-  background: #ddd;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 20px;
-}
-
-.progress-fill {
-  height: 100%;
-  background: #217346;
-  width: 0%;
-  animation: filling 2s ease-in-out infinite;
+  gap: 6px;
 }
 
 .status-text {
-  margin-top: 10px;
-  color: #2f3b2f;
+  color: #d6fbe8;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
+  letter-spacing: 0.3px;
   text-align: center;
 }
 
 .sub-text {
-  margin-top: 6px;
-  color: #59685a;
-  font-size: 11px;
+  color: #80b399;
+  font-size: 12px;
   text-align: center;
 }
 
-@keyframes uploadMove {
-  0% { transform: translateY(0) scale(1); opacity: 1; }
-  50% { transform: translateY(-50px) scale(0.9); opacity: 0.8; }
-  80% { transform: translateY(-70px) scale(0.5); opacity: 0; }
-  100% { transform: translateY(0) scale(1); opacity: 0; }
+@keyframes moveDigits {
+  0% { left: 0; opacity: 0; transform: scale(0.55); }
+  12% { opacity: 1; transform: scale(1); }
+  88% { opacity: 1; transform: scale(1); }
+  100% { left: 100%; opacity: 0; }
 }
 
-@keyframes cloudPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
+@keyframes fileShake {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(2deg); }
+  75% { transform: rotate(-2deg); }
+  100% { transform: rotate(0deg); }
 }
 
-@keyframes filling {
-  0% { width: 0%; }
-  80% { width: 100%; }
-  100% { width: 100%; }
+@keyframes writeData {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(110%); }
+}
+
+@media (max-width: 768px) {
+  .loader-card {
+    width: min(90vw, 380px);
+    height: 340px;
+  }
+
+  .upload-wrapper {
+    gap: 8px;
+    transform: scale(0.9);
+  }
 }
