@@ -1,4 +1,9 @@
 <div class="main-container" [formGroup]="form">
+  <app-print-loader
+    *ngIf="isPrintLoading"
+    [mainMessage]="printMainMessage"
+    [subMessage]="printSubMessage">
+  </app-print-loader>
 
   <div class="left-section">
 

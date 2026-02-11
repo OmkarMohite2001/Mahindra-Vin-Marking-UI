@@ -1,4 +1,10 @@
 <div class="main-container" [formGroup]="form">
+  <app-print-loader
+    *ngIf="isPrintLoading"
+    [mainMessage]="printMainMessage"
+    [subMessage]="printSubMessage">
+  </app-print-loader>
+
   <app-qr-loader
     *ngIf="isScanLoading"
     [mainMessage]="loaderMainMessage"

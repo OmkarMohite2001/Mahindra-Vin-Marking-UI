@@ -11,10 +11,12 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { VehicleUtils } from '../../services/vehicle-utils';
 import { ImagePreviewDialog } from '../image-preview-dialog/image-preview-dialog';
 import { PrinterApi } from '../../services/printer-api';
+import { PrintLoader } from '../../loaders/print-loader/print-loader';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-marking-demo',
-  imports: [ReactiveFormsModule, FormsModule, MatDialogModule, CommonModule],
+  imports: [ReactiveFormsModule, FormsModule, MatDialogModule, CommonModule, PrintLoader],
   templateUrl: './marking-demo.html',
   styleUrl: './marking-demo.scss',
 })
@@ -40,6 +42,10 @@ private lastLabelUrl: string | null = null;
   scannedQrCode: string = '';
   private isFetchingImage = false; // Flag to prevent duplicate image API calls
   private activeDialogRef: MatDialogRef<ImagePreviewDialog> | null = null;
+  isPrintLoading = false;
+  printMainMessage = 'Printing Label';
+  printSubMessage = 'Sending data to printer...';
+  private printLoadingCount = 0;
 
   // Mapping of backend country names to image names
   countryImageMap: { [key: string]: string } = {
@@ -304,7 +310,10 @@ private lastLabelUrl: string | null = null;
       qr: this.scannedQrCode || formData.vinNo // Use scanned QR or fallback to VIN
     };
 
-    this.printerService.getLabelPreview(payload).subscribe({
+    this.showPrintLoader('Preparing Preview', 'Generating print preview...');
+    this.printerService.getLabelPreview(payload).pipe(
+      finalize(() => this.hidePrintLoader())
+    ).subscribe({
       next: (blob: Blob) => {
       // जुना URL release
       if (this.lastLabelUrl) URL.revokeObjectURL(this.lastLabelUrl);
@@ -333,7 +342,10 @@ private lastLabelUrl: string | null = null;
       qr: this.scannedQrCode || formData.vinNo
     };
 
-    this.printerService.printLabel(payload).subscribe({
+    this.showPrintLoader('Printing Label', 'Sending data to printer...');
+    this.printerService.printLabel(payload).pipe(
+      finalize(() => this.hidePrintLoader())
+    ).subscribe({
       next: (response: any) => {
         const msg = response?.message || 'Print command sent successfully';
         this.snackBar.open(msg, 'OK', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
@@ -398,11 +410,29 @@ private lastLabelUrl: string | null = null;
 
   // Clear all form fields (Refresh button)
   clearForm() {
+    this.printLoadingCount = 0;
+    this.isPrintLoading = false;
     this.form.reset({
       country: null,
       sticker: 'vin'
     });
     this.updateCanvas();
-    this.snackBar.open('Form cleared ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+    this.snackBar.open('Form cleared successfully', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+  }
+
+  private showPrintLoader(mainMessage: string, subMessage: string) {
+    this.printLoadingCount += 1;
+    this.printMainMessage = mainMessage;
+    this.printSubMessage = subMessage;
+    this.isPrintLoading = true;
+    this.cdr.markForCheck();
+  }
+
+  private hidePrintLoader() {
+    this.printLoadingCount = Math.max(0, this.printLoadingCount - 1);
+    if (this.printLoadingCount === 0) {
+      this.isPrintLoading = false;
+      this.cdr.markForCheck();
+    }
   }
 }
