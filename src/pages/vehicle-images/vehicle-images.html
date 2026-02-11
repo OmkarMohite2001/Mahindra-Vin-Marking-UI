@@ -5,10 +5,11 @@
       <h1>Vehicle Images Upload</h1>
     </div>
 
-    <!-- Loading Spinner -->
-    <div *ngIf="loading" class="spinner-overlay">
-      <mat-spinner diameter="50"></mat-spinner>
-    </div>
+    <app-vehicle-image-loader
+      *ngIf="loading"
+      [mainMessage]="loaderMainMessage"
+      [subMessage]="loaderSubMessage">
+    </app-vehicle-image-loader>
 
     <!-- Upload Section -->
     <div class="card upload-card">

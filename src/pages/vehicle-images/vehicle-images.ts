@@ -2,13 +2,13 @@ import { Component, inject, OnInit, ChangeDetectorRef, NgZone } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { finalize } from 'rxjs/operators';
 import { VehicleImageApi } from '../../services/vehicle-image-api';
+import { VehicleImageLoader } from '../../loaders/vehicle-image-loader/vehicle-image-loader';
 
 @Component({
   selector: 'app-vehicle-images',
-  imports: [CommonModule, FormsModule, MatSnackBarModule, MatProgressSpinnerModule],
+  imports: [CommonModule, FormsModule, MatSnackBarModule, VehicleImageLoader],
   templateUrl: './vehicle-images.html',
   styleUrls: ['./vehicle-images.scss'],
 })
@@ -21,6 +21,8 @@ export class VehicleImages implements OnInit {
   selectedFile: File | null = null;
   selectedFiles: File[] = [];
   loading = false;
+  loaderMainMessage = 'Syncing Vehicle Assets';
+  loaderSubMessage = 'Uploading vehicle image...';
   private readonly MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
   ngOnInit() {
@@ -104,6 +106,8 @@ export class VehicleImages implements OnInit {
       return;
     }
 
+    this.loaderMainMessage = 'Syncing Vehicle Assets';
+    this.loaderSubMessage = 'Uploading single image...';
     this.loading = true;
     this.cdr.markForCheck();
 
@@ -147,6 +151,8 @@ export class VehicleImages implements OnInit {
       return;
     }
 
+    this.loaderMainMessage = 'Syncing Vehicle Assets';
+    this.loaderSubMessage = `Uploading ${this.selectedFiles.length} images...`;
     this.loading = true;
     this.cdr.markForCheck();
 
