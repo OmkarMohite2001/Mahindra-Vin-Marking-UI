@@ -11,10 +11,12 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { VehicleUtils } from '../../services/vehicle-utils';
 import { ImagePreviewDialog } from '../image-preview-dialog/image-preview-dialog';
 import { PrinterApi } from '../../services/printer-api';
+import { QrLoader } from '../../loaders/qr-loader/qr-loader';
+import { finalize } from 'rxjs/operators';
 @Component({
   selector: 'app-marking',
   imports: [
-    ReactiveFormsModule, FormsModule, MatDialogModule, CommonModule
+    ReactiveFormsModule, FormsModule, MatDialogModule, CommonModule, QrLoader
   ],
   templateUrl: './marking.html',
   styleUrls: ['./marking.scss'],
@@ -41,6 +43,10 @@ private lastLabelUrl: string | null = null;
   scannedQrCode: string = '';
   private isFetchingImage = false; // Flag to prevent duplicate image API calls
   private activeDialogRef: MatDialogRef<ImagePreviewDialog> | null = null;
+  isScanLoading = false;
+  loaderMainMessage = 'Scanning QR Code';
+  loaderSubMessage = 'Processing scanned data...';
+  private scanLoadingCount = 0;
 
   // Mapping of backend country names to image names
   countryImageMap: { [key: string]: string } = {
@@ -203,7 +209,10 @@ private lastLabelUrl: string | null = null;
     }
 
     this.isFetchingImage = true;
-    this.vehicleImageService.getVehicleImages({ imageName }).subscribe({
+    this.showScanLoader('Scanning QR Code', 'Fetching vehicle image...');
+    this.vehicleImageService.getVehicleImages({ imageName }).pipe(
+      finalize(() => this.hideScanLoader())
+    ).subscribe({
       next: (response: any) => {
         this.isFetchingImage = false;
 
@@ -279,7 +288,10 @@ private lastLabelUrl: string | null = null;
 
   fetchModelDetails(modelNo: string, preferredColor?: string | null) {
 
-    this.modelService.getModelDetails(modelNo).subscribe({
+    this.showScanLoader('Scanning QR Code', 'Fetching model details...');
+    this.modelService.getModelDetails(modelNo).pipe(
+      finalize(() => this.hideScanLoader())
+    ).subscribe({
       next: (response: any) => {
         if (response.success && response.data) {
           const apiData = response.data;
@@ -323,7 +335,10 @@ private lastLabelUrl: string | null = null;
       qr: this.scannedQrCode || formData.vinNo // Use scanned QR or fallback to VIN
     };
 
-    this.printerService.getLabelPreview(payload).subscribe({
+    this.showScanLoader('Preparing Preview', 'Generating print preview...');
+    this.printerService.getLabelPreview(payload).pipe(
+      finalize(() => this.hideScanLoader())
+    ).subscribe({
       next: (blob: Blob) => {
       // जुना URL release
       if (this.lastLabelUrl) URL.revokeObjectURL(this.lastLabelUrl);
@@ -423,6 +438,8 @@ private lastLabelUrl: string | null = null;
     }
 
     this.scannedQrCode = '';
+    this.scanLoadingCount = 0;
+    this.isScanLoading = false;
     if (this.lastLabelUrl) {
       URL.revokeObjectURL(this.lastLabelUrl);
       this.lastLabelUrl = null;
@@ -437,6 +454,22 @@ private lastLabelUrl: string | null = null;
     this.updateCanvas();
     this.cdr.markForCheck();
     this.snackBar.open('Form cleared successfully', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+  }
+
+  private showScanLoader(mainMessage: string, subMessage: string) {
+    this.scanLoadingCount += 1;
+    this.loaderMainMessage = mainMessage;
+    this.loaderSubMessage = subMessage;
+    this.isScanLoading = true;
+    this.cdr.markForCheck();
+  }
+
+  private hideScanLoader() {
+    this.scanLoadingCount = Math.max(0, this.scanLoadingCount - 1);
+    if (this.scanLoadingCount === 0) {
+      this.isScanLoading = false;
+      this.cdr.markForCheck();
+    }
   }
 }
 

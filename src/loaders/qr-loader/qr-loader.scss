@@ -1,0 +1,194 @@
+/* पूर्ण स्क्रीन कव्हर करण्यासाठी Overlay */
+.loader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(15, 15, 15, 0.95); /* थोडा पारदर्शक काळा */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* सर्वात वर दिसण्यासाठी */
+  backdrop-filter: blur(5px); /* मागची स्क्रीन ब्लर करण्यासाठी */
+}
+
+.scene-container {
+  position: relative;
+  width: 450px;
+  height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- स्कॅनर गन --- */
+.scanner-gun {
+  position: relative;
+  width: 140px;
+  height: 90px;
+  z-index: 10;
+  transform: translateX(-80px) rotate(-5deg);
+  animation: gunFloat 2s ease-in-out infinite alternate;
+}
+
+.gun-body {
+  width: 120px;
+  height: 50px;
+  background: linear-gradient(to bottom, #444, #222);
+  border-radius: 10px 10px 5px 5px;
+  border-bottom: 2px solid #ff0000;
+  box-shadow: inset 0 2px 5px rgba(255,255,255,0.1);
+}
+
+.gun-handle {
+  position: absolute;
+  bottom: -35px;
+  left: 20px;
+  width: 40px;
+  height: 60px;
+  background: linear-gradient(to right, #333, #111);
+  border-radius: 0 0 10px 10px;
+  transform: skewX(15deg);
+}
+
+.gun-trigger {
+  position: absolute;
+  bottom: -5px;
+  left: 55px;
+  width: 15px;
+  height: 20px;
+  background: #000;
+  border-radius: 0 0 5px 5px;
+}
+
+.status-light {
+  position: absolute;
+  top: -5px;
+  right: 20px;
+  width: 30px;
+  height: 6px;
+  background: #333;
+  border-radius: 3px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+  animation: statusBlink 0.4s infinite alternate;
+}
+
+/* --- लेझर फॅन --- */
+.laser-fan {
+  position: absolute;
+  top: 18px;
+  left: 110px;
+  width: 160px;
+  height: 110px;
+  background: linear-gradient(90deg, rgba(255, 0, 0, 0.6), transparent);
+  clip-path: polygon(0 45%, 100% 0, 100% 100%, 0 55%);
+  transform-origin: left center;
+  opacity: 0.8;
+  z-index: 5;
+  animation: laserPulse 0.1s infinite alternate;
+  filter: drop-shadow(0 0 5px red);
+}
+
+/* --- QR Code Target --- */
+.qr-card {
+  position: absolute;
+  right: 30px;
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
+  animation: cardFloat 3s ease-in-out infinite alternate;
+  overflow: hidden;
+}
+
+.qr-pattern {
+  width: 85%;
+  height: 85%;
+  position: relative;
+  background-image:
+      linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%),
+      linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 4px 4px;
+  opacity: 0.8;
+}
+
+.qr-marker {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #fff;
+  background: #000;
+  box-shadow: inset 0 0 0 3px #000, inset 0 0 0 6px #fff;
+}
+.tl { top: 0; left: 0; }
+.tr { top: 0; right: 0; }
+.bl { bottom: 0; left: 0; }
+
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #ff0000;
+  box-shadow: 0 0 10px #ff0000, 0 0 20px #ff4500;
+  animation: scanMove 1.5s ease-in-out infinite alternate;
+  z-index: 20;
+}
+
+/* --- टेक्स्ट --- */
+.text-container {
+  margin-top: 20px;
+  text-align: center;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.main-text {
+  font-size: 18px;
+  letter-spacing: 2px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.sub-text {
+  color: #888;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.dots::after { content: ''; animation: dots 1.5s infinite; }
+
+/* Animations */
+@keyframes gunFloat {
+  0% { transform: translateX(-80px) rotate(-5deg) translateY(0); }
+  100% { transform: translateX(-80px) rotate(-5deg) translateY(-5px); }
+}
+@keyframes laserPulse {
+  0% { opacity: 0.7; clip-path: polygon(0 45%, 100% 2%, 100% 98%, 0 55%); }
+  100% { opacity: 0.9; clip-path: polygon(0 45%, 100% 0%, 100% 100%, 0 55%); }
+}
+@keyframes cardFloat {
+  0% { transform: translateY(5px); }
+  100% { transform: translateY(-5px); }
+}
+@keyframes scanMove {
+  0% { top: 5%; opacity: 0.6; }
+  100% { top: 95%; opacity: 1; }
+}
+@keyframes statusBlink {
+  0% { background: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
+  100% { background: #ffaa00; box-shadow: 0 0 10px #ffaa00; }
+}
+@keyframes dots {
+  0% { content: ''; } 33% { content: '.'; } 66% { content: '..'; } 100% { content: '...'; }
+}

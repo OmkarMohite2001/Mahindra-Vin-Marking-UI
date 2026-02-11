@@ -1,4 +1,9 @@
 <div class="main-container" [formGroup]="form">
+  <app-qr-loader
+    *ngIf="isScanLoading"
+    [mainMessage]="loaderMainMessage"
+    [subMessage]="loaderSubMessage">
+  </app-qr-loader>
 
   <div class="left-section">
 
