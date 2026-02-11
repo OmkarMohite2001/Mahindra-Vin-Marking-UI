@@ -1,317 +1,301 @@
-:host {
-  display: block;
+/* पूर्ण पेज लेआउट */
+.main-container {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background-color: #dbe9f5;
+  font-family: Arial, sans-serif;
   height: 100%;
-}
-
-/* whole page */
-.marking-page {
-  height: 100%;
-  background: #d7d0be;
-  padding: 0;
   box-sizing: border-box;
-  font-family: Arial, Helvetica, sans-serif;
   width: 100%;
   max-width: 100%;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
 }
 
-/* top header */
-// .topbar {
-//   height: 56px;
-//   background: linear-gradient(#1f4da8, #123c8f);
-//   border-radius: 6px;
-//   display: grid;
-//   grid-template-columns: 170px 1fr 170px;
-//   align-items: center;
-//   padding: 0 10px;
-//   box-sizing: border-box;
-// }
+/* डावी बाजू (Form) */
+.left-section {
+  width: 45%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  min-width: 0;
+}
 
-// .brand-left,
-// .brand-right {
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-// }
+/* उजवी बाजू (Panels) */
+.right-section {
+  width: 55%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
 
-// .logo {
-//   height: 36px;
-// }
-// .logo2 {
-//   height: 30px;
-//   opacity: 0.95;
-// }
+/* फॉर्म लेबल्स आणि इन्पुट्स */
+label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #334d6e;
+  white-space: nowrap;
+}
 
-// .title-pill {
-//   justify-self: center;
-//   background: rgba(255, 255, 255, 0.18);
-//   color: #061b3d;
-//   border: 1px solid rgba(255, 255, 255, 0.35);
-//   font-weight: 800;
-//   letter-spacing: 1px;
-//   padding: 10px 26px;
-//   border-radius: 6px;
-//   min-width: 320px;
-//   text-align: center;
-//   text-transform: uppercase;
-// }
+input, select {
+  border: 1px solid #7a9cc6;
+  padding: 3px;
+  font-size: 13px;
+  background-color: white;
+}
 
-/* main split */
-.main {
-  margin-top: 0;
-  height: 100%;
-  display: grid;
-  grid-template-columns: minmax(300px, 400px) 1fr;
-  gap: 12px;
-  min-height: 0;
+.full-width {
   width: 100%;
-  max-width: 100%;
-  overflow: auto;
-  padding: 10px;
 }
 
-/* LEFT PANEL */
-.left-panel {
+.form-row {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+/* मधले ग्रिड (Market, Country, etc.) */
+.grid-fields {
+  display: grid;
+  grid-template-columns: 80px 1fr 60px 1fr; /* 4 कॉलम्स */
+  gap: 5px;
+  align-items: center;
+  background-color: #c9deef;
+  padding: 5px;
+  border: 1px solid #a4bedb;
+}
+
+.text-right {
+  text-align: right;
+  padding-right: 5px;
+}
+
+.highlight-input {
+  background-color: white;
+  border: 1px solid #555;
+}
+
+.mt-2 { margin-top: 8px; }
+
+/* CNG Box Styling */
+.cng-group {
+  border: 1px solid #7a9cc6;
+  padding: 5px;
+  margin-top: 5px;
+  background-color: #c9deef;
+}
+
+.cng-group legend {
+  font-size: 12px;
+  color: #333;
+  font-weight: bold;
+}
+
+.cng-grid {
+  display: flex;
+  justify-content: space-between;
+}
+
+.cng-fields .row {
+  display: grid;
+  grid-template-columns: 120px 150px;
+  margin-bottom: 3px;
+  align-items: center;
+}
+
+.sticker-select {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-height: 0;
-  overflow-y: auto;
+  justify-content: center;
+  padding-left: 10px;
+  border-left: 1px solid #999;
 }
 
-.card {
-  background: #a9c2cf; /* bluish panel */
-  border: 3px solid rgba(255, 255, 255, 0.7);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
-  padding: 10px;
-}
-
-.form-card {
-  padding: 10px 10px 8px;
-}
-
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px 12px;
-}
-
-.field {
-  display: grid;
-  grid-template-columns: 118px 1fr;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.field label {
-  font-size: 14px;
-  color: #0d1f2e;
-  font-weight: 700;
-}
-
-.field input,
-.field select {
-  height: 26px;
-  border-radius: 2px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  background: #e9e9e9;
-  outline: none;
-  padding: 0 8px;
-  font-size: 13px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-.field input:focus,
-.field select:focus {
-  border-color: #2b6cff;
-  box-shadow: 0 0 0 2px rgba(43, 108, 255, 0.15);
-  background: #f3f3f3;
-}
-
-.field.wide {
-  grid-template-columns: 118px 1fr;
-  margin-top: 6px;
-}
-
-/* engine block */
-.engine-card {
-  padding: 10px;
-}
-
-.engine-title {
-  font-size: 18px;
-  font-weight: 900;
-  color: #0a1f33;
-  margin-bottom: 8px;
-}
-
-.engine-grid {
-  display: grid;
-  grid-template-columns: 1fr 110px;
-  gap: 10px;
-}
-
-.field.compact {
-  grid-template-columns: 140px 1fr;
-  margin-bottom: 6px;
-}
-
-.engine-right {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 3px;
-  padding: 8px;
-}
-
-.sticker-title {
+.sticker-select p {
+  margin: 0 0 5px 0;
   font-size: 12px;
-  font-weight: 900;
-  color: #0a1f33;
-  margin-bottom: 8px;
+  font-weight: bold;
 }
 
-.radio {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin: 8px 0;
-  font-weight: 700;
-  color: #0a1f33;
-  font-size: 13px;
-}
-
-.radio input {
-  accent-color: #1f4da8;
-}
-
-/* bottom buttons */
-.btn-row {
-  margin-top: auto;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  padding: 6px 2px 0;
-}
-
-.btn {
-  height: 34px;
-  border: 1px solid rgba(0, 0, 0, 0.18);
-  border-radius: 4px;
-  font-weight: 900;
+.sticker-select label {
+  font-weight: normal;
+  margin-bottom: 2px;
   cursor: pointer;
-  background: #d8d8d8;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-.btn.soft {
-  background: #cfe6e8;
+/* उजव्या बाजूचे बॉक्सेस (Right Panels) */
+.display-box {
+  background-color: #f5f5f5; /* पांढरा/करडा रंग */
+  border: 2px solid #99b3d1;
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
 }
 
-.btn.primary {
-  background: #4fb3b7;
-  color: #06202a;
+.large-box {
+  flex: 2; /* मोठी जागा */
+  min-height: 200px;
 }
 
-.btn.danger {
-  background: #d55a4e;
-  color: #fff;
+.bottom-panels {
+  flex: 1;
+  display: flex;
+  gap: 10px;
 }
 
-.btn:active {
-  transform: translateY(1px);
+.medium-box {
+  flex: 2;
+  background-color: white;
 }
 
-/* RIGHT PANEL */
-.right-panel {
-  background: #79a9bd;
-  border: 3px solid rgba(255, 255, 255, 0.7);
-  border-radius: 4px;
-  padding: 10px;
-  min-height: 0;
-  display: grid;
-  grid-template-rows: 1fr 0.85fr;
-  gap: 12px;
-  overflow-y: auto;
+.small-box {
+  flex: 1;
+  background-color: white;
 }
 
-/* empty preview boxes */
-.preview {
-  background: #e9e9e9;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
-  border-radius: 2px;
+/* बटन्स */
+.action-buttons {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
 }
 
-.preview.big {
-  height: 100%;
+button {
+  padding: 8px 15px;
+  font-weight: bold;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
 }
 
-.preview-row {
-  display: grid;
-  grid-template-columns: 1fr 0.35fr;
-  gap: 12px;
-  min-height: 0;
-}
+.btn-green { background-color: #28a745; }
+.btn-blue { background-color: #007bff; }
+.btn-red { background-color: #dc3545; }
+.btn-yellow { background-color: #ffc107; color: #333; }
 
-.preview.mid {
-  height: 100%;
-}
-
-.preview.small {
-  height: 100%;
-  max-width: 220px;
-  justify-self: end;
-}
-
-/* responsive: narrow screen */
+/* Responsive */
 @media (max-width: 1100px) {
-  .main {
-    grid-template-columns: 1fr;
+  .main-container {
+    flex-direction: column;
   }
-  .right-panel {
-    min-height: 360px;
-  }
-  .marking-page {
-    padding: 8px;
+  .left-section,
+  .right-section {
+    width: 100%;
   }
 }
 
 @media (max-width: 768px) {
-  .main {
-    grid-template-columns: 1fr;
+  .main-container {
     gap: 8px;
-    height: auto;
-  }
-  .left-panel {
-    gap: 8px;
-  }
-  .card {
     padding: 8px;
   }
-  .grid-2 {
+  .grid-fields {
     grid-template-columns: 1fr;
-    gap: 8px;
   }
-  .field {
-    grid-template-columns: 100px 1fr;
-    gap: 6px;
-    margin-bottom: 4px;
+  .bottom-panels {
+    flex-direction: column;
   }
-  .field label {
+  label {
     font-size: 12px;
   }
-  .btn-row {
-    grid-template-columns: repeat(2, 1fr);
+  input, select {
+    font-size: 12px;
   }
-  .preview-row {
-    grid-template-columns: 1fr;
-  }
-  .preview.small {
-    max-width: 100%;
-    justify-self: auto;
-  }
+}
+/* Country Image Container */
+.country-image-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  padding: 10px;
+}
+
+.country-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.fallback-text {
+  font-size: 16px;
+  color: #7a9cc6;
+  font-weight: bold;
+  margin: 0;
+  text-align: center;
+}
+
+/* Image wrapper and overlays */
+.image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image-wrapper .country-image {
+  width: 90%;
+  height: auto;
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  color: #c62828; /* darker red text */
+  font-weight: 800;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  pointer-events: none;
+  text-align: center;
+  width: 48%;
+  font-family: 'Arial', sans-serif;
+  font-size: 20px;
+  line-height: 1.1;
+  border: none;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Positions tuned for the current nameplate SVG/photo. Adjust % if needed. */
+.model-overlay {
+  top: 39%;
+  left: 60%;
+  transform: translateX(-50%);
+}
+.vin-overlay {
+  top: 54%;
+  left: 65%;
+  transform: translateX(-50%);
+}
+.engine-overlay {
+  top: 67%;
+  left: 62%;
+  transform: translateX(-50%);
+}
+.label-preview-wrap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.label-preview-img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #cfd8dc;
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
 }
