@@ -149,7 +149,7 @@ private latestPreviewRequestId = 0;
 
       // Validate VIN and Model
       if (!this.vehicleUtils.isValidVIN(vinNumber)) {
-        this.snackBar.open('Invalid VIN format in QR code (expected 17 digits)', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+        this.snackBar.open('Invalid VIN format in QR code (must start with MA1 and be 17 characters)', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         return;
       }
       if (!this.vehicleUtils.isValidModelNumber(modelNumber)) {
@@ -176,7 +176,7 @@ private latestPreviewRequestId = 0;
     } else if (this.vehicleUtils.isValidEngineNumber(cleanedData)) {
       this.processEngineScan(cleanedData);
     } else {
-      this.snackBar.open('Invalid scan data! Expected VIN (17), Model (18), or Engine (10) digits', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+      this.snackBar.open('Invalid scan data! Expected VIN (MA1 + 17 chars), Model (18), or Engine (10) digits', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
     }
   }
 

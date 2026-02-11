@@ -4,10 +4,10 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class VehicleUtils {
-   // Validate VIN (17 alphanumeric characters)
+  // Validate VIN (must be 17 alphanumeric characters and start with MA1)
   isValidVIN(data: string): boolean {
-    const cleaned = data.replace(/[^A-Za-z0-9]/g, '');
-    return cleaned.length === 17;
+    const cleaned = data.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    return cleaned.length === 17 && cleaned.startsWith('MA1');
   }
 
   // Validate Model Number (18 alphanumeric characters)
