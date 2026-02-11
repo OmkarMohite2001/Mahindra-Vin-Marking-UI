@@ -1,16 +1,27 @@
 <div class="loader-overlay">
   <div class="loader-card">
-    <div class="table-container">
-      <div class="cell c1"></div><div class="cell c2"></div><div class="cell c3"></div><div class="cell c4"></div>
-      <div class="cell c5"></div><div class="cell c6"></div><div class="cell c7"></div><div class="cell c8"></div>
-      <div class="cell c9"></div><div class="cell c10"></div><div class="cell c11"></div><div class="cell c12"></div>
-      <div class="cell c13"></div><div class="cell c14"></div><div class="cell c15"></div><div class="cell c16"></div>
-      <div class="cell c17"></div><div class="cell c18"></div><div class="cell c19"></div><div class="cell c20"></div>
+    <div class="loader-shell">
+      <div class="upload-wrapper">
+        <div class="excel-source" aria-hidden="true">XLS</div>
 
-      <div class="scan-bar"></div>
+        <div class="binary-stream" aria-hidden="true">
+          <div class="digit d1"></div>
+          <div class="digit d2"></div>
+          <div class="digit d3"></div>
+          <div class="digit d4"></div>
+          <div class="digit d5"></div>
+          <div class="digit d6"></div>
+        </div>
+
+        <div class="table-dest" aria-hidden="true">
+          <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+          <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+          <div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div><div class="grid-cell"></div>
+        </div>
+      </div>
+
+      <div class="status-text">{{ mainMessage }}</div>
+      <div class="sub-text">{{ subMessage }}</div>
     </div>
-
-    <div class="status-text">{{ mainMessage }}</div>
-    <div class="sub-text">{{ subMessage }}</div>
   </div>
 </div>
