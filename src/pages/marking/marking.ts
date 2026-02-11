@@ -118,7 +118,6 @@ private lastLabelUrl: string | null = null;
 
   // Process combined QR code (VIN_MODEL_ENGINE format)
   private processCombinedQRCode(qrData: string) {
-    this.scannedQrCode = qrData;
     // Expected format: VIN_MODEL_COLOR (underscore separated)
     const parts = qrData.split('_');
 
@@ -137,16 +136,8 @@ private lastLabelUrl: string | null = null;
         return;
       }
 
-      // Process VIN and Model
-      this.processVINScan(vinNumber);
-      this.processModelScan(modelNumber);
-
-      // If color present, patch form
-      if (color) {
-        this.form.patchValue({ color: color });
-      }
-
-      this.snackBar.open('QR code processed ✅', 'OK', { duration: 2500, verticalPosition: 'top', horizontalPosition: 'center' });
+      // Bind VIN/color only after user confirms popup by clicking OK.
+      this.processModelScan(modelNumber, { vinNumber, color, qrData });
     } else {
       this.snackBar.open('Invalid QR code format (expected VIN_MODEL_... )', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
     }
@@ -172,18 +163,23 @@ private lastLabelUrl: string | null = null;
   private processVINScan(vinNumber: string) {
     this.form.patchValue({ vinNo: vinNumber });
     this.updateCanvas();
-    this.snackBar.open('VIN Number scanned successfully ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+    this.fetchLabelPreview();
+    this.snackBar.open('VIN Number scanned successfully', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 
   // Process Engine scan
   private processEngineScan(engineNumber: string) {
     this.form.patchValue({ engineSrNo: engineNumber });
     this.updateCanvas();
-    this.snackBar.open('Engine Number scanned successfully ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+    this.fetchLabelPreview();
+    this.snackBar.open('Engine Number scanned successfully', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 
   // Process Model scan
-  private processModelScan(modelNumber: string) {
+  private processModelScan(
+    modelNumber: string,
+    combinedData?: { vinNumber: string; color: string | null; qrData: string }
+  ) {
     // Extract 2-letter code from model number
     const twoLetterCode = this.vehicleUtils.extractTwoLetterCode(modelNumber);
     if (!twoLetterCode) {
@@ -192,11 +188,15 @@ private lastLabelUrl: string | null = null;
     }
 
     // Fetch vehicle image using GET API
-    this.fetchVehicleImage(twoLetterCode, modelNumber);
+    this.fetchVehicleImage(twoLetterCode, modelNumber, combinedData);
   }
 
   // Fetch vehicle image by image name
-  private fetchVehicleImage(imageName: string, modelNumber: string) {
+  private fetchVehicleImage(
+    imageName: string,
+    modelNumber: string,
+    combinedData?: { vinNumber: string; color: string | null; qrData: string }
+  ) {
     // Prevent duplicate API calls
     if (this.isFetchingImage) {
       return;
@@ -223,21 +223,25 @@ private lastLabelUrl: string | null = null;
             : `data:${data.contentType || 'image/png'};base64,${rawBase64}`;
 
           // Show image in popup
-          this.showImagePopup(dataUrl, modelNumber);
+          this.showImagePopup(dataUrl, modelNumber, combinedData);
         } else {
           this.snackBar.open('Vehicle image not found', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         }
       },
       error: (err: any) => {
         this.isFetchingImage = false;
-        console.error("Image Fetch Error:", err);
+        console.error('Image Fetch Error:', err);
         this.snackBar.open('Failed to fetch vehicle image', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
       }
     });
   }
 
   // Show image popup with OK/Cancel buttons
-  private showImagePopup(imageBase64: string, modelNumber: string) {
+  private showImagePopup(
+    imageBase64: string,
+    modelNumber: string,
+    combinedData?: { vinNumber: string; color: string | null; qrData: string }
+  ) {
     if (this.activeDialogRef) {
       this.activeDialogRef.close();
     }
@@ -253,16 +257,27 @@ private lastLabelUrl: string | null = null;
       if (this.activeDialogRef === dialogRef) {
         this.activeDialogRef = null;
       }
+
       if (result === 'ok') {
+        if (combinedData) {
+          this.scannedQrCode = combinedData.qrData;
+          this.form.patchValue({
+            vinNo: combinedData.vinNumber,
+            ...(combinedData.color ? { color: combinedData.color } : {})
+          });
+          this.updateCanvas();
+          this.snackBar.open('QR code processed successfully', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+        }
+
         // User clicked OK - proceed to fetch model details
         this.form.patchValue({ modelNo: modelNumber });
-        this.fetchModelDetails(modelNumber);
+        this.fetchModelDetails(modelNumber, combinedData?.color ?? null);
       }
       // If cancelled, do nothing
     });
   }
 
-  fetchModelDetails(modelNo: string) {
+  fetchModelDetails(modelNo: string, preferredColor?: string | null) {
 
     this.modelService.getModelDetails(modelNo).subscribe({
       next: (response: any) => {
@@ -281,20 +296,23 @@ private lastLabelUrl: string | null = null;
             bsStage: apiData.bsStage
           });
 
+          if (preferredColor) {
+            this.form.patchValue({ color: preferredColor });
+          }
+
           this.updateCanvas();
           this.fetchLabelPreview();
-          this.snackBar.open('Data Auto-filled Successfully! ✅', 'OK', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+          this.snackBar.open('Data Auto-filled Successfully!', 'OK', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         } else {
-          this.snackBar.open('Model not found in Database ❌', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+          this.snackBar.open('Model not found in Database', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
         }
       },
       error: (err: any) => {
-        console.error("API Error:", err);
-        this.snackBar.open('API Connection Failed ⚠️', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+        console.error('API Error:', err);
+        this.snackBar.open('API Connection Failed', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
       }
     });
   }
-
   fetchLabelPreview() {
     const formData = this.form.getRawValue();
     const payload = {
@@ -399,11 +417,26 @@ private lastLabelUrl: string | null = null;
 
   // Clear all form fields (Refresh button)
   clearForm() {
+    if (this.activeDialogRef) {
+      this.activeDialogRef.close();
+      this.activeDialogRef = null;
+    }
+
+    this.scannedQrCode = '';
+    if (this.lastLabelUrl) {
+      URL.revokeObjectURL(this.lastLabelUrl);
+      this.lastLabelUrl = null;
+    }
+    this.labelPreviewImage = null;
+    this.countryFlag = null;
+
     this.form.reset({
       country: null,
       sticker: 'vin'
     });
     this.updateCanvas();
-    this.snackBar.open('Form cleared ✅', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+    this.cdr.markForCheck();
+    this.snackBar.open('Form cleared successfully', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 }
+
