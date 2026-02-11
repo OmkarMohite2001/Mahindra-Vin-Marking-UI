@@ -1,5 +1,6 @@
-import { ChangeDetectorRef, Component, inject, NgZone, Inject, ViewChild, ElementRef } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, inject, NgZone, Inject, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Serial } from '../../services/serial';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -25,6 +26,7 @@ private fb = inject(FormBuilder);
   private vehicleImageService = inject(VehicleImageApi);
   private cdr = inject(ChangeDetectorRef);
   private ngZone = inject(NgZone);
+  private destroyRef = inject(DestroyRef);
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
   private sanitizer = inject(DomSanitizer);
@@ -79,30 +81,36 @@ private lastLabelUrl: string | null = null;
 
   ngOnInit(): void {
     // Listen for country changes from form
-    this.form.get('country')?.valueChanges.subscribe((countryName) => {
-      if (countryName) {
-        this.loadCountryImage(countryName);
-      } else {
-        this.countryFlag = null;
-      }
-    });
+    this.form.get('country')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((countryName) => {
+        if (countryName) {
+          this.loadCountryImage(countryName);
+        } else {
+          this.countryFlag = null;
+        }
+      });
 
     // Listen for changes in Model, VIN, and Engine fields to update the canvas automatically
     ['modelNo', 'vinNo', 'engineSrNo'].forEach(field => {
-      this.form.get(field)?.valueChanges.subscribe(() => this.updateCanvas());
+      this.form.get(field)?.valueChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.updateCanvas());
     });
 
-    this.serialService.dataSubject.subscribe((scannedData) => {
-      this.ngZone.run(() => {
-        // Check if it's a combined QR code (contains underscores)
-        if (scannedData.includes('_')) {
-          this.processCombinedQRCode(scannedData);
-        } else {
-          // Single scan - determine type by length
-          this.processSingleScan(scannedData);
-        }
+    this.serialService.dataSubject
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((scannedData) => {
+        this.ngZone.run(() => {
+          // Check if it's a combined QR code (contains underscores)
+          if (scannedData.includes('_')) {
+            this.processCombinedQRCode(scannedData);
+          } else {
+            // Single scan - determine type by length
+            this.processSingleScan(scannedData);
+          }
+        });
       });
-    });
 
     this.serialService.autoConnect();
   }
