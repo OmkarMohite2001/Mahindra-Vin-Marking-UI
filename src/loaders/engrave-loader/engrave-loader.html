@@ -1,0 +1,22 @@
+<div class="loader-overlay">
+  <div class="loader-card">
+    <div class="circuit-bg"></div>
+
+    <div class="loader-container">
+      <svg viewBox="0 0 600 120">
+        <text x="50%" y="65%" text-anchor="middle" class="text-base">{{ displayText }}</text>
+        <text x="50%" y="65%" text-anchor="middle" class="text-circuit">{{ displayText }}</text>
+        <text x="50%" y="65%" text-anchor="middle" class="text-glitch">{{ displayText }}</text>
+        <text x="50%" y="65%" text-anchor="middle" class="text-fill">{{ displayText }}</text>
+      </svg>
+
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
+
+      <div class="main-text">{{ mainMessage }}</div>
+      <div class="sub-text">{{ subMessage }}</div>
+      <div class="status-text"></div>
+    </div>
+  </div>
+</div>

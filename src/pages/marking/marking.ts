@@ -12,6 +12,7 @@ import { VehicleUtils } from '../../services/vehicle-utils';
 import { ImagePreviewDialog } from '../image-preview-dialog/image-preview-dialog';
 import { PrinterApi } from '../../services/printer-api';
 import { EngraveApi, EngraveResponse } from '../../services/engrave-api';
+import { EngraveLoader } from '../../loaders/engrave-loader/engrave-loader';
 import { QrLoader } from '../../loaders/qr-loader/qr-loader';
 import { PrintLoader } from '../../loaders/print-loader/print-loader';
 import { finalize } from 'rxjs/operators';
@@ -20,7 +21,7 @@ import { catchError, switchMap, tap } from 'rxjs/operators';
 @Component({
   selector: 'app-marking',
   imports: [
-    ReactiveFormsModule, FormsModule, MatDialogModule, CommonModule, QrLoader, PrintLoader
+    ReactiveFormsModule, FormsModule, MatDialogModule, CommonModule, QrLoader, PrintLoader, EngraveLoader
   ],
   templateUrl: './marking.html',
   styleUrls: ['./marking.scss'],
@@ -56,6 +57,10 @@ private lastLabelUrl: string | null = null;
   printMainMessage = 'Printing Label';
   printSubMessage = 'Sending data to printer...';
   private printLoadingCount = 0;
+  isEngraveLoading = false;
+  engraveMainMessage = 'Engraving Data';
+  engraveSubMessage = 'Connecting to engraving machine...';
+  engraveDisplayText = 'MAHINDRA';
 
   // Mapping of backend country names to image names
   countryImageMap: { [key: string]: string } = {
@@ -422,7 +427,11 @@ private lastLabelUrl: string | null = null;
       qr: this.scannedQrCode || vinNo
     };
 
-    this.showPrintLoader('Engraving Data', 'Sending parameters to engraving machine...');
+    this.showEngraveLoader(
+      'Engraving Data',
+      'Sending parameters to engraving machine...',
+      `${modelNo} | ${vinNo} | ${engineSrNo}`
+    );
 
     this.engraveService.runWithParameter(engravePayload).pipe(
       switchMap((response: EngraveResponse) => {
@@ -437,10 +446,10 @@ private lastLabelUrl: string | null = null;
           return EMPTY;
         }
 
-        this.printMainMessage = 'Printing Label';
-        this.printSubMessage = 'Sending data to printer...';
+        this.showPrintLoader('Printing Label', 'Sending data to printer...');
 
         return this.printerService.printLabel(printPayload).pipe(
+          finalize(() => this.hidePrintLoader()),
           tap((printResponse: any) => {
             const printMessage = printResponse?.message || 'Print command sent successfully';
             this.snackBar.open(printMessage, 'OK', {
@@ -466,7 +475,7 @@ private lastLabelUrl: string | null = null;
 
         return EMPTY;
       }),
-      finalize(() => this.hidePrintLoader())
+      finalize(() => this.hideEngraveLoader())
     ).subscribe();
   }
 
@@ -529,6 +538,8 @@ private lastLabelUrl: string | null = null;
     this.isScanLoading = false;
     this.printLoadingCount = 0;
     this.isPrintLoading = false;
+    this.isEngraveLoading = false;
+    this.engraveDisplayText = 'MAHINDRA';
     if (this.lastLabelUrl) {
       URL.revokeObjectURL(this.lastLabelUrl);
       this.lastLabelUrl = null;
@@ -575,6 +586,19 @@ private lastLabelUrl: string | null = null;
       this.isPrintLoading = false;
       this.cdr.markForCheck();
     }
+  }
+
+  private showEngraveLoader(mainMessage: string, subMessage: string, payloadText: string) {
+    this.engraveMainMessage = mainMessage;
+    this.engraveSubMessage = subMessage;
+    this.engraveDisplayText = payloadText;
+    this.isEngraveLoading = true;
+    this.cdr.markForCheck();
+  }
+
+  private hideEngraveLoader() {
+    this.isEngraveLoading = false;
+    this.cdr.markForCheck();
   }
 }
 

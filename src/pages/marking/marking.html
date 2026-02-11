@@ -1,4 +1,11 @@
 <div class="main-container" [formGroup]="form">
+  <app-engrave-loader
+    *ngIf="isEngraveLoading"
+    [mainMessage]="engraveMainMessage"
+    [subMessage]="engraveSubMessage"
+    [displayText]="engraveDisplayText">
+  </app-engrave-loader>
+
   <app-print-loader
     *ngIf="isPrintLoading"
     [mainMessage]="printMainMessage"
