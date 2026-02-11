@@ -11,9 +11,12 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { VehicleUtils } from '../../services/vehicle-utils';
 import { ImagePreviewDialog } from '../image-preview-dialog/image-preview-dialog';
 import { PrinterApi } from '../../services/printer-api';
+import { EngraveApi, EngraveResponse } from '../../services/engrave-api';
 import { QrLoader } from '../../loaders/qr-loader/qr-loader';
 import { PrintLoader } from '../../loaders/print-loader/print-loader';
 import { finalize } from 'rxjs/operators';
+import { EMPTY } from 'rxjs';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 @Component({
   selector: 'app-marking',
   imports: [
@@ -24,6 +27,7 @@ import { finalize } from 'rxjs/operators';
 })
 export class Marking {
  private printerService = inject(PrinterApi);
+ private engraveService = inject(EngraveApi);
 private fb = inject(FormBuilder);
   private serialService = inject(Serial);
   private modelService = inject(ModelsApi);
@@ -389,6 +393,81 @@ private lastLabelUrl: string | null = null;
         this.snackBar.open(msg, 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
       }
     });
+  }
+
+  onEngrave() {
+    const formData = this.form.getRawValue();
+    const modelNo = (formData.modelNo || '').toString().trim();
+    const vinNo = (formData.vinNo || '').toString().trim();
+    const engineSrNo = (formData.engineSrNo || '').toString().trim();
+
+    if (!modelNo || !vinNo || !engineSrNo) {
+      this.snackBar.open('Model No, VIN No and Engine Sr No are required for engrave', 'Close', {
+        duration: 3000,
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
+      return;
+    }
+
+    const engravePayload = {
+      parameters: [modelNo, vinNo, engineSrNo]
+    };
+
+    const printPayload = {
+      modelNo,
+      vinNo,
+      engineSrNo,
+      description: formData.description,
+      qr: this.scannedQrCode || vinNo
+    };
+
+    this.showPrintLoader('Engraving Data', 'Sending parameters to engraving machine...');
+
+    this.engraveService.runWithParameter(engravePayload).pipe(
+      switchMap((response: EngraveResponse) => {
+        const engraveMessage = response?.message || 'Engrave response received';
+        this.snackBar.open(engraveMessage, 'OK', {
+          duration: 3000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
+
+        if (response?.ok !== true) {
+          return EMPTY;
+        }
+
+        this.printMainMessage = 'Printing Label';
+        this.printSubMessage = 'Sending data to printer...';
+
+        return this.printerService.printLabel(printPayload).pipe(
+          tap((printResponse: any) => {
+            const printMessage = printResponse?.message || 'Print command sent successfully';
+            this.snackBar.open(printMessage, 'OK', {
+              duration: 3000,
+              verticalPosition: 'top',
+              horizontalPosition: 'center'
+            });
+            this.clearForm();
+          })
+        );
+      }),
+      catchError((err) => {
+        const message =
+          err?.error?.message ||
+          err?.message ||
+          'Engrave API failed';
+
+        this.snackBar.open(message, 'Close', {
+          duration: 3000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
+
+        return EMPTY;
+      }),
+      finalize(() => this.hidePrintLoader())
+    ).subscribe();
   }
 
   private loadCountryImage(countryName: string) {
