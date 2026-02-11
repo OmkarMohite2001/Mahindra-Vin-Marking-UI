@@ -1,4 +1,10 @@
 <div class="page">
+  <app-excel-loader
+    *ngIf="isExcelLoading"
+    [mainMessage]="excelMainMessage"
+    [subMessage]="excelSubMessage">
+  </app-excel-loader>
+
   <mat-card class="hero">
     <div class="hero-left">
       <div class="title">

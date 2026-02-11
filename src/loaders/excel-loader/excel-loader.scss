@@ -1,0 +1,169 @@
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: rgba(8, 14, 24, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 10002;
+  backdrop-filter: blur(2px);
+}
+
+.loader-card {
+  width: 380px;
+  height: 380px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(247, 250, 248, 0.96), rgba(235, 241, 236, 0.96));
+  border: 1px solid rgba(33, 115, 70, 0.25);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.28);
+  padding: 18px 14px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.upload-container {
+  position: relative;
+  width: 250px;
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.cloud {
+  width: 100px;
+  height: 40px;
+  background: #e0e0e0;
+  border-radius: 50px;
+  position: relative;
+  margin-bottom: 60px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  animation: cloudPulse 2s ease-in-out infinite;
+}
+
+.cloud::before,
+.cloud::after {
+  content: '';
+  position: absolute;
+  background: #e0e0e0;
+  border-radius: 50%;
+}
+
+.cloud::before {
+  width: 50px;
+  height: 50px;
+  top: -25px;
+  left: 15px;
+}
+
+.cloud::after {
+  width: 40px;
+  height: 40px;
+  top: -15px;
+  right: 15px;
+}
+
+.excel-file {
+  width: 50px;
+  height: 70px;
+  background: #fff;
+  border: 2px solid #217346;
+  border-radius: 4px;
+  position: absolute;
+  bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  animation: uploadMove 2s ease-in-out infinite;
+  z-index: -1;
+}
+
+.excel-header {
+  width: 100%;
+  height: 20px;
+  background: #217346;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.excel-grid {
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(#e0e0e0 1px, transparent 1px),
+    linear-gradient(90deg, #e0e0e0 1px, transparent 1px);
+  background-size: 12px 12px;
+  background-position: center;
+}
+
+.excel-logo {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: #217346;
+  color: #fff;
+  width: 15px;
+  height: 15px;
+  font-size: 10px;
+  text-align: center;
+  line-height: 15px;
+  border-radius: 2px;
+  font-weight: bold;
+}
+
+.progress-track {
+  width: 200px;
+  height: 6px;
+  background: #ddd;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #217346;
+  width: 0%;
+  animation: filling 2s ease-in-out infinite;
+}
+
+.status-text {
+  margin-top: 10px;
+  color: #2f3b2f;
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+}
+
+.sub-text {
+  margin-top: 6px;
+  color: #59685a;
+  font-size: 11px;
+  text-align: center;
+}
+
+@keyframes uploadMove {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  50% { transform: translateY(-50px) scale(0.9); opacity: 0.8; }
+  80% { transform: translateY(-70px) scale(0.5); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 0; }
+}
+
+@keyframes cloudPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes filling {
+  0% { width: 0%; }
+  80% { width: 100%; }
+  100% { width: 100%; }
+}

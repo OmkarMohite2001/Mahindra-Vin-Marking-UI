@@ -18,6 +18,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ExcelImport } from '../../services/excel-import';
+import { ExcelLoader } from '../../loaders/excel-loader/excel-loader';
 
 type SheetTable = {
   sheetName: string;
@@ -43,6 +44,7 @@ type SheetTable = {
     MatProgressBarModule,
     HttpClientModule,
     MatSnackBarModule,
+    ExcelLoader,
   ],
   templateUrl: './dashboard.html',
   styleUrls: ['./dashboard.scss'],
@@ -50,6 +52,10 @@ type SheetTable = {
 export class Dashboard {
   fileName = '';
   loading = false;
+  isExcelLoading = false;
+  excelMainMessage = 'Uploading Excel Sheet...';
+  excelSubMessage = 'Validating and importing data...';
+  private excelLoadingCount = 0;
   tables: SheetTable[] = [];
   activeIndex = 0;
 
@@ -158,9 +164,13 @@ export class Dashboard {
     if (!this.tables.length) return;
     const currentSheet = this.tables[this.activeIndex];
     this.loading = true;
+    this.showExcelLoader('Uploading Excel Sheet...', `Importing ${currentSheet.sheetName}...`);
 
     this.excelService.uploadData(currentSheet.sheetName, currentSheet.dataSource.data)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.hideExcelLoader();
+      }))
       .subscribe({
         next: (res) => {
           this.showSnackbar(`${currentSheet.sheetName} ${res.message}`, 'success');
@@ -175,6 +185,7 @@ export class Dashboard {
   onSubmitAll() {
     if (!this.tables.length) return;
     this.loading = true;
+    this.showExcelLoader('Uploading Excel Sheets...', 'Importing all sheets to server...');
 
     const requests = this.tables.map((table) =>
       this.excelService.uploadData(table.sheetName, table.dataSource.data).pipe(
@@ -184,7 +195,10 @@ export class Dashboard {
     );
 
     forkJoin(requests)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(finalize(() => {
+        this.loading = false;
+        this.hideExcelLoader();
+      }))
       .subscribe({
       next: (results) => {
         const failures = results.filter((r) => r.status === 'error');
@@ -214,6 +228,22 @@ export class Dashboard {
       verticalPosition: 'top', // Top Center
       panelClass: type === 'error' ? ['error-snackbar'] : ['success-snackbar'],
     });
+  }
+
+  private showExcelLoader(mainMessage: string, subMessage: string) {
+    this.excelLoadingCount += 1;
+    this.excelMainMessage = mainMessage;
+    this.excelSubMessage = subMessage;
+    this.isExcelLoading = true;
+    this.cdr.markForCheck();
+  }
+
+  private hideExcelLoader() {
+    this.excelLoadingCount = Math.max(0, this.excelLoadingCount - 1);
+    if (this.excelLoadingCount === 0) {
+      this.isExcelLoading = false;
+      this.cdr.markForCheck();
+    }
   }
 
   private attachPagingSorting() {
