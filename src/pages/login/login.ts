@@ -7,9 +7,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Auth } from '../../services/auth';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { LoginLoader } from '../../loaders/login-loader/login-loader';
 @Component({
   selector: 'app-login',
   imports: [
@@ -20,7 +20,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule,
+    LoginLoader,
   ],
   templateUrl: './login.html',
   styleUrl: './login.scss',
