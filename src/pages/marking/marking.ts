@@ -41,6 +41,7 @@ private fb = inject(FormBuilder);
   private sanitizer = inject(DomSanitizer);
   private vehicleUtils = inject(VehicleUtils);
 private lastLabelUrl: string | null = null;
+private latestPreviewRequestId = 0;
 
   @ViewChild('nameplatCanvas', { static: false }) canvasRef!: ElementRef<HTMLCanvasElement>;
 
@@ -340,6 +341,7 @@ private lastLabelUrl: string | null = null;
     });
   }
   fetchLabelPreview() {
+    const requestId = ++this.latestPreviewRequestId;
     const formData = this.form.getRawValue();
     const payload = {
       modelNo: formData.modelNo,
@@ -354,6 +356,7 @@ private lastLabelUrl: string | null = null;
       finalize(() => this.hideScanLoader())
     ).subscribe({
       next: (blob: Blob) => {
+      if (requestId !== this.latestPreviewRequestId) return;
       // जुना URL release
       if (this.lastLabelUrl) URL.revokeObjectURL(this.lastLabelUrl);
 
@@ -364,6 +367,7 @@ private lastLabelUrl: string | null = null;
       this.cdr.markForCheck();
     },
     error: (err) => {
+      if (requestId !== this.latestPreviewRequestId) return;
       console.error('Label Preview API Error:', err);
       this.labelPreviewImage = null;
       this.cdr.markForCheck();
@@ -601,5 +605,6 @@ private lastLabelUrl: string | null = null;
     this.cdr.markForCheck();
   }
 }
+
 
 
