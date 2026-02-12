@@ -90,21 +90,23 @@ export class Login {
         this.stopLoading();
       })
     ).subscribe((res: any) => {
-      if (!res?.token) {
+      const token = res?.token ?? res?.data?.token;
+      const apiRole = res?.role ?? res?.data?.role;
+
+      if (!token || res?.success === false) {
         if (res !== null) {
-          this.snackBar.open('Login Failed', 'Close', { duration: 3000 });
+          this.snackBar.open(res?.message || 'Login Failed', 'Close', { duration: 3000 });
         }
         return;
       }
 
-      localStorage.setItem('token', res.token);
+      localStorage.setItem('token', token);
 
-      // Static Role Validation logic
-      if (this.form.value.username === 'Admin' && this.form.value.password === 'Admin') {
-        localStorage.setItem('role', 'Admin');
-      } else {
-        localStorage.setItem('role', 'User');
-      }
+      const fallbackRole =
+        this.form.value.username === 'Admin' && this.form.value.password === 'Admin'
+          ? 'Admin'
+          : 'User';
+      localStorage.setItem('role', apiRole || fallbackRole);
 
       this.router.navigateByUrl('/app/dashboard');
     });
