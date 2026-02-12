@@ -27,7 +27,7 @@ type SheetTable = {
 };
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-excel-upload',
   standalone: true,
   imports: [
     CommonModule,
@@ -44,10 +44,10 @@ type SheetTable = {
     ExcelLoader,
     TableConvertLoader,
   ],
-  templateUrl: './dashboard.html',
-  styleUrls: ['./dashboard.scss'],
+  templateUrl: './excel-upload.html',
+  styleUrls: ['./excel-upload.scss'],
 })
-export class Dashboard {
+export class ExcelUpload {
   fileName = '';
   loading = false;
   isExcelLoading = false;

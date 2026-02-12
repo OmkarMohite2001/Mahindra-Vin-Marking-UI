@@ -11,9 +11,9 @@ export const routes: Routes = [
     component: Layout,
     children: [
       {
-        path: 'dashboard',
+        path: 'excel-upload',
         loadComponent: () =>
-          import('../pages/dashboard/dashboard').then(m => m.Dashboard),
+          import('../pages/excel-upload/excel-upload').then(m => m.ExcelUpload),
       },
       {
         path: 'marking',
@@ -46,7 +46,7 @@ export const routes: Routes = [
           import('../pages/vehicle-images/vehicle-images').then(m => m.VehicleImages),
       },
 
-      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      { path: '', pathMatch: 'full', redirectTo: 'excel-upload' },
     ],
   },
 

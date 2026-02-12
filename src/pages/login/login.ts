@@ -108,7 +108,7 @@ export class Login {
           : 'User';
       localStorage.setItem('role', apiRole || fallbackRole);
 
-      this.router.navigateByUrl('/app/dashboard');
+      this.router.navigateByUrl('/app/excel-upload');
     });
   }
 

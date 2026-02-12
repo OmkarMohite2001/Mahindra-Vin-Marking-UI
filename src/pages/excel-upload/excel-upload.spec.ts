@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Dashboard } from './dashboard';
+import { ExcelUpload } from './excel-upload';
 
-describe('Dashboard', () => {
-  let component: Dashboard;
-  let fixture: ComponentFixture<Dashboard>;
+describe('ExcelUpload', () => {
+  let component: ExcelUpload;
+  let fixture: ComponentFixture<ExcelUpload>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Dashboard]
+      imports: [ExcelUpload]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Dashboard);
+    fixture = TestBed.createComponent(ExcelUpload);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });
