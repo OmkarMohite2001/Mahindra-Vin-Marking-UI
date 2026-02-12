@@ -95,7 +95,7 @@ export class Login {
 
       if (!token || res?.success === false) {
         if (res !== null) {
-          this.snackBar.open(res?.message || 'Login Failed', 'Close', { duration: 3000 });
+          this.snackBar.open(res?.message || 'Login Failed', 'Close', { duration: 3000 , horizontalPosition: 'center', verticalPosition: 'top' });
         }
         return;
       }

@@ -35,11 +35,7 @@ export const routes: Routes = [
         loadComponent:()=>
           import('../pages/serial-terminal/serial-terminal').then(m => m.SerialTerminal),
       },
-      {
-        path:'markingDemo',
-        loadComponent:()=>
-          import('../pages/marking-demo/marking-demo').then(m => m.MarkingDemo),
-      },
+
       {
         path: 'vehicle-images',
         loadComponent: () =>
