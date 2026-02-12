@@ -10,6 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Auth } from '../../services/auth';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoginLoader } from '../../loaders/login-loader/login-loader';
+import { finalize } from 'rxjs/operators';
 @Component({
   selector: 'app-login',
   imports: [
@@ -55,9 +56,17 @@ get username() { return this.form.controls.username; }
       password: this.form.value.password
     };
 
-    this.authService.login(loginPayload).subscribe({
-      next: (res: any) => {
+    this.authService.login(loginPayload).pipe(
+      finalize(() => {
         this.loading = false;
+      })
+    ).subscribe({
+      next: (res: any) => {
+        if (!res?.token) {
+          this.snackBar.open('Login Failed', 'Close', { duration: 3000 });
+          return;
+        }
+
         localStorage.setItem('token', res.token);
 
         // Static Role Validation logic
@@ -70,9 +79,8 @@ get username() { return this.form.controls.username; }
         this.router.navigateByUrl('/app/dashboard');
       },
       error: (err) => {
-        this.loading = false;
         console.error(err);
-        alert('Login Failed');
+        this.snackBar.open('Login Failed', 'Close', { duration: 3000 });
       }
     });
   }
