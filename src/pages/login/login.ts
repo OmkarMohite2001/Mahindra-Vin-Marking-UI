@@ -10,7 +10,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { Auth } from '../../services/auth';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoginLoader } from '../../loaders/login-loader/login-loader';
-import { finalize } from 'rxjs/operators';
+import { BehaviorSubject, asyncScheduler, of } from 'rxjs';
+import { catchError, finalize, observeOn, timeout } from 'rxjs/operators';
 @Component({
   selector: 'app-login',
   imports: [
@@ -33,15 +34,36 @@ export class Login {
   private snackBar = inject(MatSnackBar);
 
   hide = true;
-  loading = false;
+  loading$ = new BehaviorSubject<boolean>(false);
+  private loadingTimeoutRef?: ReturnType<typeof setTimeout>;
 
   form = this.fb.group({
     username: ['Admin', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(4)]],
   });
 
-get username() { return this.form.controls.username; }
+  get username() { return this.form.controls.username; }
   get password() { return this.form.controls.password; }
+
+  private startLoading() {
+    this.loading$.next(true);
+    if (this.loadingTimeoutRef) {
+      clearTimeout(this.loadingTimeoutRef);
+    }
+
+    // UI never stays blocked forever, even if stream/errors behave unexpectedly.
+    this.loadingTimeoutRef = setTimeout(() => {
+      this.loading$.next(false);
+    }, 4000);
+  }
+
+  private stopLoading() {
+    if (this.loadingTimeoutRef) {
+      clearTimeout(this.loadingTimeoutRef);
+      this.loadingTimeoutRef = undefined;
+    }
+    this.loading$.next(false);
+  }
 
   onSubmit() {
     if (this.form.invalid) {
@@ -49,7 +71,7 @@ get username() { return this.form.controls.username; }
       return;
     }
 
-    this.loading = true;
+    this.startLoading();
 
     const loginPayload = {
       userName: this.form.value.username,
@@ -57,31 +79,34 @@ get username() { return this.form.controls.username; }
     };
 
     this.authService.login(loginPayload).pipe(
-      finalize(() => {
-        this.loading = false;
-      })
-    ).subscribe({
-      next: (res: any) => {
-        if (!res?.token) {
-          this.snackBar.open('Login Failed', 'Close', { duration: 3000 });
-          return;
-        }
-
-        localStorage.setItem('token', res.token);
-
-        // Static Role Validation logic
-        if (this.form.value.username === 'Admin' && this.form.value.password === 'Admin') {
-          localStorage.setItem('role', 'Admin');
-        } else {
-          localStorage.setItem('role', 'User');
-        }
-
-        this.router.navigateByUrl('/app/dashboard');
-      },
-      error: (err) => {
+      timeout(15000),
+      observeOn(asyncScheduler),
+      catchError((err) => {
         console.error(err);
-        this.snackBar.open('Login Failed', 'Close', { duration: 3000 });
+        this.snackBar.open('Login Failed', 'Close', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
+        return of(null);
+      }),
+      finalize(() => {
+        this.stopLoading();
+      })
+    ).subscribe((res: any) => {
+      if (!res?.token) {
+        if (res !== null) {
+          this.snackBar.open('Login Failed', 'Close', { duration: 3000 });
+        }
+        return;
       }
+
+      localStorage.setItem('token', res.token);
+
+      // Static Role Validation logic
+      if (this.form.value.username === 'Admin' && this.form.value.password === 'Admin') {
+        localStorage.setItem('role', 'Admin');
+      } else {
+        localStorage.setItem('role', 'User');
+      }
+
+      this.router.navigateByUrl('/app/dashboard');
     });
   }
 

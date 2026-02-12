@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, ViewChild } from '@angular/core';
-import * as XLSX from 'xlsx';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map, finalize } from 'rxjs/operators';
 import { ChangeDetectorRef, NgZone } from '@angular/core';
@@ -15,8 +14,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ExcelImport } from '../../services/excel-import';
 import { ExcelLoader } from '../../loaders/excel-loader/excel-loader';
 import { TableConvertLoader } from '../../loaders/table-convert-loader/table-convert-loader';
@@ -43,8 +41,6 @@ type SheetTable = {
     MatPaginatorModule,
     MatSortModule,
     MatProgressBarModule,
-    HttpClientModule,
-    MatSnackBarModule,
     ExcelLoader,
     TableConvertLoader,
   ],
@@ -67,7 +63,6 @@ export class Dashboard {
   constructor(
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
-    private http: HttpClient,
     private snackBar: MatSnackBar,
     private excelService: ExcelImport,
   ) {}
@@ -92,6 +87,7 @@ export class Dashboard {
     this.cdr.detectChanges();
 
     try {
+      const XLSX = await import('xlsx');
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: 'array' });
 

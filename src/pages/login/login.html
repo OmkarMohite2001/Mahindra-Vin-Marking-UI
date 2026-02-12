@@ -1,5 +1,5 @@
 <div class="page">
-  <app-login-loader *ngIf="loading" message="Authenticating Credentials"></app-login-loader>
+  <app-login-loader *ngIf="(loading$ | async) ?? false" message="Authenticating Credentials"></app-login-loader>
   <div class="overlay"></div>
 
   <header class="top">
@@ -49,9 +49,9 @@
           </mat-error>
         </mat-form-field>
 
-        <button mat-raised-button class="btn" type="submit" [disabled]="loading">
-          <span *ngIf="!loading">Sign In</span>
-          <span *ngIf="loading" class="loading">Signing in...</span>
+        <button mat-raised-button class="btn" type="submit" [disabled]="(loading$ | async) ?? false">
+          <span *ngIf="!((loading$ | async) ?? false)">Sign In</span>
+          <span *ngIf="(loading$ | async) ?? false" class="loading">Signing in...</span>
         </button>
 
         <div class="footer">
