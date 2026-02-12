@@ -41,6 +41,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../pages/vehicle-images/vehicle-images').then(m => m.VehicleImages),
       },
+      {
+        path: 'user-management',
+        loadComponent: () =>
+          import('../pages/user-management/user-management').then(m => m.UserManagement),
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'excel-upload' },
     ],

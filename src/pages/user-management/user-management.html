@@ -1,0 +1,108 @@
+<div class="page">
+  <mat-card class="hero">
+    <div class="title">
+      <mat-icon class="title-icon">people</mat-icon>
+      <div>
+        <div class="h1">User Management</div>
+        <div class="sub">Create, view, update, and delete application users</div>
+      </div>
+    </div>
+  </mat-card>
+
+  <div class="grid">
+    <mat-card class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">{{ editingUserId ? 'Update User' : 'Add User' }}</div>
+          <div class="panel-sub">Username, password, and role configuration</div>
+        </div>
+        <button mat-stroked-button color="primary" type="button" (click)="clearForm()">
+          New User
+        </button>
+      </div>
+
+      <form class="form" [formGroup]="userForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username" placeholder="john.doe" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput formControlName="password" type="password" placeholder="Enter password" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>Role</mat-label>
+          <mat-select formControlName="role">
+            <mat-option *ngFor="let role of roleOptions" [value]="role">{{ role }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <div class="actions full">
+          <button mat-raised-button color="primary" type="button" (click)="saveUser()">
+            {{ editingUserId ? 'Update' : 'Add' }} User
+          </button>
+          <button mat-stroked-button type="button" (click)="clearForm()">Clear</button>
+        </div>
+      </form>
+    </mat-card>
+
+    <mat-card class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Users</div>
+          <div class="panel-sub">View, edit, and remove users</div>
+        </div>
+        <div class="count">{{ users.length }} Records</div>
+      </div>
+
+      <div class="list">
+        <div class="empty" *ngIf="!users.length">No users found.</div>
+
+        <div class="item" *ngFor="let user of users; trackBy: trackByUserId">
+          <div class="item-main">
+            <div class="item-title">{{ user.username }}</div>
+            <div class="meta">
+              <span class="badge">Role: {{ user.role }}</span>
+              <span class="badge">ID: {{ user.id }}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button mat-stroked-button color="primary" type="button" (click)="viewUser(user)">View</button>
+            <button mat-stroked-button color="accent" type="button" (click)="editUser(user)">Edit</button>
+            <button mat-button color="warn" type="button" (click)="deleteUser(user.id)">Delete</button>
+          </div>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <div class="details" *ngIf="selectedUser as user; else noSelection">
+        <div class="details-head">
+          <div class="details-title">Selected User</div>
+          <button mat-button type="button" (click)="clearView()">Close</button>
+        </div>
+        <div class="details-grid">
+          <div class="label">Username</div>
+          <div class="value">{{ user.username }}</div>
+
+          <div class="label">Role</div>
+          <div class="value">{{ user.role }}</div>
+
+          <div class="label">Password</div>
+          <div class="value password">
+            <span>{{ showSelectedPassword ? user.password : '••••••••' }}</span>
+            <button mat-icon-button type="button" (click)="togglePasswordVisibility()">
+              <mat-icon>{{ showSelectedPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #noSelection>
+        <div class="empty">Select any user from list to view details.</div>
+      </ng-template>
+    </mat-card>
+  </div>
+</div>
