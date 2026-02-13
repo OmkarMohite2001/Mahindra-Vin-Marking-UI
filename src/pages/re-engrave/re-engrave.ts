@@ -457,7 +457,7 @@ private latestPreviewRequestId = 0;
           return EMPTY;
         }
 
-        return this.productionDataReportApi.addProduction(productionAddPayload).pipe(
+        return this.productionDataReportApi.reengrave(productionAddPayload).pipe(
           tap((addResponse: any) => {
             const addMessage = addResponse?.message || 'Production data added successfully';
             this.snackBar.open(addMessage, 'OK', {
