@@ -9,7 +9,7 @@ import { BrowserModule } from '@angular/platform-browser';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    // provideBrowserGlobalErrorListeners(),
+    provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideHttpClient(),
     ReactiveFormsModule,

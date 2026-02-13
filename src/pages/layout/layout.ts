@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 
@@ -27,17 +27,21 @@ import { APP_NAV_ITEMS, NavItemAccess, normalizeRole, UserRole } from '../../app
 ],
   templateUrl: './layout.html',
   styleUrls: ['./layout.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Layout {
   private router = inject(Router);
   private currentRole: UserRole | null = normalizeRole(localStorage.getItem('role'));
   readonly navItems: readonly NavItemAccess[] = APP_NAV_ITEMS;
+  readonly visibleNavItems = this.navItems.filter((item) =>
+    !!this.currentRole && item.roles.includes(this.currentRole),
+  );
   readonly loggedInUserName = (localStorage.getItem('username') || 'User').trim() || 'User';
   readonly loggedInRole = this.currentRole ?? 'Operator';
   readonly loggedInInitial = this.loggedInUserName.charAt(0).toUpperCase();
 
-  canShow(item: NavItemAccess): boolean {
-    return !!this.currentRole && item.roles.includes(this.currentRole);
+  trackByNavPath(_: number, item: NavItemAccess): string {
+    return item.path;
   }
 
   logout() {

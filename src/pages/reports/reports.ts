@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, NgZone, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -28,6 +28,7 @@ import {
   ],
   templateUrl: './reports.html',
   styleUrl: './reports.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Reports {
   private reportApi = inject(ProductionDataReportApi);
@@ -193,6 +194,14 @@ export class Reports {
     this.toDate = value;
     this.selectedDatePreset = 'none';
     this.applyDateFilter();
+  }
+
+  trackByColumn(_: number, column: string): string {
+    return column;
+  }
+
+  trackBySequenceId(_: number, row: ProductionReportRecord): number {
+    return row.sequenceID;
   }
 
   private formatDate(value: string | null): string {

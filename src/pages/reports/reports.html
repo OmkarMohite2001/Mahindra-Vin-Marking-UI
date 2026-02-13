@@ -53,7 +53,7 @@
 
     <div class="table-wrap" *ngIf="filteredRecords.length; else emptyState">
       <table mat-table [dataSource]="filteredRecords" class="report-table">
-        <ng-container *ngFor="let column of displayedColumns" [matColumnDef]="column">
+        <ng-container *ngFor="let column of displayedColumns; trackBy: trackByColumn" [matColumnDef]="column">
           <th mat-header-cell *matHeaderCellDef [ngClass]="'col-' + column">
             {{ headerLabel(column) }}
           </th>
@@ -63,7 +63,7 @@
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns; trackBy: trackBySequenceId"></tr>
       </table>
     </div>
 

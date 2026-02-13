@@ -8,12 +8,11 @@
 
       <mat-nav-list class="nav">
         <a
-          *ngFor="let item of navItems"
+          *ngFor="let item of visibleNavItems; trackBy: trackByNavPath"
           mat-list-item
           [routerLink]="[item.path]"
           routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          [style.display]="canShow(item) ? '' : 'none'">
+          [routerLinkActiveOptions]="{ exact: true }">
           <mat-icon class="nav-ic">{{ item.icon }}</mat-icon>
           <div class="nav-title">{{ item.label }}</div>
         </a>
