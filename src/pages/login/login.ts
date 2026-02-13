@@ -39,7 +39,7 @@ export class Login {
   private loadingTimeoutRef?: ReturnType<typeof setTimeout>;
 
   form = this.fb.group({
-    username: ['Admin', [Validators.required]],
+    username: ['', [Validators.required]],
     password: ['', [Validators.required, Validators.minLength(4)]],
   });
 
