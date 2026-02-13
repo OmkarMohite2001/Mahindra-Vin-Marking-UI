@@ -7,36 +7,36 @@
       </div>
 
       <mat-nav-list class="nav">
-        <a mat-list-item routerLink="excel-upload" routerLinkActive="active">
+        <a mat-list-item [routerLink]="['/app/excel-upload']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <mat-icon class="nav-ic">backup</mat-icon>
           <div class="nav-title">EXCEL UPLOAD</div>
         </a>
 
-        <a mat-list-item routerLink="marking" routerLinkActive="active">
+        <a mat-list-item [routerLink]="['/app/marking']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <mat-icon class="nav-ic">precision_manufacturing</mat-icon>
           <div class="nav-title">MARKING</div>
         </a>
 
-        <a mat-list-item routerLink="settings" routerLinkActive="active">
+        <a mat-list-item [routerLink]="['/app/settings']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <mat-icon class="nav-ic">settings</mat-icon>
           <div class="nav-title">SETTINGS</div>
         </a>
 
-         <a mat-list-item routerLink="serialTerminal" routerLinkActive="active">
+         <a mat-list-item [routerLink]="['/app/serialTerminal']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <mat-icon class="nav-ic">code</mat-icon>
           <div class="nav-title">Serial Terminal</div>
         </a>
 
-        <a mat-list-item routerLink="reports" routerLinkActive="active">
+        <a mat-list-item [routerLink]="['/app/reports']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <mat-icon class="nav-ic">description</mat-icon>
           <div class="nav-title">REPORTS</div>
         </a>
 
-         <a mat-list-item routerLink="vehicle-images" routerLinkActive="active">
+         <a mat-list-item [routerLink]="['/app/vehicle-images']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <mat-icon class="nav-ic">image</mat-icon>
           <div class="nav-title">VEHICLE IMAGES</div>
         </a>
-         <a mat-list-item routerLink="user-management" routerLinkActive="active">
+         <a mat-list-item [routerLink]="['/app/user-management']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
           <mat-icon class="nav-ic">people</mat-icon>
           <div class="nav-title">USER MANAGEMENT</div>
         </a>
@@ -58,7 +58,7 @@
       <button mat-button [matMenuTriggerFor]="adminMenu">Admin</button>
       <button mat-button [matMenuTriggerFor]="maintMenu">Maintenance</button>
       <button mat-button [matMenuTriggerFor]="assocMenu">Associate</button>
-      <button mat-button [matMenuTriggerFor]="reportsMenu">Reports</button>
+      <button mat-button [routerLink]="['/app/reports']">Reports</button>
       <button mat-button [matMenuTriggerFor]="helpMenu">Help</button>
       <span class="spacer"></span>
       <button mat-button (click)="logout()">Exit</button>
@@ -77,11 +77,6 @@
     <mat-menu #assocMenu="matMenu">
       <button mat-menu-item>Operator</button>
       <button mat-menu-item>Shift</button>
-    </mat-menu>
-
-    <mat-menu #reportsMenu="matMenu">
-      <button mat-menu-item>Daily</button>
-      <button mat-menu-item>Monthly</button>
     </mat-menu>
 
     <mat-menu #helpMenu="matMenu">

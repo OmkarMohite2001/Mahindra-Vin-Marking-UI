@@ -54,3 +54,15 @@ body {
   height: 100%;
 }
 /* You can add global styles to this file, and also import other style files */
+
+.snackbar-success {
+  --mdc-snackbar-container-color: #1d7d4b;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #ffffff;
+}
+
+.snackbar-error {
+  --mdc-snackbar-container-color: #b13049;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+  --mat-snack-bar-button-color: #ffffff;
+}
