@@ -46,6 +46,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../pages/user-management/user-management').then(m => m.UserManagement),
       },
+      {
+        path: 're-engrave',
+        loadComponent: () =>
+          import('../pages/re-engrave/re-engrave').then(m => m.ReEngrave),
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'excel-upload' },
     ],
