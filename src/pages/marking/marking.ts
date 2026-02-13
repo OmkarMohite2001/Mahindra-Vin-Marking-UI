@@ -12,11 +12,12 @@ import { VehicleUtils } from '../../services/vehicle-utils';
 import { ImagePreviewDialog } from '../image-preview-dialog/image-preview-dialog';
 import { PrinterApi } from '../../services/printer-api';
 import { EngraveApi, EngraveResponse } from '../../services/engrave-api';
+import { ProductionDataReportApi } from '../../services/production-data-report-api';
 import { EngraveLoader } from '../../loaders/engrave-loader/engrave-loader';
 import { QrLoader } from '../../loaders/qr-loader/qr-loader';
 import { PrintLoader } from '../../loaders/print-loader/print-loader';
 import { finalize } from 'rxjs/operators';
-import { EMPTY } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 @Component({
   selector: 'app-marking',
@@ -29,6 +30,7 @@ import { catchError, switchMap, tap } from 'rxjs/operators';
 export class Marking {
  private printerService = inject(PrinterApi);
  private engraveService = inject(EngraveApi);
+ private productionDataReportApi = inject(ProductionDataReportApi);
 private fb = inject(FormBuilder);
   private serialService = inject(Serial);
   private modelService = inject(ModelsApi);
@@ -430,6 +432,11 @@ private latestPreviewRequestId = 0;
       description: formData.description,
       qr: this.scannedQrCode || vinNo
     };
+    const productionAddPayload = {
+      modelCode: modelNo,
+      viN_NO: vinNo,
+      engineNo: engineSrNo
+    };
 
     this.showEngraveLoader(
       'Engraving Data',
@@ -450,18 +457,43 @@ private latestPreviewRequestId = 0;
           return EMPTY;
         }
 
-        this.showPrintLoader('Printing Label', 'Sending data to printer...');
-
-        return this.printerService.printLabel(printPayload).pipe(
-          finalize(() => this.hidePrintLoader()),
-          tap((printResponse: any) => {
-            const printMessage = printResponse?.message || 'Print command sent successfully';
-            this.snackBar.open(printMessage, 'OK', {
+        return this.productionDataReportApi.addProduction(productionAddPayload).pipe(
+          tap((addResponse: any) => {
+            const addMessage = addResponse?.message || 'Production data added successfully';
+            this.snackBar.open(addMessage, 'OK', {
               duration: 3000,
               verticalPosition: 'top',
               horizontalPosition: 'center'
             });
-            this.clearForm();
+          }),
+          catchError((addError) => {
+            const addMessage =
+              addError?.error?.message ||
+              addError?.message ||
+              'Failed to add production data';
+
+            this.snackBar.open(addMessage, 'Close', {
+              duration: 3000,
+              verticalPosition: 'top',
+              horizontalPosition: 'center'
+            });
+
+            return of(null);
+          }),
+          switchMap(() => {
+            this.showPrintLoader('Printing Label', 'Sending data to printer...');
+            return this.printerService.printLabel(printPayload).pipe(
+              finalize(() => this.hidePrintLoader()),
+              tap((printResponse: any) => {
+                const printMessage = printResponse?.message || 'Print command sent successfully';
+                this.snackBar.open(printMessage, 'OK', {
+                  duration: 3000,
+                  verticalPosition: 'top',
+                  horizontalPosition: 'center'
+                });
+                this.clearForm();
+              })
+            );
           })
         );
       }),
