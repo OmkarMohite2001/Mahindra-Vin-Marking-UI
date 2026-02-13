@@ -92,6 +92,7 @@ export class Login {
     ).subscribe((res: any) => {
       const token = res?.token ?? res?.data?.token;
       const apiRole = res?.role ?? res?.data?.role;
+      const apiUserId = this.extractUserId(res);
 
       if (!token || res?.success === false) {
         if (res !== null) {
@@ -101,6 +102,8 @@ export class Login {
       }
 
       localStorage.setItem('token', token);
+      localStorage.setItem('username', this.form.value.username ?? '');
+      localStorage.setItem('userId', String(apiUserId ?? 0));
 
       const fallbackRole =
         this.form.value.username === 'Admin' && this.form.value.password === 'Admin'
@@ -110,6 +113,31 @@ export class Login {
 
       this.router.navigateByUrl('/app/excel-upload');
     });
+  }
+
+  private extractUserId(res: any): number | null {
+    const possibleValues = [
+      res?.userId,
+      res?.id,
+      res?.data?.userId,
+      res?.data?.id,
+      res?.data?.user?.userId,
+      res?.data?.user?.id,
+    ];
+
+    for (const value of possibleValues) {
+      if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+      }
+      if (typeof value === 'string' && value.trim().length) {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) {
+          return parsed;
+        }
+      }
+    }
+
+    return null;
   }
 
 }

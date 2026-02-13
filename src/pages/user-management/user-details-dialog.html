@@ -1,0 +1,91 @@
+<h2 mat-dialog-title>
+  <mat-icon>manage_accounts</mat-icon>
+  User Details
+</h2>
+
+<mat-dialog-content>
+  <div class="top-row">
+    <div>
+      <p class="name">{{ data.user.userName }}</p>
+      <p class="meta">ID: {{ data.user.userId }} | Role: {{ data.user.userRole }}</p>
+    </div>
+    <span class="status-pill" [ngClass]="data.user.isActive ? 'active' : 'inactive'">
+      <mat-icon>{{ data.user.isActive ? 'verified_user' : 'block' }}</mat-icon>
+      {{ data.user.isActive ? 'Active' : 'Inactive' }}
+    </span>
+  </div>
+
+  <div class="status-banner" *ngIf="statusMessage" [ngClass]="statusTone">{{ statusMessage }}</div>
+
+  <section class="block">
+    <h3><mat-icon>edit</mat-icon> Update User</h3>
+    <form [formGroup]="userForm" class="grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Username</mat-label>
+        <input matInput formControlName="userName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Role</mat-label>
+        <mat-select formControlName="userRole">
+          <mat-option *ngFor="let role of data.roleOptions" [value]="role">{{ role }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+
+    <div class="actions">
+      <button mat-raised-button color="primary" (click)="updateUser()" [disabled]="actionInProgress">
+        <mat-icon>save</mat-icon>
+        Update
+      </button>
+      <button mat-stroked-button (click)="toggleStatus()" [disabled]="actionInProgress">
+        <mat-icon>{{ data.user.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+        {{ data.user.isActive ? 'Set Inactive' : 'Set Active' }}
+      </button>
+    </div>
+  </section>
+
+  <section class="block">
+    <h3><mat-icon>password</mat-icon> Change Password</h3>
+    <form [formGroup]="passwordForm" class="grid">
+      <mat-form-field appearance="outline">
+        <mat-label>New Password</mat-label>
+        <input matInput type="password" formControlName="newPassword" />
+        <mat-error *ngIf="passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid">
+          New password is required (minimum 4 characters)
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Confirm Password</mat-label>
+        <input matInput type="password" formControlName="confirmPassword" />
+        <mat-error
+          *ngIf="passwordForm.controls.confirmPassword.touched && passwordForm.controls.confirmPassword.invalid"
+        >
+          Confirm password is required (minimum 4 characters)
+        </mat-error>
+        <mat-error *ngIf="passwordForm.touched && passwordForm.hasError('fieldMismatch')">
+          New password and confirm password must match
+        </mat-error>
+      </mat-form-field>
+    </form>
+
+    <div class="actions">
+      <button mat-raised-button class="password-btn" (click)="changePassword()" [disabled]="actionInProgress">
+        <mat-icon>lock_reset</mat-icon>
+        Change Password
+      </button>
+    </div>
+  </section>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button color="warn" (click)="deleteUser()" [disabled]="actionInProgress">
+    <mat-icon>delete_forever</mat-icon>
+    Delete
+  </button>
+  <button mat-flat-button (click)="close()">
+    <mat-icon>close</mat-icon>
+    Close
+  </button>
+</mat-dialog-actions>
