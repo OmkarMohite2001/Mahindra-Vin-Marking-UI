@@ -1,29 +1,38 @@
 <div class="page">
   <app-login-loader *ngIf="(loading$ | async) ?? false" message="Authenticating Credentials"></app-login-loader>
-  <div class="overlay"></div>
-
-  <header class="top">
-    <div class="brand">
-      <!-- <img class="logo" src="D:/CISPL/Mahindra/Frontend/Mahindra-Vin-Marking/src/assets/Mahindra-login-bg.jpg" alt="Mahindra" /> -->
-      <img class="logo" src="assets/Mahindra-Logo.png" alt="Mahindra" />
-      <div class="brand-text">
-        <div class="title">Mahindra VIN Marking</div>
-        <div class="sub">Secure Operator Login</div>
-      </div>
-    </div>
-  </header>
 
   <main class="content">
     <section class="hero">
-      <div class="kicker">Traceability • Laser • Compliance</div>
-      <h1>Welcome back</h1>
-      <p>Login to continue marking cycle operations and reporting.</p>
+      <div class="hero-brand">
+        <img class="logo" src="assets/Mahindra-Logo.png" alt="Mahindra" />
+        <div class="brand-text">
+          <div class="title">Mahindra VIN Marking</div>
+          <div class="sub">Plant Authentication Gateway</div>
+        </div>
+      </div>
+
+      <div class="hero-copy">
+        <h1>Secure Login</h1>
+        <p>Use your assigned credentials to access marking, reporting and operator workflows.</p>
+      </div>
+
+      <div class="hero-points">
+        <div class="point">
+          <mat-icon>verified_user</mat-icon>
+          <span>Role-based secure access</span>
+        </div>
+
+        <div class="point">
+          <mat-icon>precision_manufacturing</mat-icon>
+          <span>Production line continuity</span>
+        </div>
+      </div>
     </section>
 
     <mat-card class="card" appearance="outlined">
       <div class="card-head">
-        <div class="card-title">Sign in</div>
-        <div class="chip">Mahindra Plant</div>
+        <div class="card-title">Sign In</div>
+        <div class="chip">Authorized Access</div>
       </div>
 
       <form class="form" [formGroup]="form" (ngSubmit)="onSubmit()">
@@ -55,12 +64,10 @@
         </button>
 
         <div class="footer">
-          <span class="muted">Need access?</span>
-          <span class="muted">Contact Supervisor / IT</span>
+          <span class="muted">Need access assistance?</span>
+          <span class="muted">Contact Supervisor / IT Desk</span>
         </div>
       </form>
     </mat-card>
   </main>
 </div>
-
-
