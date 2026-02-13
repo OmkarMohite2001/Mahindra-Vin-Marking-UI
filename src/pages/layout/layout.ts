@@ -32,6 +32,9 @@ export class Layout {
   private router = inject(Router);
   private currentRole: UserRole | null = normalizeRole(localStorage.getItem('role'));
   readonly navItems: readonly NavItemAccess[] = APP_NAV_ITEMS;
+  readonly loggedInUserName = (localStorage.getItem('username') || 'User').trim() || 'User';
+  readonly loggedInRole = this.currentRole ?? 'Operator';
+  readonly loggedInInitial = this.loggedInUserName.charAt(0).toUpperCase();
 
   canShow(item: NavItemAccess): boolean {
     return !!this.currentRole && item.roles.includes(this.currentRole);

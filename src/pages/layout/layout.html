@@ -20,9 +20,19 @@
 
         <mat-divider></mat-divider>
 
-        <a mat-list-item (click)="logout()">
-          <mat-icon class="nav-ic">power_settings_new</mat-icon>
-          <div class="nav-title">EXIT</div>
+        <a mat-list-item (click)="logout()" class="logout-row">
+          <!-- <div class="logout-avatar">{{ loggedInInitial }}</div> -->
+
+          <div class="logout-left">
+            <div class="logout-copy">
+              <div class="logout-welcome">WELCOME</div>
+              <div class="logout-user">{{ loggedInUserName }}</div>
+            </div>
+            <div class="logout-action">
+              <mat-icon class="logout-right">logout</mat-icon>
+            </div>
+          </div>
+
         </a>
       </mat-nav-list>
     </div>
