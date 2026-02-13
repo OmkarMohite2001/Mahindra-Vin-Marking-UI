@@ -12,6 +12,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoginLoader } from '../../loaders/login-loader/login-loader';
 import { BehaviorSubject, asyncScheduler, of } from 'rxjs';
 import { catchError, finalize, observeOn, timeout } from 'rxjs/operators';
+import { getFirstAllowedPath, normalizeRole } from '../../app/role-access';
 @Component({
   selector: 'app-login',
   imports: [
@@ -105,13 +106,14 @@ export class Login {
       localStorage.setItem('username', this.form.value.username ?? '');
       localStorage.setItem('userId', String(apiUserId ?? 0));
 
-      const fallbackRole =
+      const fallbackRoleRaw =
         this.form.value.username === 'Admin' && this.form.value.password === 'Admin'
           ? 'Admin'
-          : 'User';
-      localStorage.setItem('role', apiRole || fallbackRole);
+          : 'Operator';
+      const normalizedRole = normalizeRole(apiRole || fallbackRoleRaw) ?? 'Operator';
+      localStorage.setItem('role', normalizedRole);
 
-      this.router.navigateByUrl('/app/excel-upload');
+      this.router.navigateByUrl(getFirstAllowedPath(normalizedRole));
     });
   }
 

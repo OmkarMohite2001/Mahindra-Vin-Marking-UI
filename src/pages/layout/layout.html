@@ -7,42 +7,15 @@
       </div>
 
       <mat-nav-list class="nav">
-        <a mat-list-item [routerLink]="['/app/excel-upload']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-          <mat-icon class="nav-ic">backup</mat-icon>
-          <div class="nav-title">EXCEL UPLOAD</div>
-        </a>
-
-        <a mat-list-item [routerLink]="['/app/marking']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-          <mat-icon class="nav-ic">precision_manufacturing</mat-icon>
-          <div class="nav-title">MARKING</div>
-        </a>
-
-        <a mat-list-item [routerLink]="['/app/settings']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-          <mat-icon class="nav-ic">settings</mat-icon>
-          <div class="nav-title">SETTINGS</div>
-        </a>
-
-         <a mat-list-item [routerLink]="['/app/serialTerminal']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-          <mat-icon class="nav-ic">code</mat-icon>
-          <div class="nav-title">Serial Terminal</div>
-        </a>
-
-        <a mat-list-item [routerLink]="['/app/reports']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-          <mat-icon class="nav-ic">description</mat-icon>
-          <div class="nav-title">REPORTS</div>
-        </a>
-
-         <a mat-list-item [routerLink]="['/app/vehicle-images']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-          <mat-icon class="nav-ic">image</mat-icon>
-          <div class="nav-title">VEHICLE IMAGES</div>
-        </a>
-         <a mat-list-item [routerLink]="['/app/user-management']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-          <mat-icon class="nav-ic">people</mat-icon>
-          <div class="nav-title">USER MANAGEMENT</div>
-        </a>
-         <a mat-list-item [routerLink]="['/app/re-engrave']" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-          <mat-icon class="nav-ic">edit</mat-icon>
-          <div class="nav-title">RE-ENGRAVE</div>
+        <a
+          *ngFor="let item of navItems"
+          mat-list-item
+          [routerLink]="[item.path]"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          [style.display]="canShow(item) ? '' : 'none'">
+          <mat-icon class="nav-ic">{{ item.icon }}</mat-icon>
+          <div class="nav-title">{{ item.label }}</div>
         </a>
 
         <mat-divider></mat-divider>

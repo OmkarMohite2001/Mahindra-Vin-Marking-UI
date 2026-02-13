@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { APP_NAV_ITEMS, NavItemAccess, normalizeRole, UserRole } from '../../app/role-access';
 @Component({
   selector: 'app-layout',
   imports: [
@@ -29,10 +30,19 @@ import { MatDividerModule } from '@angular/material/divider';
 })
 export class Layout {
   private router = inject(Router);
+  private currentRole: UserRole | null = normalizeRole(localStorage.getItem('role'));
+  readonly navItems: readonly NavItemAccess[] = APP_NAV_ITEMS;
+
+  canShow(item: NavItemAccess): boolean {
+    return !!this.currentRole && item.roles.includes(this.currentRole);
+  }
 
   logout() {
     if(confirm("Are you sure want to logout!!")){
       localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userId');
       this.router.navigateByUrl('/login');
 
     }
