@@ -34,6 +34,15 @@ To build the project run:
 ng build
 ```
 
+For IIS deployment under virtual path `/app/marking/`, use:
+
+```bash
+npm run build:iis:marking
+```
+
+Deploy files from `dist/Mahindra-Vin-Marking/browser` to the IIS application folder.
+`public/web.config` is included in the build output and enables SPA route fallback to `index.html`.
+
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
 ## Running unit tests

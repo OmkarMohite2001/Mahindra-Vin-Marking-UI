@@ -10,7 +10,7 @@
     linear-gradient(120deg, rgba(5, 20, 42, 0.9) 0%, rgba(7, 34, 72, 0.84) 42%, rgba(8, 44, 82, 0.74) 100%),
     radial-gradient(circle at 14% 18%, rgba(66, 145, 255, 0.35), transparent 36%),
     radial-gradient(circle at 86% 18%, rgba(72, 191, 255, 0.28), transparent 35%),
-    url('/assets/mahindra-new-logo.jpg') center/cover no-repeat;
+    url('../../assets/mahindra-new-logo.jpg') center/cover no-repeat;
   padding: clamp(18px, 3vw, 34px);
   box-sizing: border-box;
 }

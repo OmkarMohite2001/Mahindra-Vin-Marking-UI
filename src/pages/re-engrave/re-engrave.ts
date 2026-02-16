@@ -522,7 +522,7 @@ private latestPreviewRequestId = 0;
     // Check if image is jpeg or svg
     // const extension = imageName === 'INDIA' ? '.jpeg' : '.svg';
     const extension ='.jpeg';
-    const imagePath = `/assets/countries/${imageName}${extension}`;
+    const imagePath = `assets/countries/${imageName}${extension}`;
     this.countryFlag = this.sanitizer.bypassSecurityTrustUrl(imagePath);
     this.cdr.markForCheck();
   }
