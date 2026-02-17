@@ -105,6 +105,10 @@ export class Login {
       localStorage.setItem('token', token);
       localStorage.setItem('username', this.form.value.username ?? '');
       localStorage.setItem('userId', String(apiUserId ?? 0));
+      const username = (this.form.value.username ?? '').trim().toLowerCase();
+      const password = (this.form.value.password ?? '').trim().toLowerCase();
+      const isDeveloperSession = username === 'developer' && password === 'developer';
+      localStorage.setItem('isDeveloperSession', isDeveloperSession ? 'true' : 'false');
 
       const fallbackRoleRaw =
         this.form.value.username === 'Admin' && this.form.value.password === 'Admin'

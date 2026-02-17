@@ -14,7 +14,11 @@
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }">
           <div class="nav-item-content">
-            <mat-icon class="nav-ic">{{ item.icon }}</mat-icon>
+            @if (getNavImageSrc(item); as navImage) {
+              <img class="nav-img" [src]="navImage" [alt]="item.label" />
+            } @else {
+              <mat-icon class="nav-ic">{{ item.icon }}</mat-icon>
+            }
             <div class="nav-title">{{ item.label }}</div>
           </div>
         </a>
@@ -30,7 +34,7 @@
               <div class="logout-user">{{ loggedInUserName }}</div>
             </div>
             <div class="logout-action">
-              <mat-icon class="logout-right">logout</mat-icon>
+              <img class="logout-img" [src]="logoutImageSrc" alt="Logout" />
             </div>
           </div>
 

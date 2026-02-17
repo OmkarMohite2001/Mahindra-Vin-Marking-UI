@@ -9,10 +9,10 @@
 }
 
 .side{
-  width: 260px;
-  min-width: 260px;
+  width: 215px;
+  min-width: 215px;
   background: linear-gradient(135deg, #e7dfc8 0%, #d9d0b8 100%);
-  border-right: 2px solid rgba(0,0,0,0.15);
+  border-right: 1px solid rgba(0,0,0,0.12);
   overflow-y: visible;
   overflow-x: hidden;
   -ms-overflow-style: none;
@@ -49,51 +49,53 @@
 }
 
 .side-logo{
-  padding: 8px 10px;
+  padding: 14px 10px 12px;
   display:flex;
   justify-content:center;
   align-items:center;
   background: rgba(0, 110, 140, 0.08);
   border-bottom: 2px solid rgba(0, 110, 140, 0.2);
-  margin-bottom: 6px;
+  margin-bottom: 12px;
   flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  min-height: 88px;
+  position: relative;
+  z-index: 1;
 
   img{
-    max-width: 80px;
-    max-height: 40px;
+    width: clamp(132px, 80%, 190px);
+    max-height: 70px;
     object-fit: contain;
+    object-position: center;
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+    display: block;
   }
 }
 
 .nav{
-  padding-top: 6px;
+  padding-top: 0;
   padding-bottom: 6px;
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  overflow-y: visible;
+  overflow-y: inherit;
 }
 
 .nav-link{
-  margin: 4px 10px;
+  margin: 0 41px;
   border-radius: 10px;
   background: rgba(255,255,255,0.35);
   border: 1px solid rgba(0,0,0,0.08);
   transition: all 0.22s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-  padding: 12px 10px;
-  min-height: 94px;
+  padding: 1px 11px;
+  min-height: 110px;
   display: flex;
   align-items: stretch;
   cursor: pointer;
   font-size: 16px;
   white-space: normal;
-  gap: 0;
+  gap: 12px;
   text-decoration: none;
 }
 
@@ -133,13 +135,24 @@
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
+
+.nav-img{
+  width: 76px;
+  height: 76px;
+  object-fit: cover;
+  object-position: center;
+  flex-shrink: 0;
+  border-radius: 4px;
+  mix-blend-mode: multiply;
+  image-rendering: auto;
+}
 .nav-link:hover .nav-ic{ color: #0d2a5c; }
 .nav-link.active .nav-ic{ color: #006e8c; }
 
 .nav-title{
   font-weight: 800;
   letter-spacing: 0.02em;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.1;
   color: #1f1f1f;
   white-space: normal;
@@ -150,17 +163,18 @@
 /* Logout button-card */
 .logout-row {
   margin-top: auto !important;
-  min-height: 72px !important;
+  min-height: 86px !important;
   border-radius: 16px !important;
   border: 1px solid rgba(187, 72, 60, 0.45) !important;
   background: linear-gradient(145deg, #fff3ee 0%, #f6d7cd 58%, #efc2b3 100%) !important;
   box-shadow: 0 10px 18px rgba(124, 40, 32, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.82) !important;
-  padding: 10px !important;
+  padding: 10px 12px !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: space-between !important;
-  gap: 10px !important;
+  justify-content: center !important;
+  gap: 12px !important;
   overflow: hidden !important;
+  text-decoration: none !important;
 }
 
 .logout-row:hover {
@@ -187,9 +201,10 @@
 .logout-left {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
   min-width: 0;
-  flex: 1;
+  width: 100%;
 }
 
 .logout-copy {
@@ -208,10 +223,10 @@
 
 .logout-user {
   text-transform: capitalize;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 900;
   color: #4f1d18;
-  line-height: 1.1;
+  line-height: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -222,10 +237,12 @@
   align-items: center;
   background: linear-gradient(140deg, #ad3f34, #8a2f25);
   border: 1px solid rgba(111, 29, 21, 0.5);
-  border-radius: 6px;
-  height: 40px;
-  width: 40px;
-  padding: 10px;
+  border-radius: 7px !important;
+  height: 32px !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  padding: 4px !important;
   justify-content: center;
   cursor: pointer;
   color: #fff7f5;
@@ -239,6 +256,15 @@
   font-size: 16px;
   width: 18px;
   height: 18px;
+}
+
+.logout-img{
+  width: 18px !important;
+  height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  object-fit: contain;
+  display: block;
 }
 
 .main{
@@ -289,7 +315,7 @@
   grid-template-columns: 160px 1fr 160px;
   align-items:center;
   gap: 10px;
-  padding: 0 10px;
+  padding: 0 6px;
 
   background: linear-gradient(#2f56b7, #26479a);
   border-top: 2px solid rgba(255,255,255,0.35);
@@ -317,7 +343,7 @@
 }
 
 .workarea{
-  padding: 12px;
+  padding: 6px 8px 8px 6px;
   height: calc(100% - 38px - 46px);
   overflow:auto;
   background:#d9d2bf;
