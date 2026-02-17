@@ -36,6 +36,7 @@ export class Login {
 
   hide = true;
   loading$ = new BehaviorSubject<boolean>(false);
+  private isSubmitting = false;
   private loadingTimeoutRef?: ReturnType<typeof setTimeout>;
 
   form = this.fb.group({
@@ -47,6 +48,7 @@ export class Login {
   get password() { return this.form.controls.password; }
 
   private startLoading() {
+    this.form.disable({ emitEvent: false });
     this.loading$.next(true);
     if (this.loadingTimeoutRef) {
       clearTimeout(this.loadingTimeoutRef);
@@ -64,14 +66,20 @@ export class Login {
       this.loadingTimeoutRef = undefined;
     }
     this.loading$.next(false);
+    this.form.enable({ emitEvent: false });
   }
 
   onSubmit() {
+    if (this.isSubmitting || this.loading$.getValue()) {
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
+    this.isSubmitting = true;
     this.startLoading();
 
     const loginPayload = {
@@ -88,6 +96,7 @@ export class Login {
         return of(null);
       }),
       finalize(() => {
+        this.isSubmitting = false;
         this.stopLoading();
       })
     ).subscribe((res: any) => {
