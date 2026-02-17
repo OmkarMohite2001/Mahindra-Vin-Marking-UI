@@ -34,7 +34,7 @@
 
 /* फॉर्म लेबल्स आणि इन्पुट्स */
 label {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: bold;
   color: #334d6e;
   white-space: nowrap;
@@ -42,9 +42,11 @@ label {
 
 input, select {
   border: 1px solid #7a9cc6;
-  padding: 3px;
-  font-size: 13px;
+  padding: 6px 8px;
+  font-size: 15px;
+  min-height: 34px;
   background-color: white;
+  box-sizing: border-box;
 }
 
 .full-width {
@@ -53,25 +55,26 @@ input, select {
 
 .form-row {
   display: grid;
-  grid-template-columns: 100px 1fr;
+  grid-template-columns: 130px 1fr;
   align-items: center;
-  margin-bottom: 3px;
+  margin-bottom: 5px;
+  column-gap: 8px;
 }
 
 /* मधले ग्रिड (Market, Country, etc.) */
 .grid-fields {
   display: grid;
-  grid-template-columns: 80px 1fr 60px 1fr; /* 4 कॉलम्स */
-  gap: 5px;
+  grid-template-columns: 105px 1fr 90px 1fr;
+  gap: 8px;
   align-items: center;
   background-color: #c9deef;
-  padding: 5px;
+  padding: 8px;
   border: 1px solid #a4bedb;
 }
 
 .text-right {
   text-align: right;
-  padding-right: 5px;
+  padding-right: 8px;
 }
 
 .highlight-input {
@@ -84,13 +87,13 @@ input, select {
 /* CNG Box Styling */
 .cng-group {
   border: 1px solid #7a9cc6;
-  padding: 5px;
+  padding: 8px;
   margin-top: 5px;
   background-color: #c9deef;
 }
 
 .cng-group legend {
-  font-size: 12px;
+  font-size: 14px;
   color: #333;
   font-weight: bold;
 }
@@ -102,9 +105,10 @@ input, select {
 
 .cng-fields .row {
   display: grid;
-  grid-template-columns: 120px 150px;
-  margin-bottom: 3px;
+  grid-template-columns: 150px 190px;
+  margin-bottom: 6px;
   align-items: center;
+  column-gap: 8px;
 }
 
 .sticker-select {
@@ -117,7 +121,7 @@ input, select {
 
 .sticker-select p {
   margin: 0 0 5px 0;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
 }
 
@@ -157,14 +161,17 @@ input, select {
 
 /* बटन्स */
 .action-buttons {
-  margin-top: 10px;
+  margin-top: 16px;
   display: flex;
-  gap: 10px;
+  gap: 75px;
+  flex-wrap: wrap;
 }
 
 button {
-  padding: 8px 15px;
+  padding: 10px 18px;
+  min-height: 50px;
   font-weight: bold;
+  font-size: 21px;
   color: white;
   border: none;
   border-radius: 3px;
@@ -199,10 +206,10 @@ button {
     flex-direction: column;
   }
   label {
-    font-size: 12px;
+    font-size: 14px;
   }
   input, select {
-    font-size: 12px;
+    font-size: 14px;
   }
 }
 /* Country Image Container */
@@ -299,3 +306,4 @@ button {
   padding: 10px;
   border-radius: 8px;
 }
+
