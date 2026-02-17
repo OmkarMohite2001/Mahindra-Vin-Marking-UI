@@ -57,18 +57,23 @@
     </mat-toolbar>
 
     <mat-menu #adminMenu="matMenu">
-      <button mat-menu-item>Users</button>
-      <button mat-menu-item>Roles</button>
+      <button mat-menu-item [routerLink]="['/app/user-management']">Users Master</button>
+      <button mat-menu-item>Color Master</button>
+      <button mat-menu-item>Country Master</button>
+      <button mat-menu-item>Trim Master</button>
+      <button mat-menu-item>Model Master</button>
+      <button mat-menu-item [routerLink]="['/app/re-engrave']">Reprint</button>
+      <button mat-menu-item>Manage Batch No</button>
+      <button mat-menu-item>Email Recipients</button>
     </mat-menu>
 
     <mat-menu #maintMenu="matMenu">
-      <button mat-menu-item>Device Config</button>
-      <button mat-menu-item>Calibration</button>
+      <button mat-menu-item [routerLink]="['/app/excel-upload']">Upload Data</button>
+      <button mat-menu-item [routerLink]="['/app/settings']">Settings</button>
     </mat-menu>
 
     <mat-menu #assocMenu="matMenu">
-      <button mat-menu-item>Operator</button>
-      <button mat-menu-item>Shift</button>
+      <button mat-menu-item [routerLink]="['/app/marking']">Marking Cycle</button>
     </mat-menu>
 
     <mat-menu #helpMenu="matMenu">

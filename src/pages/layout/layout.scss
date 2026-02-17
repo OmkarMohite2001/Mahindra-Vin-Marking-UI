@@ -298,8 +298,8 @@
 
 .topmenu button{
   font-weight: 600;
-  font-size: 150;
-  padding: 12px 15px;            /* ✅ compact */
+  font-size: 24px;
+  padding: 10px 14px;            /* ✅ compact */
   min-width: auto;           /* ✅ mat-button default wide असतो */
   white-space: nowrap;       /* ✅ button text तुटणार नाही */
   gap: 4px;                  /* ✅ icon आणि text मध्ये gap */
@@ -395,8 +395,8 @@
 }
 @media (max-width: 1100px){
   .topmenu button{
-    font-size: 12px;
-    padding: 0 6px;
+    font-size: 18px;
+    padding: 0 8px;
   }
 }
 
@@ -428,5 +428,6 @@
 :host ::ng-deep .mat-drawer-content {
   overflow-x: hidden !important;
 }
+
 
 
