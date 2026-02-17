@@ -44,12 +44,13 @@
 }
 
 .logo {
-  width: 58px;
-  height: 58px;
-  object-fit: contain;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.93);
-  padding: 7px;
+  width: clamp(120px, 14vw, 170px);
+  height: clamp(57px, 6vw, 73px);
+  object-fit: cover;
+  object-position: 18% center;
+  border-radius: 8px;
+  background: transparent;
+  padding: 0;
 }
 
 .brand-text .title {

@@ -1,1 +1,9 @@
-<router-outlet></router-outlet>
+@if (isDesktopSupported()) {
+  <router-outlet></router-outlet>
+} @else {
+  <main class="desktop-only-message">
+    <h1>Desktop Only Application</h1>
+    <p>This application is supported on PC/laptop browsers only.</p>
+    <p>Please open it on a desktop device.</p>
+  </main>
+}

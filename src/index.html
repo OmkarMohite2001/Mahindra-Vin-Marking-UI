@@ -5,7 +5,33 @@
   <title>MahindraVinMarking</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#c41230">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    (function () {
+      var ua = navigator.userAgent.toLowerCase();
+      var isMobileUa =
+        /android|iphone|ipad|ipod|windows phone|mobile|blackberry|opera mini/i.test(ua);
+      var isNarrowScreen = window.innerWidth < 1024;
+      var isDesktop = !(isMobileUa || isNarrowScreen);
+      if (!isDesktop) return;
+
+      var manifest = document.createElement('link');
+      manifest.rel = 'manifest';
+      manifest.href = 'manifest.webmanifest';
+      document.head.appendChild(manifest);
+
+      var appleTouch = document.createElement('link');
+      appleTouch.rel = 'apple-touch-icon';
+      appleTouch.href = 'icons/apple-touch-icon.png';
+      document.head.appendChild(appleTouch);
+
+      var appleCapable = document.createElement('meta');
+      appleCapable.name = 'apple-mobile-web-app-capable';
+      appleCapable.content = 'yes';
+      document.head.appendChild(appleCapable);
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>
