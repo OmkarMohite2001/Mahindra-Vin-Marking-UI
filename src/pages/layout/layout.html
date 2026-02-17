@@ -6,20 +6,22 @@
         <img src="NewMahindraLogo.png" alt="Mahindra" />
       </div>
 
-      <mat-nav-list class="nav">
+      <nav class="nav">
         <a
+          class="nav-link"
           *ngFor="let item of visibleNavItems; trackBy: trackByNavPath"
-          mat-list-item
           [routerLink]="[item.path]"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }">
-          <mat-icon class="nav-ic">{{ item.icon }}</mat-icon>
-          <div class="nav-title">{{ item.label }}</div>
+          <div class="nav-item-content">
+            <mat-icon class="nav-ic">{{ item.icon }}</mat-icon>
+            <div class="nav-title">{{ item.label }}</div>
+          </div>
         </a>
 
         <mat-divider></mat-divider>
 
-        <a mat-list-item (click)="logout()" class="logout-row">
+        <a (click)="logout()" class="logout-row">
           <!-- <div class="logout-avatar">{{ loggedInInitial }}</div> -->
 
           <div class="logout-left">
@@ -33,7 +35,7 @@
           </div>
 
         </a>
-      </mat-nav-list>
+      </nav>
     </div>
   </mat-sidenav>
 
