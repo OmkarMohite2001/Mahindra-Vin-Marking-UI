@@ -17,8 +17,9 @@
   width: 45%;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
   overflow-y: auto;
+  overflow-x: hidden;
   min-width: 0;
 }
 
@@ -34,7 +35,7 @@
 
 /* फॉर्म लेबल्स आणि इन्पुट्स */
 label {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: bold;
   color: #334d6e;
   white-space: nowrap;
@@ -43,10 +44,34 @@ label {
 input, select {
   border: 1px solid #7a9cc6;
   padding: 6px 8px;
-  font-size: 15px;
-  min-height: 34px;
-  background-color: white;
+  font-size: 18px;
+  min-height: 31px;
+  line-height: 1.2;
+  background-color: #fdfefe;
   box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+input[readonly],
+input:disabled,
+select:disabled {
+  background-color: #f4f8fd;
+  color: #2f4e75;
+}
+
+input[formControlName='vinNo'],
+input[formControlName='engineSrNo'],
+input[formControlName='vinLast8'],
+input[formControlName='modelNo'] {
+  font-family: 'Consolas', 'Courier New', monospace;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+}
+
+input[type='date'] {
+  font-variant-numeric: tabular-nums;
 }
 
 .full-width {
@@ -57,18 +82,18 @@ input, select {
   display: grid;
   grid-template-columns: 130px 1fr;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 3px;
   column-gap: 8px;
 }
 
 /* मधले ग्रिड (Market, Country, etc.) */
 .grid-fields {
   display: grid;
-  grid-template-columns: 105px 1fr 90px 1fr;
-  gap: 8px;
+  grid-template-columns: minmax(90px, auto) minmax(0, 1fr) minmax(75px, auto) minmax(0, 1fr);
+  gap: 6px;
   align-items: center;
   background-color: #c9deef;
-  padding: 8px;
+  padding: 6px;
   border: 1px solid #a4bedb;
 }
 
@@ -82,13 +107,13 @@ input, select {
   border: 1px solid #555;
 }
 
-.mt-2 { margin-top: 8px; }
+.mt-2 { margin-top: 0; }
 
 /* CNG Box Styling */
 .cng-group {
   border: 1px solid #7a9cc6;
-  padding: 8px;
-  margin-top: 5px;
+  padding: 6px;
+  margin-top: 3px;
   background-color: #c9deef;
 }
 
@@ -101,14 +126,24 @@ input, select {
 .cng-grid {
   display: flex;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .cng-fields .row {
   display: grid;
-  grid-template-columns: 150px 190px;
-  margin-bottom: 6px;
+  grid-template-columns: 220px minmax(0, 1fr);
+  margin-bottom: 4px;
   align-items: center;
   column-gap: 8px;
+}
+
+.cng-fields {
+  flex: 1;
+  min-width: 0;
+}
+
+.cng-fields input {
+  width: 100%;
 }
 
 .sticker-select {
@@ -117,6 +152,7 @@ input, select {
   justify-content: center;
   padding-left: 10px;
   border-left: 1px solid #999;
+  min-width: 96px;
 }
 
 .sticker-select p {
@@ -191,6 +227,46 @@ button {
   .left-section,
   .right-section {
     width: 100%;
+  }
+}
+
+@media (max-width: 1280px) {
+  .main-container {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  label {
+    font-size: 13px;
+  }
+
+  input, select {
+    font-size: 13px;
+    min-height: 30px;
+    padding: 4px 6px;
+  }
+
+  .form-row {
+    grid-template-columns: 110px 1fr;
+    margin-bottom: 4px;
+    column-gap: 6px;
+  }
+
+  .grid-fields {
+    grid-template-columns: minmax(82px, auto) minmax(0, 1fr) minmax(68px, auto) minmax(0, 1fr);
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .cng-fields .row {
+    grid-template-columns: 180px minmax(0, 1fr);
+    margin-bottom: 4px;
+  }
+
+  button {
+    min-height: 36px;
+    font-size: 14px;
+    padding: 8px 14px;
   }
 }
 

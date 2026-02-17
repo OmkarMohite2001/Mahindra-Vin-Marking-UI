@@ -312,7 +312,7 @@
 .header-strip{
   height: 46px;
   display:grid;
-  grid-template-columns: 160px 1fr 160px;
+  grid-template-columns: 190px 1fr 190px;
   align-items:center;
   gap: 10px;
   padding: 0 6px;
@@ -336,8 +336,8 @@
 
 .header-left,.header-right{ display:flex; justify-content:center; align-items:center; }
 .mini-logo{
-  max-height: 28px;
-  max-width: 120px;
+  max-height: 40px;
+  max-width: 170px;
   object-fit: contain;
   filter: drop-shadow(0 1px 1px rgba(0,0,0,0.25));
 }
@@ -397,6 +397,23 @@
   .topmenu button{
     font-size: 12px;
     padding: 0 6px;
+  }
+}
+
+@media (max-width: 1280px){
+  .side {
+    width: 190px;
+    min-width: 190px;
+  }
+
+  .header-strip{
+    grid-template-columns: 120px 1fr 120px;
+    gap: 6px;
+  }
+
+  .header-title{
+    font-size: 16px;
+    padding: 4px 8px;
   }
 }
 
