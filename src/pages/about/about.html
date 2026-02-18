@@ -1,0 +1,74 @@
+<section class="about-wrap">
+  <mat-card class="about-card" appearance="outlined">
+    <div class="hero">
+      <div class="title-block">
+        <div class="title-row">
+          <mat-icon>info</mat-icon>
+          <h2>About Application</h2>
+        </div>
+        <h3>{{ appName }}</h3>
+        <p>
+          Centralized interface for VIN marking operations, operator workflows, and production reporting.
+        </p>
+      </div>
+      <div class="hero-meta">
+        <div class="version-chip">{{ appVersion }}</div>
+        <div class="meta-item">
+          <span class="meta-label">Owner</span>
+          <span class="meta-value">{{ productOwner }}</span>
+        </div>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="facts-grid">
+      <div class="item" *ngFor="let row of details">
+        <div class="label">{{ row.label }}</div>
+        <div class="value">{{ row.value }}</div>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="section">
+      <div class="section-head">Key Capabilities</div>
+      <div class="feature-grid">
+        <div class="feature" *ngFor="let feature of features">
+          <div class="feature-icon">
+            <mat-icon>{{ feature.icon }}</mat-icon>
+          </div>
+          <div class="feature-copy">
+            <div class="feature-title">{{ feature.title }}</div>
+            <div class="feature-desc">{{ feature.description }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <mat-divider></mat-divider>
+
+    <div class="section">
+      <div class="section-head">Ownership and Support</div>
+      <div class="support-grid">
+        <div class="support-card">
+          <div class="support-label">Developed By</div>
+          <div class="support-value">{{ developedBy }}</div>
+        </div>
+        <div class="support-card">
+          <div class="support-label">Support Email</div>
+          <div class="support-value">{{ supportEmail }}</div>
+        </div>
+        <div class="support-card">
+          <div class="support-label">Support Window</div>
+          <div class="support-value">{{ supportHours }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <span>Copyright © {{ currentYear }} Mahindra. All rights reserved.</span>
+      <span>Internal production application for authorized users only.</span>
+    </div>
+  </mat-card>
+</section>

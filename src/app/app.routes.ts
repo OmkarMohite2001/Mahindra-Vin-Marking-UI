@@ -68,6 +68,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../pages/re-engrave/re-engrave').then(m => m.ReEngrave),
       },
+      {
+        path: 'about',
+        canActivate: [roleRouteGuard],
+        data: { roles: ['Admin', 'Supervisor', 'Operator'] },
+        loadComponent: () =>
+          import('../pages/about/about').then(m => m.About),
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'excel-upload' },
     ],
