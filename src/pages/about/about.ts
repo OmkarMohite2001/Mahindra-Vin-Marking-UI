@@ -23,16 +23,16 @@ interface FeatureItem {
 })
 export class About {
   readonly appName = 'Mahindra VIN Marking';
-  readonly appVersion = 'v1.0.0-demo';
+  readonly appVersion = 'V1.0.0-PRODUCTION';
   readonly developedBy = 'CISPL Engineering Team';
   readonly productOwner = 'Mahindra Manufacturing IT';
-  readonly supportEmail = 'support@mahindra.local';
+  readonly supportEmail = 'yogeshm@credentialsintegrated.com';
   readonly supportHours = 'Mon-Sat, 9:00 AM to 6:00 PM';
   readonly currentYear = new Date().getFullYear();
 
   readonly details: AboutPoint[] = [
     { label: 'Application ID', value: 'MVM-UI-LOCAL' },
-    { label: 'Environment', value: 'Local Deployment (Offline Ready)' },
+    { label: 'Environment', value: 'Local Deployment (Offline Ready) Port (4200)' },
     { label: 'Frontend', value: 'Angular 21 + Angular Material' },
     { label: 'Core Modules', value: 'VIN Marking, Reports, User Management' },
     { label: 'Backend Endpoint', value: 'http://localhost:7192/api' },
