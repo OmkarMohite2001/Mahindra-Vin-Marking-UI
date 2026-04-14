@@ -5,6 +5,13 @@ import { roleRouteGuard } from './role-route.guard';
 
 export const routes: Routes = [
  { path: 'login', component: Login },
+  {
+    path: 'select-mode',
+    canActivate: [roleRouteGuard],
+    data: { roles: ['Admin', 'Supervisor', 'Operator'] },
+    loadComponent: () =>
+      import('../pages/select-mode/select-mode').then(m => m.SelectMode),
+  },
 
   // Layout shell after login
   {
@@ -75,8 +82,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../pages/about/about').then(m => m.About),
       },
-
-      { path: '', pathMatch: 'full', redirectTo: 'excel-upload' },
+      { path: '', pathMatch: 'full', redirectTo: 'marking' },
     ],
   },
 

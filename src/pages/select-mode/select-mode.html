@@ -1,1 +1,25 @@
-<p>select-mode works!</p>
+<section class="mode-page">
+  <div class="mode-shell">
+    <div class="mode-copy">
+      <p class="eyebrow">Select Mode</p>
+      <h1>Choose VIN Marking Flow</h1>
+      <p class="subcopy">
+        Select the connection mode to continue with the marking process.
+      </p>
+    </div>
+
+    <div class="mode-grid">
+      <button class="mode-card serial-card" type="button" (click)="onSelectMode('serial')">
+        <img src="serial-communication.png" alt="Serial communication mode" />
+        <span class="mode-name">Serial</span>
+        <span class="mode-note">Scanner and serial communication based flow</span>
+      </button>
+
+      <button class="mode-card ethernet-card" type="button" (click)="onSelectMode('ethernet')">
+        <img src="ethernet-cable.png" alt="Ethernet mode" />
+        <span class="mode-name">Ethernet</span>
+        <span class="mode-note">Backend managed flow for marking cycle</span>
+      </button>
+    </div>
+  </div>
+</section>

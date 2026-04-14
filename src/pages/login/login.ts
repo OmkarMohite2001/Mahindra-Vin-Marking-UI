@@ -12,7 +12,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { LoginLoader } from '../../loaders/login-loader/login-loader';
 import { BehaviorSubject, asyncScheduler, of } from 'rxjs';
 import { catchError, finalize, observeOn, timeout } from 'rxjs/operators';
-import { getFirstAllowedPath, normalizeRole } from '../../app/role-access';
+import { normalizeRole } from '../../app/role-access';
 @Component({
   selector: 'app-login',
   imports: [
@@ -126,7 +126,7 @@ export class Login {
       const normalizedRole = normalizeRole(apiRole || fallbackRoleRaw) ?? 'Operator';
       localStorage.setItem('role', normalizedRole);
 
-      this.router.navigateByUrl(getFirstAllowedPath(normalizedRole));
+      this.router.navigateByUrl('/select-mode');
     });
   }
 
