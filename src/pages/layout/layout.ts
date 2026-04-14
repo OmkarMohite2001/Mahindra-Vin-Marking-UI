@@ -33,6 +33,8 @@ export class Layout {
   private router = inject(Router);
   private currentRole: UserRole | null = normalizeRole(localStorage.getItem('role'));
   private readonly isDeveloperSession = localStorage.getItem('isDeveloperSession') === 'true';
+  readonly canAccessSerialTerminal = this.currentRole === 'Admin';
+  readonly showSerialTerminalMenuItem = this.canAccessSerialTerminal;
   readonly navItems: readonly NavItemAccess[] = APP_NAV_ITEMS;
   readonly visibleNavItems = this.navItems.filter((item) => {
     if (!this.currentRole || !item.roles.includes(this.currentRole)) {

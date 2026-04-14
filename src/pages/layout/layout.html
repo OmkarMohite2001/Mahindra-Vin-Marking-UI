@@ -77,6 +77,9 @@
     </mat-menu>
 
     <mat-menu #helpMenu="matMenu">
+      @if (showSerialTerminalMenuItem) {
+        <button mat-menu-item [routerLink]="['/app/serialTerminal']">Serial Terminal</button>
+      }
       <button mat-menu-item [routerLink]="['/app/about']">About</button>
       <button mat-menu-item>Support</button>
     </mat-menu>
