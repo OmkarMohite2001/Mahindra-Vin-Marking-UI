@@ -37,15 +37,17 @@
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 18px 20px;
+  min-height: 274px;
+  box-sizing: border-box;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(210, 228, 255, 0.18);
 }
 
 .logo {
-  width: clamp(120px, 14vw, 170px);
-  height: clamp(57px, 6vw, 73px);
+  width: clamp(220px, 22vw, 320px);
+  height: clamp(110px, 12vw, 170px);
   object-fit: cover;
   object-position: 18% center;
   border-radius: 8px;
@@ -73,18 +75,6 @@
   margin-top: 22px;
 }
 
-.kicker {
-  display: inline-block;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: #87d8ff;
-  border: 1px solid rgba(135, 216, 255, 0.42);
-  background: rgba(4, 40, 78, 0.45);
-}
-
 .hero h1 {
   margin: 12px 0 0;
   font-family: 'Bahnschrift', 'Segoe UI Variable', sans-serif;
@@ -92,41 +82,6 @@
   line-height: 1.02;
   font-weight: 800;
   color: #ffffff;
-}
-
-.hero p {
-  margin: 14px 0 0;
-  max-width: 52ch;
-  color: #c4d6ee;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-.hero-points {
-  margin-top: 22px;
-  display: grid;
-  gap: 10px;
-  max-width: 520px;
-}
-
-.point {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(9, 34, 68, 0.52);
-  border: 1px solid rgba(162, 194, 230, 0.2);
-  color: #d3e3f8;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.point mat-icon {
-  color: #7ed2ff;
-  font-size: 19px;
-  width: 19px;
-  height: 19px;
 }
 
 .card {
