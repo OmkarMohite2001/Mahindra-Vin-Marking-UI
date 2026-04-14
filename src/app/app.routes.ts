@@ -53,6 +53,13 @@ export const routes: Routes = [
         loadComponent:()=>
           import('../pages/serial-terminal/serial-terminal').then(m => m.SerialTerminal),
       },
+      {
+        path:'serial-development',
+        canActivate: [roleRouteGuard],
+        data: { roles: ['Admin'] },
+        loadComponent:()=>
+          import('../pages/serial-development/serial-development').then(m => m.SerialDevelopment),
+      },
 
       {
         path: 'vehicle-images',

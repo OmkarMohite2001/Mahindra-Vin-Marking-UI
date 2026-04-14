@@ -37,7 +37,9 @@ export class Layout {
   private currentRole: UserRole | null = normalizeRole(localStorage.getItem('role'));
   private readonly isDeveloperSession = localStorage.getItem('isDeveloperSession') === 'true';
   readonly canAccessSerialTerminal = this.currentRole === 'Admin';
-  readonly showSerialTerminalMenuItem = this.canAccessSerialTerminal;
+  readonly showSerialTerminalMenuItem = this.canAccessSerialTerminal && this.isDeveloperSession;
+  readonly showSerialDevelopmentMenuItem =
+    this.canAccessSerialTerminal && this.isDeveloperSession;
   readonly navItems: readonly NavItemAccess[] = APP_NAV_ITEMS;
   readonly visibleNavItems = this.navItems.filter((item) => {
     if (!this.currentRole || !item.roles.includes(this.currentRole)) {
@@ -115,6 +117,9 @@ export class Layout {
     }
     if (url.includes('/app/serialTerminal')) {
       return 'SERIAL TERMINAL';
+    }
+    if (url.includes('/app/serial-development')) {
+      return 'SERIAL DEVELOPMENT';
     }
     if (url.includes('/app/about')) {
       return 'ABOUT';

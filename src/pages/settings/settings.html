@@ -4,213 +4,140 @@
       <mat-icon class="title-icon">settings</mat-icon>
       <div>
         <div class="h1">Settings</div>
-        <div class="sub">Serial communication and USB device configuration</div>
+        <div class="sub">Manage browser-saved serial ports and machine communication values</div>
       </div>
     </div>
   </mat-card>
 
   <div class="grid">
-    <mat-card class="panel">
+    <mat-card class="panel serial-panel">
       <div class="panel-head">
         <div>
-          <div class="panel-title">Serial Communication</div>
-          <div class="panel-sub">Ports, baud rate, and connection behavior</div>
+          <div class="panel-title">Serial Port Roles</div>
+          <div class="panel-sub">Select once in this browser, then reuse the same scanner and machine ports</div>
         </div>
-        <button mat-stroked-button color="primary" type="button" (click)="resetSerial()">
-          New Profile
+        <button mat-stroked-button color="primary" type="button" (click)="resetSerialSettings()">
+          Reset Defaults
         </button>
       </div>
 
-      <form class="form" [formGroup]="serialForm">
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Profile name</mat-label>
-          <input matInput formControlName="name" placeholder="Scanner Line-1" />
-        </mat-form-field>
+      <div class="role-grid">
+        <div class="role-card">
+          <div class="role-top">
+            <div>
+              <div class="role-title">Scanner Port</div>
+              <div class="role-sub">Read only for QR / VIN scanning</div>
+            </div>
+            <span class="role-badge" [class.active]="scannerConnected">
+              {{ scannerConnected ? 'Connected' : 'Not Connected' }}
+            </span>
+          </div>
+
+          <div class="role-summary">{{ scannerPortSummary }}</div>
+
+          <div class="role-actions">
+            <button mat-raised-button color="primary" type="button" (click)="chooseScannerPort()">
+              Select Scanner Port
+            </button>
+            <button mat-stroked-button type="button" (click)="clearScannerSelection()">
+              Clear Saved Port
+            </button>
+          </div>
+        </div>
+
+        <div class="role-card">
+          <div class="role-top">
+            <div>
+              <div class="role-title">Machine Port</div>
+              <div class="role-sub">Read and write for engrave commands</div>
+            </div>
+            <span class="role-badge" [class.active]="machineConnected">
+              {{ machineConnected ? 'Connected' : 'Not Connected' }}
+            </span>
+          </div>
+
+          <div class="role-summary">{{ machinePortSummary }}</div>
+
+          <div class="role-actions">
+            <button mat-raised-button color="primary" type="button" (click)="chooseMachinePort()">
+              Select Machine Port
+            </button>
+            <button mat-stroked-button type="button" (click)="clearMachineSelection()">
+              Clear Saved Port
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="browser-note">
+        Browser permission usually remembers previously selected serial ports for this site. If permission is cleared or the device changes, select the port again from this screen.
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <form class="form" [formGroup]="serialSettingsForm">
+        <div class="section-label full">Scanner Read Settings</div>
 
         <mat-form-field appearance="outline">
-          <mat-label>Port</mat-label>
-          <input matInput formControlName="port" placeholder="COM3" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Baud rate</mat-label>
-          <mat-select formControlName="baudRate">
+          <mat-label>Scanner baud rate</mat-label>
+          <mat-select formControlName="scannerBaudRate">
             <mat-option *ngFor="let baud of baudOptions" [value]="baud">{{ baud }}</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Data bits</mat-label>
-          <mat-select formControlName="dataBits">
-            <mat-option *ngFor="let bits of dataBitsOptions" [value]="bits">{{ bits }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Stop bits</mat-label>
-          <mat-select formControlName="stopBits">
-            <mat-option *ngFor="let bits of stopBitsOptions" [value]="bits">{{ bits }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Parity</mat-label>
-          <mat-select formControlName="parity">
-            <mat-option *ngFor="let parity of parityOptions" [value]="parity">{{ parity }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Flow control</mat-label>
-          <mat-select formControlName="flowControl">
-            <mat-option *ngFor="let flow of flowOptions" [value]="flow">{{ flow }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
         <div class="radio-group">
-          <div class="radio-label">Auto connect</div>
-          <mat-radio-group formControlName="autoConnect">
+          <div class="radio-label">Scanner auto connect</div>
+          <mat-radio-group formControlName="scannerAutoConnect">
             <mat-radio-button [value]="true">Yes</mat-radio-button>
             <mat-radio-button [value]="false">No</mat-radio-button>
           </mat-radio-group>
         </div>
 
-        <div class="radio-group">
-          <div class="radio-label">Enabled</div>
-          <mat-radio-group formControlName="enabled">
-            <mat-radio-button [value]="true">Enabled</mat-radio-button>
-            <mat-radio-button [value]="false">Disabled</mat-radio-button>
-          </mat-radio-group>
-        </div>
-
-        <div class="actions full">
-          <button mat-raised-button color="primary" type="button" (click)="saveSerial()">
-            {{ editingSerialId ? 'Update' : 'Add' }} Serial
-          </button>
-          <button mat-stroked-button type="button" (click)="resetSerial()">Clear</button>
-        </div>
-      </form>
-
-      <mat-divider></mat-divider>
-
-      <div class="list">
-        <div class="list-title">Saved profiles</div>
-        <div class="empty" *ngIf="!serialConfigs.length">No serial configuration saved.</div>
-
-        <div class="item" *ngFor="let item of serialConfigs; trackBy: trackById">
-          <div class="item-main">
-            <div class="item-title">{{ item.name }}</div>
-            <div class="meta">
-              <span class="badge">Port: {{ item.port }}</span>
-              <span class="badge">Baud: {{ item.baudRate }}</span>
-              <span class="badge">Data: {{ item.dataBits }}</span>
-              <span class="badge">Stop: {{ item.stopBits }}</span>
-              <span class="badge">Parity: {{ item.parity }}</span>
-              <span class="badge">Flow: {{ item.flowControl }}</span>
-              <span class="badge" [class.off]="!item.autoConnect">Auto: {{ item.autoConnect ? 'On' : 'Off' }}</span>
-              <span class="badge" [class.off]="!item.enabled">Status: {{ item.enabled ? 'Enabled' : 'Disabled' }}</span>
-            </div>
-          </div>
-          <div class="item-actions">
-            <button mat-stroked-button color="primary" type="button" (click)="editSerial(item)">Edit</button>
-            <button mat-button color="warn" type="button" (click)="deleteSerial(item.id)">Remove</button>
-          </div>
-        </div>
-      </div>
-    </mat-card>
-
-    <mat-card class="panel">
-      <div class="panel-head">
-        <div>
-          <div class="panel-title">USB Devices</div>
-          <div class="panel-sub">Printer, scanner, or other USB device mapping</div>
-        </div>
-        <button mat-stroked-button color="primary" type="button" (click)="resetUsb()">
-          New Device
-        </button>
-      </div>
-
-      <form class="form" [formGroup]="usbForm">
-        <mat-form-field appearance="outline" class="full">
-          <mat-label>Device name</mat-label>
-          <input matInput formControlName="name" placeholder="Label Printer" />
-        </mat-form-field>
+        <div class="section-label full">Machine Read / Write Settings</div>
 
         <mat-form-field appearance="outline">
-          <mat-label>Vendor ID</mat-label>
-          <input matInput formControlName="vendorId" placeholder="0x1A86" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Product ID</mat-label>
-          <input matInput formControlName="productId" placeholder="0x7523" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Interface</mat-label>
-          <mat-select formControlName="interfaceType">
-            <mat-option *ngFor="let iface of usbInterfaceOptions" [value]="iface">{{ iface }}</mat-option>
+          <mat-label>Machine baud rate</mat-label>
+          <mat-select formControlName="machineBaudRate">
+            <mat-option *ngFor="let baud of baudOptions" [value]="baud">{{ baud }}</mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Driver mode</mat-label>
-          <mat-select formControlName="driver">
-            <mat-option *ngFor="let driver of usbDriverOptions" [value]="driver">{{ driver }}</mat-option>
+          <mat-label>Template file</mat-label>
+          <input matInput formControlName="machineTemplate" placeholder="TEST12.tml" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Completion token</mat-label>
+          <input matInput formControlName="machineCompletionToken" placeholder="GO F" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Line terminator</mat-label>
+          <mat-select formControlName="machineLineTerminator">
+            <mat-option *ngFor="let item of lineEndingOptions" [value]="item.value">
+              {{ item.label }}
+            </mat-option>
           </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Endpoint IN</mat-label>
-          <input matInput formControlName="endpointIn" placeholder="0x81" />
+          <mat-label>Inter-command delay (ms)</mat-label>
+          <input matInput type="number" min="0" formControlName="machineInterDelayMs" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Endpoint OUT</mat-label>
-          <input matInput formControlName="endpointOut" placeholder="0x01" />
+          <mat-label>Response timeout (ms)</mat-label>
+          <input matInput type="number" min="1000" formControlName="machineResponseTimeoutMs" />
         </mat-form-field>
 
-        <div class="radio-group">
-          <div class="radio-label">Enabled</div>
-          <mat-radio-group formControlName="enabled">
-            <mat-radio-button [value]="true">Enabled</mat-radio-button>
-            <mat-radio-button [value]="false">Disabled</mat-radio-button>
-          </mat-radio-group>
-        </div>
-
         <div class="actions full">
-          <button mat-raised-button color="primary" type="button" (click)="saveUsb()">
-            {{ editingUsbId ? 'Update' : 'Add' }} USB
+          <button mat-raised-button color="primary" type="button" (click)="saveSerialSettings()">
+            Save Serial Settings
           </button>
-          <button mat-stroked-button type="button" (click)="resetUsb()">Clear</button>
+          <button mat-stroked-button type="button" (click)="resetSerialSettings()">Reset Form</button>
         </div>
       </form>
-
-      <mat-divider></mat-divider>
-
-      <div class="list">
-        <div class="list-title">Saved devices</div>
-        <div class="empty" *ngIf="!usbConfigs.length">No USB configuration saved.</div>
-
-        <div class="item" *ngFor="let item of usbConfigs; trackBy: trackById">
-          <div class="item-main">
-            <div class="item-title">{{ item.name }}</div>
-            <div class="meta">
-              <span class="badge">VID: {{ item.vendorId }}</span>
-              <span class="badge">PID: {{ item.productId }}</span>
-              <span class="badge">Interface: {{ item.interfaceType }}</span>
-              <span class="badge">Driver: {{ item.driver }}</span>
-              <span class="badge">IN: {{ item.endpointIn }}</span>
-              <span class="badge">OUT: {{ item.endpointOut }}</span>
-              <span class="badge" [class.off]="!item.enabled">Status: {{ item.enabled ? 'Enabled' : 'Disabled' }}</span>
-            </div>
-          </div>
-          <div class="item-actions">
-            <button mat-stroked-button color="primary" type="button" (click)="editUsb(item)">Edit</button>
-            <button mat-button color="warn" type="button" (click)="deleteUsb(item.id)">Remove</button>
-          </div>
-        </div>
-      </div>
     </mat-card>
   </div>
 </div>

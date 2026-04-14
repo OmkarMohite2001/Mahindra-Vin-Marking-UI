@@ -5,6 +5,7 @@
 /tmp
 /out-tsc
 /bazel-out
+/M_Vin_Marking_Backend
 
 # Node
 /node_modules

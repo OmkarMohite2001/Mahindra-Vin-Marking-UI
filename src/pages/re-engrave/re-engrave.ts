@@ -11,14 +11,12 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { VehicleUtils } from '../../services/vehicle-utils';
 import { ImagePreviewDialog } from '../image-preview-dialog/image-preview-dialog';
 import { PrinterApi } from '../../services/printer-api';
-import { EngraveApi, EngraveResponse } from '../../services/engrave-api';
-import { ProductionDataReportApi } from '../../services/production-data-report-api';
 import { EngraveLoader } from '../../loaders/engrave-loader/engrave-loader';
 import { QrLoader } from '../../loaders/qr-loader/qr-loader';
 import { PrintLoader } from '../../loaders/print-loader/print-loader';
 import { finalize } from 'rxjs/operators';
-import { EMPTY, of } from 'rxjs';
-import { catchError, switchMap, tap } from 'rxjs/operators';
+import { MarkingExecution } from '../../services/marking-execution';
+import { MarkingModeService } from '../../services/marking-mode';
 @Component({
   selector: 'app-re-engrave',
   imports: [
@@ -29,8 +27,8 @@ import { catchError, switchMap, tap } from 'rxjs/operators';
 })
 export class ReEngrave {
  private printerService = inject(PrinterApi);
- private engraveService = inject(EngraveApi);
- private productionDataReportApi = inject(ProductionDataReportApi);
+ private markingExecution = inject(MarkingExecution);
+ private markingMode = inject(MarkingModeService);
 private fb = inject(FormBuilder);
   private serialService = inject(Serial);
   private modelService = inject(ModelsApi);
@@ -421,98 +419,55 @@ private latestPreviewRequestId = 0;
       return;
     }
 
-    const engravePayload = {
-      parameters: [modelNo, vinNo, engineSrNo]
-    };
-
-    const printPayload = {
-      modelNo,
-      vinNo,
-      engineSrNo,
-      description: formData.description,
-      qr: this.scannedQrCode || vinNo
-    };
-    const productionAddPayload = {
-      modelCode: modelNo,
-      viN_NO: vinNo,
-      engineNo: engineSrNo
-    };
-
     this.showEngraveLoader(
       'Engraving Data',
-      'Sending parameters to engraving machine...',
+      this.resolveEngraveSubMessage(),
       `${modelNo} | ${vinNo} | ${engineSrNo}`
     );
 
-    this.engraveService.runWithParameter(engravePayload).pipe(
-      switchMap((response: EngraveResponse) => {
-        const engraveMessage = response?.message || 'Engrave response received';
-        this.snackBar.open(engraveMessage, 'OK', {
+    this.markingExecution.executeReEngrave({
+      modelNo,
+      vinNo,
+      engineSrNo,
+      description: (formData.description || '').toString(),
+      qr: this.scannedQrCode || vinNo
+    }).pipe(
+      finalize(() => this.hideEngraveLoader())
+    ).subscribe({
+      next: (result) => {
+        this.snackBar.open(result.engraveMessage, 'OK', {
           duration: 3000,
           verticalPosition: 'top',
           horizontalPosition: 'center'
         });
 
-        if (response?.ok !== true) {
-          return EMPTY;
-        }
+        this.snackBar.open(result.productionMessage, result.productionSucceeded ? 'OK' : 'Close', {
+          duration: 3000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
 
-        return this.productionDataReportApi.reengrave(productionAddPayload).pipe(
-          tap((addResponse: any) => {
-            const addMessage = addResponse?.message || 'Production data added successfully';
-            this.snackBar.open(addMessage, 'OK', {
-              duration: 3000,
-              verticalPosition: 'top',
-              horizontalPosition: 'center'
-            });
-          }),
-          catchError((addError) => {
-            const addMessage =
-              addError?.error?.message ||
-              addError?.message ||
-              'Failed to add production data';
+        this.snackBar.open(result.printMessage, 'OK', {
+          duration: 3000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
 
-            this.snackBar.open(addMessage, 'Close', {
-              duration: 3000,
-              verticalPosition: 'top',
-              horizontalPosition: 'center'
-            });
-
-            return of(null);
-          }),
-          switchMap(() => {
-            this.showPrintLoader('Printing Label', 'Sending data to printer...');
-            return this.printerService.printLabel(printPayload).pipe(
-              finalize(() => this.hidePrintLoader()),
-              tap((printResponse: any) => {
-                const printMessage = printResponse?.message || 'Print command sent successfully';
-                this.snackBar.open(printMessage, 'OK', {
-                  duration: 3000,
-                  verticalPosition: 'top',
-                  horizontalPosition: 'center'
-                });
-                this.clearForm();
-              })
-            );
-          })
-        );
-      }),
-      catchError((err) => {
+        this.clearForm();
+      },
+      error: (err) => {
         const message =
-          err?.error?.message ||
           err?.message ||
-          'Engrave API failed';
+          err?.error?.message ||
+          'Engraving failed';
 
         this.snackBar.open(message, 'Close', {
           duration: 3000,
           verticalPosition: 'top',
           horizontalPosition: 'center'
         });
-
-        return EMPTY;
-      }),
-      finalize(() => this.hideEngraveLoader())
-    ).subscribe();
+      }
+    });
   }
 
   private loadCountryImage(countryName: string) {
@@ -635,6 +590,12 @@ private latestPreviewRequestId = 0;
   private hideEngraveLoader() {
     this.isEngraveLoading = false;
     this.cdr.markForCheck();
+  }
+
+  private resolveEngraveSubMessage(): string {
+    return this.markingMode.isSerialMode()
+      ? 'Sending parameters to machine controller over serial...'
+      : 'Sending parameters to engraving machine...';
   }
 }
 

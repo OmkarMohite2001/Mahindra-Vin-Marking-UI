@@ -1,0 +1,72 @@
+<div class="page">
+  <mat-card class="hero">
+    <div class="hero-title">Serial Development</div>
+    <div class="hero-sub">Send custom commands to the saved machine read/write serial port</div>
+  </mat-card>
+
+  <div class="grid">
+    <mat-card class="panel summary-panel">
+      <div class="summary-row">
+        <div>
+          <div class="summary-title">Scanner Read Port</div>
+          <div class="summary-copy">{{ scannerPortSummary }}</div>
+        </div>
+        <span class="state-badge" [class.active]="scannerConnected">
+          {{ scannerConnected ? 'Connected' : 'Idle' }}
+        </span>
+      </div>
+
+      <div class="summary-row">
+        <div>
+          <div class="summary-title">Machine Read / Write Port</div>
+          <div class="summary-copy">{{ machinePortSummary }}</div>
+        </div>
+        <span class="state-badge" [class.active]="machineConnected">
+          {{ machineConnected ? 'Connected' : 'Idle' }}
+        </span>
+      </div>
+
+      <div class="actions">
+        <button mat-raised-button color="primary" type="button" (click)="connectMachinePort()">
+          Select / Connect Machine Port
+        </button>
+        <button mat-stroked-button type="button" (click)="clearLog()">Clear Log</button>
+      </div>
+    </mat-card>
+
+    <mat-card class="panel form-panel">
+      <form class="form" [formGroup]="form" (ngSubmit)="sendCommand()">
+        <mat-form-field appearance="outline" class="command-field">
+          <mat-label>Custom command</mat-label>
+          <input matInput formControlName="command" placeholder='Example: ST or VS 0 "MA1..."' />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Line ending</mat-label>
+          <mat-select formControlName="lineEnding">
+            <mat-option *ngFor="let item of lineEndingOptions" [value]="item.value">
+              {{ item.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Read timeout (ms)</mat-label>
+          <input matInput type="number" min="1000" formControlName="readTimeoutMs" />
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" type="submit">Send Command</button>
+      </form>
+    </mat-card>
+  </div>
+
+  <mat-card class="panel terminal-panel">
+    <div class="terminal-title">Machine Response Log</div>
+    <div class="terminal-window" #scrollMe>
+      <div *ngFor="let line of logs" class="log-line">{{ line }}</div>
+      <div *ngIf="logs.length === 0" class="placeholder">
+        Waiting for manual commands...
+      </div>
+    </div>
+  </mat-card>
+</div>

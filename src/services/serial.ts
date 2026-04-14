@@ -1,10 +1,20 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 
+interface SavedSerialPortPreference {
+  preferredIndex?: number;
+  usbVendorId?: number;
+  usbProductId?: number;
+  bluetoothServiceClassId?: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class Serial {
+  private readonly selectionStorageKey = 'scannerSerial.preference';
+  private readonly baudRateStorageKey = 'scannerSerial.baudRate';
+  private readonly autoConnectStorageKey = 'scannerSerial.autoConnect';
   private port: any;
   private reader: any;
   private keepReading = false;
@@ -38,6 +48,7 @@ export class Serial {
   async requestPort() {
     try {
       this.port = await (navigator as any).serial.requestPort();
+      await this.saveSelectedPortPreference(this.port);
       await this.connectToPort();
     } catch (error) {
       console.error('Port selection failed', error);
@@ -45,21 +56,50 @@ export class Serial {
   }
 
   async autoConnect() {
-    const ports = await (navigator as any).serial.getPorts();
-    if (ports.length > 0) {
-      this.port = ports[0];
-      await this.connectToPort();
+    if (!this.isSupported()) {
+      return;
     }
+
+    if (!this.isAutoConnectEnabled()) {
+      return;
+    }
+
+    const ports = await (navigator as any).serial.getPorts();
+    const matchingPort = this.resolvePreferredPort(ports);
+    if (!matchingPort) {
+      return;
+    }
+
+    this.port = matchingPort;
+    await this.connectToPort();
+  }
+
+  getCurrentPort() {
+    return this.port;
+  }
+
+  getSavedPortSummary(): string {
+    const preference = this.readSavedPortPreference();
+    if (!preference) {
+      return 'No scanner port selected';
+    }
+
+    return this.describePortPreference(preference);
+  }
+
+  clearSavedPortPreference(): void {
+    localStorage.removeItem(this.selectionStorageKey);
   }
 
   private async connectToPort() {
     if (!this.port) return;
     if (this.port.readable) {
+      this.connectionState.next(true);
       return;
     }
     try {
       await this.port.open({
-        baudRate: 9600,
+        baudRate: this.resolveBaudRate(),
         dataBits: 8,
         stopBits: 1,
         parity: 'none',
@@ -146,5 +186,103 @@ export class Serial {
     if (parsed.length > 0) {
       this.dataSubject.next(parsed);
     }
+  }
+
+  private resolveBaudRate(): number {
+    const parsedValue = Number(localStorage.getItem(this.baudRateStorageKey));
+    return Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 9600;
+  }
+
+  private isAutoConnectEnabled(): boolean {
+    const rawValue = localStorage.getItem(this.autoConnectStorageKey);
+    return rawValue === null ? true : rawValue === 'true';
+  }
+
+  private readSavedPortPreference(): SavedSerialPortPreference | null {
+    const rawValue = localStorage.getItem(this.selectionStorageKey);
+    if (!rawValue) {
+      return null;
+    }
+
+    try {
+      const parsedValue = JSON.parse(rawValue) as SavedSerialPortPreference;
+      return typeof parsedValue === 'object' && parsedValue ? parsedValue : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async saveSelectedPortPreference(port: any): Promise<void> {
+    const ports = await (navigator as any).serial.getPorts();
+    const preferredIndex = ports.findIndex((candidate: any) => candidate === port);
+    const portInfo = this.getPortInfo(port);
+    const preference: SavedSerialPortPreference = {
+      preferredIndex: preferredIndex >= 0 ? preferredIndex : undefined,
+      ...portInfo,
+    };
+
+    localStorage.setItem(this.selectionStorageKey, JSON.stringify(preference));
+  }
+
+  private resolvePreferredPort(ports: any[]): any | null {
+    if (!ports.length) {
+      return null;
+    }
+
+    const preference = this.readSavedPortPreference();
+    if (!preference) {
+      return ports[0];
+    }
+
+    if (
+      preference.preferredIndex !== undefined &&
+      ports[preference.preferredIndex] &&
+      this.matchesSavedPreference(ports[preference.preferredIndex], preference)
+    ) {
+      return ports[preference.preferredIndex];
+    }
+
+    return ports.find((candidate) => this.matchesSavedPreference(candidate, preference)) ?? ports[0];
+  }
+
+  private matchesSavedPreference(port: any, preference: SavedSerialPortPreference): boolean {
+    const info = this.getPortInfo(port);
+    const vendorMatches =
+      preference.usbVendorId === undefined || info.usbVendorId === preference.usbVendorId;
+    const productMatches =
+      preference.usbProductId === undefined || info.usbProductId === preference.usbProductId;
+    const bluetoothMatches =
+      preference.bluetoothServiceClassId === undefined ||
+      info.bluetoothServiceClassId === preference.bluetoothServiceClassId;
+
+    return vendorMatches && productMatches && bluetoothMatches;
+  }
+
+  private getPortInfo(port: any): SavedSerialPortPreference {
+    if (!port?.getInfo) {
+      return {};
+    }
+
+    const info = port.getInfo();
+    return {
+      usbVendorId: info?.usbVendorId,
+      usbProductId: info?.usbProductId,
+      bluetoothServiceClassId: info?.bluetoothServiceClassId,
+    };
+  }
+
+  private describePortPreference(preference: SavedSerialPortPreference): string {
+    const details: string[] = [];
+    if (preference.usbVendorId !== undefined) {
+      details.push(`VID ${preference.usbVendorId}`);
+    }
+    if (preference.usbProductId !== undefined) {
+      details.push(`PID ${preference.usbProductId}`);
+    }
+    if (preference.preferredIndex !== undefined) {
+      details.push(`Slot ${preference.preferredIndex + 1}`);
+    }
+
+    return details.length ? details.join(' | ') : 'Previously selected scanner port';
   }
 }

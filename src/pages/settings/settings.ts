@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -9,36 +10,16 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import {
+  MACHINE_SERIAL_DEFAULTS,
+  SCANNER_SERIAL_DEFAULTS,
+  type MachineLineEndingStorageValue,
+} from '../../services/engrave-defaults';
+import { MachineSerial } from '../../services/machine-serial';
+import { Serial } from '../../services/serial';
 
-type Parity = 'None' | 'Even' | 'Odd' | 'Mark' | 'Space';
-type FlowControl = 'None' | 'RTS/CTS' | 'XON/XOFF';
-type UsbInterface = 'USB' | 'Serial-over-USB';
-type UsbDriver = 'ZPL' | 'ESC/POS' | 'RAW';
-
-interface SerialConfig {
-  id: number;
-  name: string;
-  port: string;
-  baudRate: number;
-  dataBits: number;
-  stopBits: number;
-  parity: Parity;
-  flowControl: FlowControl;
-  autoConnect: boolean;
-  enabled: boolean;
-}
-
-interface UsbConfig {
-  id: number;
-  name: string;
-  vendorId: string;
-  productId: string;
-  interfaceType: UsbInterface;
-  driver: UsbDriver;
-  endpointIn: string;
-  endpointOut: string;
-  enabled: boolean;
-}
+type LineEndingOption = MachineLineEndingStorageValue;
 
 @Component({
   selector: 'app-settings',
@@ -53,176 +34,216 @@ interface UsbConfig {
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
+    MatSnackBarModule,
   ],
   templateUrl: './settings.html',
   styleUrl: './settings.scss',
 })
 export class Settings {
   private fb = inject(FormBuilder).nonNullable;
+  private snackBar = inject(MatSnackBar);
+  private destroyRef = inject(DestroyRef);
+  private scannerSerial = inject(Serial);
+  private machineSerial = inject(MachineSerial);
 
-  readonly parityOptions: Parity[] = ['None', 'Even', 'Odd', 'Mark', 'Space'];
-  readonly flowOptions: FlowControl[] = ['None', 'RTS/CTS', 'XON/XOFF'];
   readonly baudOptions = [300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200];
-  readonly dataBitsOptions = [5, 6, 7, 8];
-  readonly stopBitsOptions = [1, 1.5, 2];
-  readonly usbInterfaceOptions: UsbInterface[] = ['USB', 'Serial-over-USB'];
-  readonly usbDriverOptions: UsbDriver[] = ['ZPL', 'ESC/POS', 'RAW'];
-
-  serialConfigs: SerialConfig[] = [
-    {
-      id: 1,
-      name: 'Scanner Line-1',
-      port: 'COM3',
-      baudRate: 9600,
-      dataBits: 8,
-      stopBits: 1,
-      parity: 'None',
-      flowControl: 'None',
-      autoConnect: true,
-      enabled: true,
-    },
+  readonly lineEndingOptions: readonly { value: LineEndingOption; label: string }[] = [
+    { value: '\\r\\n', label: 'CRLF (default)' },
+    { value: '\\n', label: 'LF' },
+    { value: '\\r', label: 'CR' },
   ];
 
-  usbConfigs: UsbConfig[] = [
-    {
-      id: 1,
-      name: 'Label Printer',
-      vendorId: '0x1A86',
-      productId: '0x7523',
-      interfaceType: 'USB',
-      driver: 'ZPL',
-      endpointIn: '0x81',
-      endpointOut: '0x01',
-      enabled: true,
-    },
-  ];
+  scannerConnected = false;
+  machineConnected = false;
+  scannerPortSummary = 'No scanner port selected';
+  machinePortSummary = 'No machine port selected';
 
-  editingSerialId: number | null = null;
-  editingUsbId: number | null = null;
-
-  serialForm = this.fb.group({
-    name: ['', Validators.required],
-    port: ['', Validators.required],
-    baudRate: [9600, Validators.required],
-    dataBits: [8, Validators.required],
-    stopBits: [1, Validators.required],
-    parity: ['None' as Parity, Validators.required],
-    flowControl: ['None' as FlowControl, Validators.required],
-    autoConnect: [true],
-    enabled: [true],
+  serialSettingsForm = this.fb.group({
+    scannerBaudRate: this.fb.control<number>(SCANNER_SERIAL_DEFAULTS.baudRate, {
+      validators: [Validators.required],
+    }),
+    scannerAutoConnect: this.fb.control<boolean>(SCANNER_SERIAL_DEFAULTS.autoConnect, {
+      validators: [Validators.required],
+    }),
+    machineBaudRate: this.fb.control<number>(MACHINE_SERIAL_DEFAULTS.baudRate, {
+      validators: [Validators.required],
+    }),
+    machineTemplate: this.fb.control<string>(MACHINE_SERIAL_DEFAULTS.template, {
+      validators: [Validators.required],
+    }),
+    machineCompletionToken: this.fb.control<string>(MACHINE_SERIAL_DEFAULTS.completionToken, {
+      validators: [Validators.required],
+    }),
+    machineLineTerminator: this.fb.control<LineEndingOption>(
+      MACHINE_SERIAL_DEFAULTS.lineTerminator,
+      {
+        validators: [Validators.required],
+      },
+    ),
+    machineInterDelayMs: this.fb.control<number>(MACHINE_SERIAL_DEFAULTS.interDelayMs, {
+      validators: [Validators.required, Validators.min(0)],
+    }),
+    machineResponseTimeoutMs: this.fb.control<number>(
+      MACHINE_SERIAL_DEFAULTS.responseTimeoutMs,
+      {
+        validators: [Validators.required, Validators.min(1000)],
+      },
+    ),
   });
 
-  usbForm = this.fb.group({
-    name: ['', Validators.required],
-    vendorId: ['', Validators.required],
-    productId: ['', Validators.required],
-    interfaceType: ['USB' as UsbInterface, Validators.required],
-    driver: ['ZPL' as UsbDriver, Validators.required],
-    endpointIn: ['0x81', Validators.required],
-    endpointOut: ['0x01', Validators.required],
-    enabled: [true],
-  });
+  constructor() {
+    this.loadSettingsFromStorage();
+    this.refreshPortSummaries();
 
-  saveSerial(): void {
-    if (this.serialForm.invalid) {
-      this.serialForm.markAllAsTouched();
+    this.scannerSerial.connectionState
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((connected) => {
+        this.scannerConnected = connected;
+      });
+
+    this.machineSerial.connectionState
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((connected) => {
+        this.machineConnected = connected;
+      });
+  }
+
+  async chooseScannerPort(): Promise<void> {
+    try {
+      await this.scannerSerial.requestPort();
+      this.refreshPortSummaries();
+      this.showSnack('Scanner read-only port selected and saved for this browser.', true);
+    } catch (error) {
+      this.showSnack(this.resolveErrorMessage(error, 'Unable to select scanner port.'), false);
+    }
+  }
+
+  async chooseMachinePort(): Promise<void> {
+    try {
+      await this.machineSerial.requestPort(this.scannerSerial.getCurrentPort());
+      this.refreshPortSummaries();
+      this.showSnack('Machine read/write port selected and saved for this browser.', true);
+    } catch (error) {
+      this.showSnack(this.resolveErrorMessage(error, 'Unable to select machine port.'), false);
+    }
+  }
+
+  clearScannerSelection(): void {
+    this.scannerSerial.clearSavedPortPreference();
+    this.refreshPortSummaries();
+    this.showSnack('Saved scanner port selection cleared.', true);
+  }
+
+  clearMachineSelection(): void {
+    this.machineSerial.clearSavedPortPreference();
+    this.refreshPortSummaries();
+    this.showSnack('Saved machine port selection cleared.', true);
+  }
+
+  saveSerialSettings(): void {
+    if (this.serialSettingsForm.invalid) {
+      this.serialSettingsForm.markAllAsTouched();
       return;
     }
 
-    const formValue = this.serialForm.getRawValue();
-    if (this.editingSerialId) {
-      const index = this.serialConfigs.findIndex((item) => item.id === this.editingSerialId);
-      if (index >= 0) {
-        this.serialConfigs[index] = { id: this.editingSerialId, ...formValue };
-      }
-    } else {
-      const nextId = this.getNextId(this.serialConfigs);
-      this.serialConfigs = [...this.serialConfigs, { id: nextId, ...formValue }];
-    }
+    const formValue = this.serialSettingsForm.getRawValue();
+    localStorage.setItem('scannerSerial.baudRate', String(formValue.scannerBaudRate));
+    localStorage.setItem('scannerSerial.autoConnect', String(formValue.scannerAutoConnect));
+    localStorage.setItem('machineSerial.baudRate', String(formValue.machineBaudRate));
+    localStorage.setItem('machineSerial.template', formValue.machineTemplate.trim());
+    localStorage.setItem('machineSerial.completionToken', formValue.machineCompletionToken.trim());
+    localStorage.setItem('machineSerial.lineTerminator', formValue.machineLineTerminator);
+    localStorage.setItem('machineSerial.interDelayMs', String(formValue.machineInterDelayMs));
+    localStorage.setItem(
+      'machineSerial.responseTimeoutMs',
+      String(formValue.machineResponseTimeoutMs),
+    );
 
-    this.resetSerial();
+    this.showSnack('Serial communication settings saved in this browser.', true);
   }
 
-  editSerial(item: SerialConfig): void {
-    this.editingSerialId = item.id;
-    const { id, ...formValue } = item;
-    this.serialForm.reset(formValue);
-  }
-
-  deleteSerial(id: number): void {
-    this.serialConfigs = this.serialConfigs.filter((item) => item.id !== id);
-    if (this.editingSerialId === id) {
-      this.resetSerial();
-    }
-  }
-
-  resetSerial(): void {
-    this.editingSerialId = null;
-    this.serialForm.reset({
-      name: '',
-      port: '',
-      baudRate: 9600,
-      dataBits: 8,
-      stopBits: 1,
-      parity: 'None',
-      flowControl: 'None',
-      autoConnect: true,
-      enabled: true,
+  resetSerialSettings(): void {
+    this.serialSettingsForm.reset({
+      scannerBaudRate: SCANNER_SERIAL_DEFAULTS.baudRate,
+      scannerAutoConnect: SCANNER_SERIAL_DEFAULTS.autoConnect,
+      machineBaudRate: MACHINE_SERIAL_DEFAULTS.baudRate,
+      machineTemplate: MACHINE_SERIAL_DEFAULTS.template,
+      machineCompletionToken: MACHINE_SERIAL_DEFAULTS.completionToken,
+      machineLineTerminator: MACHINE_SERIAL_DEFAULTS.lineTerminator,
+      machineInterDelayMs: MACHINE_SERIAL_DEFAULTS.interDelayMs,
+      machineResponseTimeoutMs: MACHINE_SERIAL_DEFAULTS.responseTimeoutMs,
     });
   }
 
-  saveUsb(): void {
-    if (this.usbForm.invalid) {
-      this.usbForm.markAllAsTouched();
-      return;
-    }
-
-    const formValue = this.usbForm.getRawValue();
-    if (this.editingUsbId) {
-      const index = this.usbConfigs.findIndex((item) => item.id === this.editingUsbId);
-      if (index >= 0) {
-        this.usbConfigs[index] = { id: this.editingUsbId, ...formValue };
-      }
-    } else {
-      const nextId = this.getNextId(this.usbConfigs);
-      this.usbConfigs = [...this.usbConfigs, { id: nextId, ...formValue }];
-    }
-
-    this.resetUsb();
-  }
-
-  editUsb(item: UsbConfig): void {
-    this.editingUsbId = item.id;
-    const { id, ...formValue } = item;
-    this.usbForm.reset(formValue);
-  }
-
-  deleteUsb(id: number): void {
-    this.usbConfigs = this.usbConfigs.filter((item) => item.id !== id);
-    if (this.editingUsbId === id) {
-      this.resetUsb();
-    }
-  }
-
-  resetUsb(): void {
-    this.editingUsbId = null;
-    this.usbForm.reset({
-      name: '',
-      vendorId: '',
-      productId: '',
-      interfaceType: 'USB',
-      driver: 'ZPL',
-      endpointIn: '0x81',
-      endpointOut: '0x01',
-      enabled: true,
+  private loadSettingsFromStorage(): void {
+    this.serialSettingsForm.reset({
+      scannerBaudRate: this.readNumber(
+        'scannerSerial.baudRate',
+        SCANNER_SERIAL_DEFAULTS.baudRate,
+        1,
+      ),
+      scannerAutoConnect: this.readBoolean(
+        'scannerSerial.autoConnect',
+        SCANNER_SERIAL_DEFAULTS.autoConnect,
+      ),
+      machineBaudRate: this.readNumber(
+        'machineSerial.baudRate',
+        MACHINE_SERIAL_DEFAULTS.baudRate,
+        1,
+      ),
+      machineTemplate: localStorage.getItem('machineSerial.template') || MACHINE_SERIAL_DEFAULTS.template,
+      machineCompletionToken:
+        localStorage.getItem('machineSerial.completionToken') ||
+        MACHINE_SERIAL_DEFAULTS.completionToken,
+      machineLineTerminator:
+        (localStorage.getItem('machineSerial.lineTerminator') as LineEndingOption | null) ||
+        MACHINE_SERIAL_DEFAULTS.lineTerminator,
+      machineInterDelayMs: this.readNumber(
+        'machineSerial.interDelayMs',
+        MACHINE_SERIAL_DEFAULTS.interDelayMs,
+        0,
+      ),
+      machineResponseTimeoutMs: this.readNumber(
+        'machineSerial.responseTimeoutMs',
+        MACHINE_SERIAL_DEFAULTS.responseTimeoutMs,
+        1000,
+      ),
     });
   }
 
-  trackById(_: number, item: { id: number }): number {
-    return item.id;
+  private refreshPortSummaries(): void {
+    this.scannerPortSummary = this.scannerSerial.getSavedPortSummary();
+    this.machinePortSummary = this.machineSerial.getSavedPortSummary();
   }
 
-  private getNextId(list: Array<{ id: number }>): number {
-    return list.length ? Math.max(...list.map((item) => item.id)) + 1 : 1;
+  private readNumber(storageKey: string, fallback: number, minValue?: number): number {
+    const parsedValue = Number(localStorage.getItem(storageKey));
+    if (!Number.isFinite(parsedValue)) {
+      return fallback;
+    }
+
+    if (minValue !== undefined && parsedValue < minValue) {
+      return fallback;
+    }
+
+    return parsedValue;
+  }
+
+  private readBoolean(storageKey: string, fallback: boolean): boolean {
+    const rawValue = localStorage.getItem(storageKey);
+    return rawValue === null ? fallback : rawValue === 'true';
+  }
+
+  private resolveErrorMessage(error: unknown, fallback: string): string {
+    return error instanceof Error && error.message.trim().length ? error.message : fallback;
+  }
+
+  private showSnack(message: string, success: boolean): void {
+    this.snackBar.open(message, 'Close', {
+      duration: 3000,
+      horizontalPosition: 'center',
+      verticalPosition: 'top',
+      panelClass: success ? ['snackbar-success'] : ['snackbar-error'],
+    });
   }
 }
