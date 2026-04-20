@@ -7,12 +7,15 @@ import { MatIconModule } from '@angular/material/icon';
 interface AboutPoint {
   label: string;
   value: string;
+  helper?: string;
+  href?: string;
 }
 
-interface FeatureItem {
-  title: string;
-  description: string;
+interface SupportItem {
+  label: string;
+  value: string;
   icon: string;
+  href?: string;
 }
 
 @Component({
@@ -24,41 +27,53 @@ interface FeatureItem {
 export class About {
   readonly appName = 'Mahindra VIN Marking';
   readonly appVersion = 'V1.0.0-PRODUCTION';
-  readonly developedBy = 'CISPL Engineering Team';
+  readonly developedBy = 'Vinayak Industries';
   readonly productOwner = 'Mahindra Manufacturing IT';
-  readonly supportEmail = 'yogeshm@credentialsintegrated.com';
+  readonly supportEmail = 'vinayakind2@gmail.com';
+  readonly supportMobile = '+91 9822022213 / +91 7276837117';
   readonly supportHours = 'Mon-Sat, 9:00 AM to 6:00 PM';
   readonly currentYear = new Date().getFullYear();
 
   readonly details: AboutPoint[] = [
-    { label: 'Application ID', value: 'MVM-UI-LOCAL' },
-    { label: 'Environment', value: 'Local Deployment (Offline Ready) Port (4200)' },
+    { label: 'Application ID', value: 'MVM IIS Server' },
+    {
+      label: 'Environment',
+      value: 'Frontend Client',
+      helper: 'http://localhost:4200',
+      href: 'http://localhost:4200',
+    },
     { label: 'Frontend', value: 'Angular 21 + Angular Material' },
     { label: 'Core Modules', value: 'VIN Marking, Reports, User Management' },
-    { label: 'Backend Endpoint', value: 'http://localhost:7192/api' },
+    {
+      label: 'Backend',
+      value: 'ASP.NET Core .NET Web API',
+      helper: 'http://localhost:7192/api',
+      href: 'http://localhost:7192/api',
+    },
     { label: 'Authentication', value: 'Role Based Access (Admin/Supervisor/Operator)' },
   ];
 
-  readonly features: FeatureItem[] = [
+  readonly supportItems: SupportItem[] = [
     {
-      title: 'Production Focused Workflow',
-      description: 'Optimized flow for marking, re-engraving, and operation continuity on shop floor.',
-      icon: 'precision_manufacturing',
+      label: 'Developed By',
+      value: this.developedBy,
+      icon: 'apartment',
     },
     {
-      title: 'Traceability and Reports',
-      description: 'Enables searchable records and report-ready operational data for audit and review.',
-      icon: 'description',
+      label: 'Support Email',
+      value: this.supportEmail,
+      icon: 'mail',
+      href: `mailto:${this.supportEmail}`,
     },
     {
-      title: 'Controlled User Access',
-      description: 'Role-based menu and routing helps restrict actions by responsibility.',
-      icon: 'verified_user',
+      label: 'Mobile Number',
+      value: this.supportMobile,
+      icon: 'call',
     },
     {
-      title: 'Local Network Ready',
-      description: 'Designed for local setup where internet access may be unavailable.',
-      icon: 'lan',
+      label: 'Support Window',
+      value: this.supportHours,
+      icon: 'schedule',
     },
   ];
 }
