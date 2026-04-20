@@ -113,9 +113,9 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Line terminator</mat-label>
-          <mat-select formControlName="machineLineTerminator">
-            <mat-option *ngFor="let item of lineEndingOptions" [value]="item.value">
+          <mat-label>Checksum mode</mat-label>
+          <mat-select formControlName="machineUseChecksum">
+            <mat-option *ngFor="let item of checksumOptions" [value]="item.value">
               {{ item.label }}
             </mat-option>
           </mat-select>
@@ -130,6 +130,10 @@
           <mat-label>Response timeout (ms)</mat-label>
           <input matInput type="number" min="1000" formControlName="machineResponseTimeoutMs" />
         </mat-form-field>
+
+        <div class="browser-note full">
+          Machine serial writes are sent as framed RS232 bytes: <code>ESC + 3-byte length + command + optional checksum + CR</code>.
+        </div>
 
         <div class="actions full">
           <button mat-raised-button color="primary" type="button" (click)="saveSerialSettings()">

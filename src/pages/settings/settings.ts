@@ -11,15 +11,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import {
-  MACHINE_SERIAL_DEFAULTS,
-  SCANNER_SERIAL_DEFAULTS,
-  type MachineLineEndingStorageValue,
-} from '../../services/engrave-defaults';
+import { MACHINE_SERIAL_DEFAULTS, SCANNER_SERIAL_DEFAULTS } from '../../services/engrave-defaults';
 import { MachineSerial } from '../../services/machine-serial';
 import { Serial } from '../../services/serial';
-
-type LineEndingOption = MachineLineEndingStorageValue;
 
 @Component({
   selector: 'app-settings',
@@ -47,10 +41,9 @@ export class Settings {
   private machineSerial = inject(MachineSerial);
 
   readonly baudOptions = [300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200];
-  readonly lineEndingOptions: readonly { value: LineEndingOption; label: string }[] = [
-    { value: '\\r\\n', label: 'CRLF (default)' },
-    { value: '\\n', label: 'LF' },
-    { value: '\\r', label: 'CR' },
+  readonly checksumOptions: readonly { value: boolean; label: string }[] = [
+    { value: false, label: 'Off (recommended)' },
+    { value: true, label: 'On' },
   ];
 
   scannerConnected = false;
@@ -74,12 +67,9 @@ export class Settings {
     machineCompletionToken: this.fb.control<string>(MACHINE_SERIAL_DEFAULTS.completionToken, {
       validators: [Validators.required],
     }),
-    machineLineTerminator: this.fb.control<LineEndingOption>(
-      MACHINE_SERIAL_DEFAULTS.lineTerminator,
-      {
-        validators: [Validators.required],
-      },
-    ),
+    machineUseChecksum: this.fb.control<boolean>(MACHINE_SERIAL_DEFAULTS.useChecksum, {
+      validators: [Validators.required],
+    }),
     machineInterDelayMs: this.fb.control<number>(MACHINE_SERIAL_DEFAULTS.interDelayMs, {
       validators: [Validators.required, Validators.min(0)],
     }),
@@ -152,12 +142,13 @@ export class Settings {
     localStorage.setItem('machineSerial.baudRate', String(formValue.machineBaudRate));
     localStorage.setItem('machineSerial.template', formValue.machineTemplate.trim());
     localStorage.setItem('machineSerial.completionToken', formValue.machineCompletionToken.trim());
-    localStorage.setItem('machineSerial.lineTerminator', formValue.machineLineTerminator);
+    localStorage.setItem('machineSerial.useChecksum', String(formValue.machineUseChecksum));
     localStorage.setItem('machineSerial.interDelayMs', String(formValue.machineInterDelayMs));
     localStorage.setItem(
       'machineSerial.responseTimeoutMs',
       String(formValue.machineResponseTimeoutMs),
     );
+    localStorage.removeItem('machineSerial.lineTerminator');
 
     this.showSnack('Serial communication settings saved in this browser.', true);
   }
@@ -169,7 +160,7 @@ export class Settings {
       machineBaudRate: MACHINE_SERIAL_DEFAULTS.baudRate,
       machineTemplate: MACHINE_SERIAL_DEFAULTS.template,
       machineCompletionToken: MACHINE_SERIAL_DEFAULTS.completionToken,
-      machineLineTerminator: MACHINE_SERIAL_DEFAULTS.lineTerminator,
+      machineUseChecksum: MACHINE_SERIAL_DEFAULTS.useChecksum,
       machineInterDelayMs: MACHINE_SERIAL_DEFAULTS.interDelayMs,
       machineResponseTimeoutMs: MACHINE_SERIAL_DEFAULTS.responseTimeoutMs,
     });
@@ -195,9 +186,10 @@ export class Settings {
       machineCompletionToken:
         localStorage.getItem('machineSerial.completionToken') ||
         MACHINE_SERIAL_DEFAULTS.completionToken,
-      machineLineTerminator:
-        (localStorage.getItem('machineSerial.lineTerminator') as LineEndingOption | null) ||
-        MACHINE_SERIAL_DEFAULTS.lineTerminator,
+      machineUseChecksum: this.readBoolean(
+        'machineSerial.useChecksum',
+        MACHINE_SERIAL_DEFAULTS.useChecksum,
+      ),
       machineInterDelayMs: this.readNumber(
         'machineSerial.interDelayMs',
         MACHINE_SERIAL_DEFAULTS.interDelayMs,

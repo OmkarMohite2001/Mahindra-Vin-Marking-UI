@@ -1,7 +1,9 @@
 <div class="page">
   <mat-card class="hero">
     <div class="hero-title">Serial Development</div>
-    <div class="hero-sub">Send custom commands to the saved machine read/write serial port</div>
+    <div class="hero-sub">
+      Send UC500/XCOM commands to the saved machine port. Commands are auto-framed as RS232 hex bytes.
+    </div>
   </mat-card>
 
   <div class="grid">
@@ -38,16 +40,11 @@
       <form class="form" [formGroup]="form" (ngSubmit)="sendCommand()">
         <mat-form-field appearance="outline" class="command-field">
           <mat-label>Custom command</mat-label>
-          <input matInput formControlName="command" placeholder='Example: ST or VS 0 "MA1..."' />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Line ending</mat-label>
-          <mat-select formControlName="lineEnding">
-            <mat-option *ngFor="let item of lineEndingOptions" [value]="item.value">
-              {{ item.label }}
-            </mat-option>
-          </mat-select>
+          <input
+            matInput
+            formControlName="command"
+            placeholder='Example: ST, GI *, VS 0 "STRING", LD "TEST.tml" 1 N, or GO'
+          />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -55,7 +52,17 @@
           <input matInput type="number" min="1000" formControlName="readTimeoutMs" />
         </mat-form-field>
 
-        <button mat-raised-button color="primary" type="submit">Send Command</button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="isRunningBackendFlow">
+          Send Command
+        </button>
+        <button
+          mat-stroked-button
+          color="primary"
+          type="button"
+          (click)="runBackendFlow()"
+          [disabled]="isRunningBackendFlow">
+          {{ isRunningBackendFlow ? 'Running...' : 'Run Backend Flow' }}
+        </button>
       </form>
     </mat-card>
   </div>
@@ -65,7 +72,7 @@
     <div class="terminal-window" #scrollMe>
       <div *ngFor="let line of logs" class="log-line">{{ line }}</div>
       <div *ngIf="logs.length === 0" class="placeholder">
-        Waiting for manual commands...
+        Waiting for framed machine commands...
       </div>
     </div>
   </mat-card>

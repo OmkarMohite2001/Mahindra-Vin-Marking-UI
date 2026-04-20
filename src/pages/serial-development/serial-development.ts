@@ -6,12 +6,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MACHINE_SERIAL_DEFAULTS } from '../../services/engrave-defaults';
 import { MachineSerial } from '../../services/machine-serial';
 import { Serial } from '../../services/serial';
-
-type LineEndingOption = '\\r\\n' | '\\n' | '\\r';
 
 @Component({
   selector: 'app-serial-development',
@@ -21,7 +19,6 @@ type LineEndingOption = '\\r\\n' | '\\n' | '\\r';
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatButtonModule,
     MatSnackBarModule,
   ],
@@ -38,20 +35,14 @@ export class SerialDevelopment {
 
   @ViewChild('scrollMe') private scrollContainer?: ElementRef<HTMLDivElement>;
 
-  readonly lineEndingOptions: readonly { value: LineEndingOption; label: string }[] = [
-    { value: '\\r\\n', label: 'CRLF' },
-    { value: '\\n', label: 'LF' },
-    { value: '\\r', label: 'CR' },
-  ];
-
   logs: string[] = [];
   machineConnected = false;
   scannerConnected = false;
+  isRunningBackendFlow = false;
 
   form = this.fb.group({
     command: ['', Validators.required],
-    lineEnding: ['\\r\\n' as LineEndingOption, Validators.required],
-    readTimeoutMs: [3000, Validators.required],
+    readTimeoutMs: [MACHINE_SERIAL_DEFAULTS.responseTimeoutMs, Validators.required],
   });
 
   constructor() {
@@ -86,9 +77,11 @@ export class SerialDevelopment {
 
   async connectMachinePort(): Promise<void> {
     try {
+      console.log('[SerialDevelopment] Connect machine port requested');
       await this.machineSerial.requestPort(this.scannerSerial.getCurrentPort());
       this.showSnack('Machine serial port connected.', true);
     } catch (error) {
+      console.error('[SerialDevelopment] Connect machine port failed', error);
       this.showSnack(this.resolveErrorMessage(error, 'Unable to connect machine port.'), false);
     }
   }
@@ -105,25 +98,88 @@ export class SerialDevelopment {
       return;
     }
 
-    this.pushLog(`TX ${command}`);
+    console.log('[SerialDevelopment] Manual send', {
+      command,
+      sentHex: this.machineSerial.getCommandHex(command),
+      readTimeoutMs: Number(formValue.readTimeoutMs),
+    });
+    this.pushLog(`TX ${command} [${this.machineSerial.getCommandHex(command)}]`);
 
     try {
       const response = await this.machineSerial.sendCustomCommand(
         command,
         {
-          lineEnding: this.resolveLineEnding(formValue.lineEnding),
           readTimeoutMs: Number(formValue.readTimeoutMs),
         },
         this.scannerSerial.getCurrentPort(),
       );
 
-      this.pushLog(response.trim().length ? `ACK ${response}` : 'ACK <no response>');
+      this.pushLog(response.trim().length ? `RESP ${this.flattenResponse(response)}` : 'RESP <no immediate response>');
+      console.log('[SerialDevelopment] Manual send response', {
+        response,
+        escapedResponse: this.flattenResponse(response),
+      });
       this.form.patchValue({ command: '' });
       this.showSnack('Command sent to machine port.', true);
     } catch (error) {
       const message = this.resolveErrorMessage(error, 'Command send failed.');
+      console.error('[SerialDevelopment] Manual send failed', error);
       this.pushLog(`ERR ${message}`);
       this.showSnack(message, false);
+    }
+  }
+
+  async runBackendFlow(): Promise<void> {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const formValue = this.form.getRawValue();
+    const command = formValue.command.trim();
+    const parameters = this.resolveSequenceParameters(command);
+    if (!parameters.length) {
+      return;
+    }
+
+    console.log('[SerialDevelopment] Backend-style run', {
+      sourceInput: command,
+      parameters,
+      readTimeoutMs: Number(formValue.readTimeoutMs),
+    });
+    this.isRunningBackendFlow = true;
+    this.pushLog(`FLOW Start backend-style run for ${parameters.length} parameter(s)`);
+
+    try {
+      const result = await this.machineSerial.runDevelopmentSequence(
+        parameters,
+        {
+          readTimeoutMs: Number(formValue.readTimeoutMs),
+        },
+        this.scannerSerial.getCurrentPort(),
+      );
+
+      result.log.forEach((line) => this.pushLog(`FLOW ${line}`));
+      if (result.response.trim().length) {
+        this.pushLog(`RESP ${this.flattenResponse(result.response)}`);
+      }
+      if (result.st?.raw?.trim().length) {
+        this.pushLog(`ST ${this.flattenResponse(result.st.raw)}`);
+      }
+
+      console.log('[SerialDevelopment] Backend-style result', result);
+      this.pushLog(result.ok ? `DONE ${result.message}` : `FAIL ${result.message}`);
+      this.showSnack(
+        result.ok ? 'Backend-style machine flow completed.' : result.message,
+        result.ok,
+      );
+    } catch (error) {
+      const message = this.resolveErrorMessage(error, 'Backend-style run failed.');
+      console.error('[SerialDevelopment] Backend-style run failed', error);
+      this.pushLog(`ERR ${message}`);
+      this.showSnack(message, false);
+    } finally {
+      this.isRunningBackendFlow = false;
     }
   }
 
@@ -143,14 +199,21 @@ export class SerialDevelopment {
     }, 0);
   }
 
-  private resolveLineEnding(value: LineEndingOption): string {
-    if (value === '\\n') {
-      return '\n';
-    }
-    if (value === '\\r') {
-      return '\r';
-    }
-    return '\r\n';
+  private resolveSequenceParameters(command: string): string[] {
+    return command
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0)
+      .map((line) => {
+        const match = line.match(/^VS\s+\d+\s+"([\s\S]*)"$/i);
+        return match ? match[1].trim() : line;
+      })
+      .filter((line) => line.length > 0)
+      .slice(0, 10);
+  }
+
+  private flattenResponse(value: string): string {
+    return value.replace(/\r/g, '\\r').replace(/\n/g, '\\n');
   }
 
   private resolveErrorMessage(error: unknown, fallback: string): string {

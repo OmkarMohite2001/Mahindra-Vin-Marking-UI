@@ -3,6 +3,12 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { EngraveResponse } from './engrave-api';
 import { MACHINE_SERIAL_DEFAULTS } from './engrave-defaults';
 
+const ESC = 0x1b;
+const ACK = 0x06;
+const NAK = 0x15;
+const CR = 0x0d;
+const MAX_FRAME_DATA_LENGTH = 4096;
+
 interface SavedMachinePortPreference {
   preferredIndex?: number;
   usbVendorId?: number;
@@ -10,17 +16,51 @@ interface SavedMachinePortPreference {
   bluetoothServiceClassId?: number;
 }
 
+export interface MachineSequenceStatus {
+  raw: string;
+  state: number | null;
+  meaning: string | null;
+}
+
+export interface MachineSequenceError {
+  raw: string;
+  code1: number;
+  code2: number;
+}
+
+export interface MachineSequenceResult {
+  ok: boolean;
+  connected: boolean;
+  completed: boolean;
+  sentVs: number;
+  completionToken: string;
+  response: string;
+  lastChunk: string;
+  log: string[];
+  message: string;
+  st?: MachineSequenceStatus;
+  error?: MachineSequenceError;
+  debug?: {
+    rxLength: number;
+    tokenFound?: boolean;
+    completedBySt?: boolean;
+  };
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class MachineSerial {
   private readonly selectionStorageKey = 'machineSerial.preference';
+
   private port: any;
   private reader: any;
   private keepReading = false;
-  private buffer = '';
-  private flushTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly rxBuffer = new StringBuilder();
+  private readonly rxHexBuffer = new StringBuilder();
+  private readonly frameBuffer: number[] = [];
+  private readonly textEncoder = new TextEncoder();
+  private readonly textDecoder = new TextDecoder();
 
   readonly dataSubject = new Subject<string>();
   readonly connectionState = new BehaviorSubject<boolean>(false);
@@ -32,8 +72,7 @@ export class MachineSerial {
           this.connectionState.next(false);
           this.port = null;
           this.keepReading = false;
-          this.clearFlushTimer();
-          this.clearReadBuffer();
+          this.clearReadState();
         }
       });
     }
@@ -92,9 +131,13 @@ export class MachineSerial {
     localStorage.removeItem(this.selectionStorageKey);
   }
 
+  getCommandHex(command: string): string {
+    return this.toHex(this.buildCommandFrame(command));
+  }
+
   async sendCustomCommand(
     command: string,
-    options?: { lineEnding?: string; readTimeoutMs?: number },
+    options?: { readTimeoutMs?: number },
     excludedPort?: any,
   ): Promise<string> {
     const isConnected =
@@ -104,11 +147,7 @@ export class MachineSerial {
       throw new Error('Machine controller serial port is not connected.');
     }
 
-    return this.sendAndRead(
-      command,
-      options?.lineEnding ?? this.resolveLineTerminator(),
-      options?.readTimeoutMs ?? this.resolveResponseTimeoutMs(),
-    );
+    return this.sendAndRead(command, options?.readTimeoutMs ?? this.resolveResponseTimeoutMs());
   }
 
   async executeEngrave(parameters: string[], excludedPort?: any): Promise<EngraveResponse> {
@@ -123,7 +162,32 @@ export class MachineSerial {
       };
     }
 
-    return this.executeEngraveSequence(parameters);
+    const result = await this.runSequence(parameters);
+    return {
+      ok: result.ok,
+      message: result.message,
+      error: result.ok ? undefined : result.message,
+    };
+  }
+
+  async runDevelopmentSequence(
+    parameters: string[],
+    options?: {
+      template?: string;
+      interDelayMs?: number;
+      readTimeoutMs?: number;
+      completionToken?: string;
+    },
+    excludedPort?: any,
+  ): Promise<MachineSequenceResult> {
+    const isConnected =
+      this.connectionState.getValue() || (await this.autoConnect(excludedPort)) || (await this.requestPort(excludedPort));
+
+    if (!isConnected || !this.port?.writable) {
+      throw new Error('Machine controller serial port is not connected.');
+    }
+
+    return this.runSequence(parameters, options);
   }
 
   private async connectToPort(): Promise<void> {
@@ -137,15 +201,26 @@ export class MachineSerial {
     }
 
     try {
+      const baudRate = this.resolveBaudRate();
       await this.port.open({
-        baudRate: this.resolveBaudRate(),
+        baudRate,
         dataBits: 8,
         stopBits: 1,
         parity: 'none',
         flowControl: 'none',
       });
+      this.debugConsole('PORT OPEN', {
+        baudRate,
+        dataBits: 8,
+        stopBits: 1,
+        parity: 'none',
+        flowControl: 'none',
+        checksum: this.resolveUseChecksum(),
+        port: this.getPortInfo(this.port),
+      });
       this.connectionState.next(true);
       this.keepReading = true;
+      this.clearReadState();
       void this.readLoop();
     } catch (error) {
       console.error('Machine serial port open failed:', error);
@@ -155,9 +230,11 @@ export class MachineSerial {
   }
 
   private async readLoop(): Promise<void> {
-    const textDecoder = new TextDecoderStream();
-    const readableStreamClosed = this.port.readable.pipeTo(textDecoder.writable);
-    const reader = textDecoder.readable.getReader();
+    if (!this.port?.readable) {
+      return;
+    }
+
+    const reader = this.port.readable.getReader();
     this.reader = reader;
 
     try {
@@ -167,85 +244,160 @@ export class MachineSerial {
           break;
         }
 
-        if (value) {
-          this.buffer += value;
-          this.emitCompletedLines();
-          this.scheduleBufferFlush();
+        if (!value) {
+          continue;
         }
+
+        const chunk = value instanceof Uint8Array ? value : new Uint8Array(value);
+        this.debugConsole('RX CHUNK', {
+          bytesHex: this.toHex(chunk),
+          bytesDec: Array.from(chunk),
+        });
+        this.processIncomingBytes(chunk);
       }
     } catch (error) {
       console.error('Machine serial read failed:', error);
       this.connectionState.next(false);
       this.port = null;
-      this.clearReadBuffer();
+      this.clearReadState();
     } finally {
-      this.flushBuffer();
-      this.clearFlushTimer();
       reader.releaseLock();
-      await readableStreamClosed.catch(() => {});
       this.reader = null;
     }
   }
 
-  private emitCompletedLines(): void {
-    const lines = this.buffer.split(/\r\n|\n|\r/);
-    if (lines.length <= 1) {
-      return;
+  private processIncomingBytes(chunk: Uint8Array): void {
+    this.appendHexChunk(chunk);
+    for (const byte of chunk) {
+      this.frameBuffer.push(byte);
     }
-
-    this.buffer = lines.pop() || '';
-    lines.forEach((line) => this.emitLine(line));
+    this.parseIncomingFrames();
   }
 
-  private scheduleBufferFlush(): void {
-    this.clearFlushTimer();
-    this.flushTimer = setTimeout(() => this.flushBuffer(), 80);
-  }
+  private parseIncomingFrames(): void {
+    while (this.frameBuffer.length > 0) {
+      const first = this.frameBuffer[0];
 
-  private flushBuffer(): void {
-    if (!this.buffer) {
-      return;
+      if (first === ACK) {
+        this.frameBuffer.shift();
+        this.emitLine('ACK');
+        continue;
+      }
+
+      if (first === NAK) {
+        this.frameBuffer.shift();
+        this.emitLine('NAK');
+        continue;
+      }
+
+      if (first !== ESC) {
+        const droppedByte = this.frameBuffer.shift();
+        this.debugConsole('RX NOISE', {
+          droppedByte,
+          droppedHex: this.toHex([droppedByte ?? 0]),
+        });
+        continue;
+      }
+
+      if (this.frameBuffer.length < 5) {
+        return;
+      }
+
+      const dataLength =
+        (this.frameBuffer[1] << 16) | (this.frameBuffer[2] << 8) | this.frameBuffer[3];
+
+      if (dataLength < 0 || dataLength > MAX_FRAME_DATA_LENGTH) {
+        const invalidEsc = this.frameBuffer.shift();
+        this.debugConsole('RX FRAME DESYNC', {
+          reason: 'invalid-length',
+          dataLength,
+          droppedHex: this.toHex([invalidEsc ?? ESC]),
+        });
+        continue;
+      }
+
+      const dataStart = 4;
+      const dataEnd = dataStart + dataLength;
+      const noChecksumLength = 1 + 3 + dataLength + 1;
+
+      if (this.frameBuffer.length < noChecksumLength) {
+        return;
+      }
+
+      let checksum: number | undefined;
+      let totalLength = noChecksumLength;
+
+      if (this.frameBuffer[dataEnd] !== CR) {
+        if (this.frameBuffer.length < noChecksumLength + 1) {
+          return;
+        }
+
+        checksum = this.frameBuffer[dataEnd];
+        if (this.frameBuffer[dataEnd + 1] !== CR) {
+          const invalidEsc = this.frameBuffer.shift();
+          this.debugConsole('RX FRAME DESYNC', {
+            reason: 'missing-cr',
+            droppedHex: this.toHex([invalidEsc ?? ESC]),
+            bufferPreview: this.toHex(this.frameBuffer.slice(0, Math.min(this.frameBuffer.length, 24))),
+          });
+          continue;
+        }
+
+        totalLength += 1;
+      }
+
+      const dataBytes = new Uint8Array(this.frameBuffer.slice(dataStart, dataEnd));
+
+      if (checksum !== undefined) {
+        const expectedChecksum = this.computeChecksum(dataLength, dataBytes);
+        if (checksum !== expectedChecksum) {
+          this.emitLine(
+            `CHECKSUM_ERROR ${checksum.toString(16).padStart(2, '0').toUpperCase()} ${expectedChecksum
+              .toString(16)
+              .padStart(2, '0')
+              .toUpperCase()}`,
+          );
+          this.frameBuffer.splice(0, totalLength);
+          continue;
+        }
+      }
+
+      const decoded = this.textDecoder.decode(dataBytes).trim();
+      if (decoded.length) {
+        this.emitLine(decoded);
+      }
+
+      this.frameBuffer.splice(0, totalLength);
     }
-
-    this.emitLine(this.buffer);
-    this.buffer = '';
   }
 
-  private clearFlushTimer(): void {
-    if (!this.flushTimer) {
-      return;
-    }
-
-    clearTimeout(this.flushTimer);
-    this.flushTimer = null;
-  }
-
-  private emitLine(line: string): void {
-    const parsed = line.trim();
-    if (!parsed.length) {
-      return;
-    }
-
-    this.dataSubject.next(parsed);
-    this.appendToReadBuffer(parsed);
-  }
-
-  private async executeEngraveSequence(parameters: string[]): Promise<EngraveResponse> {
-    const interDelayMs = this.resolveInterDelayMs();
-    const readTimeoutMs = this.resolveResponseTimeoutMs();
-    const completionToken = this.resolveCompletionToken();
-    const lineEnding = this.resolveLineTerminator();
-    const template = this.resolveTemplate();
+  private async runSequence(
+    parameters: string[],
+    options?: {
+      template?: string;
+      interDelayMs?: number;
+      readTimeoutMs?: number;
+      completionToken?: string;
+    },
+  ): Promise<MachineSequenceResult> {
+    const interDelayMs = options?.interDelayMs ?? this.resolveInterDelayMs();
+    const readTimeoutMs = options?.readTimeoutMs ?? this.resolveResponseTimeoutMs();
+    const completionToken = options?.completionToken ?? this.resolveCompletionToken();
+    const template = options?.template?.trim() || this.resolveTemplate();
     const log: string[] = [];
+    const sanitizedParameters = parameters
+      .map((parameter) => parameter.trim())
+      .filter((parameter) => parameter.length > 0)
+      .slice(0, 10);
 
     this.clearReadBuffer();
 
     try {
       let sentVs = 0;
-      for (let i = 0; i < Math.min(parameters.length, 10); i++) {
-        const command = `VS ${i} "${parameters[i].trim()}"`;
-        await this.writeCommand(command, lineEnding);
-        log.push(`>> ${command}`);
+      for (let i = 0; i < sanitizedParameters.length; i++) {
+        const command = `VS ${i} "${sanitizedParameters[i]}"`;
+        const frame = await this.writeCommand(command);
+        log.push(`>> ${command} [${this.toHex(frame)}]`);
         sentVs += 1;
 
         if (interDelayMs > 0) {
@@ -254,14 +406,14 @@ export class MachineSerial {
       }
 
       const loadCommand = `LD "${template}" 1 N`;
-      await this.writeCommand(loadCommand, lineEnding);
-      log.push(`>> ${loadCommand}`);
+      const loadFrame = await this.writeCommand(loadCommand);
+      log.push(`>> ${loadCommand} [${this.toHex(loadFrame)}]`);
       if (interDelayMs > 0) {
         await this.delay(interDelayMs);
       }
 
-      await this.writeCommand('GO', lineEnding);
-      log.push('>> GO');
+      const goFrame = await this.writeCommand('GO');
+      log.push(`>> GO [${this.toHex(goFrame)}]`);
       if (interDelayMs > 0) {
         await this.delay(interDelayMs);
       }
@@ -276,14 +428,30 @@ export class MachineSerial {
           if (errorMatch) {
             return {
               ok: false,
+              connected: this.connectionState.getValue(),
+              completed: false,
+              sentVs,
+              completionToken,
+              response: chunk,
+              lastChunk: chunk,
+              error: errorMatch,
+              debug: { rxLength: chunk.length },
+              log,
               message: `Machine error ${errorMatch.raw}`,
-              error: `Machine error ${errorMatch.raw}`,
             };
           }
 
           if (chunk.includes(completionToken)) {
             return {
               ok: true,
+              connected: this.connectionState.getValue(),
+              completed: true,
+              sentVs,
+              completionToken,
+              response: chunk,
+              lastChunk: chunk,
+              debug: { rxLength: chunk.length, tokenFound: true },
+              log,
               message: `Completed with token ${completionToken}. Template ${template} executed.`,
             };
           }
@@ -292,13 +460,31 @@ export class MachineSerial {
         await this.delay(200);
       }
 
-      const stResponse = await this.sendAndRead('ST', lineEnding, 3000);
+      const stResponse = await this.sendAndRead('ST', 3000);
       const stState = this.tryParseStatusState(stResponse);
       const latest = this.readLatest(false);
+      const stMeaning = stState === null ? null : this.mapStatusMeaning(stState);
 
       if (stState === 0 || stState === 1) {
         return {
           ok: true,
+          connected: this.connectionState.getValue(),
+          completed: true,
+          sentVs,
+          completionToken,
+          response: latest || stResponse,
+          lastChunk: latest || stResponse,
+          st: {
+            raw: stResponse,
+            state: stState,
+            meaning: stMeaning,
+          },
+          debug: {
+            rxLength: (latest || stResponse).length,
+            tokenFound: false,
+            completedBySt: true,
+          },
+          log: [...log, `>> ST [${this.getCommandHex('ST')}]`, '!! Completion token not found, completed by ST fallback.'],
           message: `Completed by ST state ${stState}. Template ${template} executed.`,
         };
       }
@@ -307,50 +493,102 @@ export class MachineSerial {
       if (errorMatch) {
         return {
           ok: false,
+          connected: this.connectionState.getValue(),
+          completed: false,
+          sentVs,
+          completionToken,
+          response: latest || lastChunk || stResponse,
+          lastChunk: latest || lastChunk || stResponse,
+          st: {
+            raw: stResponse,
+            state: stState,
+            meaning: stMeaning,
+          },
+          error: errorMatch,
+          debug: {
+            rxLength: (latest || lastChunk || stResponse).length,
+            tokenFound: false,
+            completedBySt: false,
+          },
+          log: [...log, `>> ST [${this.getCommandHex('ST')}]`, '!! ER detected after ST fallback.'],
           message: `Machine error ${errorMatch.raw}`,
-          error: `Machine error ${errorMatch.raw}`,
         };
       }
 
-      const statusText = stState === null ? 'unknown' : `${stState} (${this.mapStatusMeaning(stState)})`;
+      const statusText = stState === null ? 'unknown' : `${stState} (${stMeaning})`;
       return {
         ok: false,
+        connected: this.connectionState.getValue(),
+        completed: false,
+        sentVs,
+        completionToken,
+        response: latest || lastChunk || stResponse,
+        lastChunk: latest || lastChunk || stResponse,
+        st: {
+          raw: stResponse,
+          state: stState,
+          meaning: stMeaning,
+        },
+        debug: {
+          rxLength: (latest || lastChunk || stResponse).length,
+          tokenFound: false,
+          completedBySt: false,
+        },
+        log: [
+          ...log,
+          `>> ST [${this.getCommandHex('ST')}]`,
+          '!! Completion token not found and ST did not indicate ready/alive state.',
+        ],
         message: `Completion token ${completionToken} not received. ST status: ${statusText}.`,
-        error: `Completion token ${completionToken} not received.`,
       };
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Machine controller communication failed.';
       return {
         ok: false,
+        connected: this.connectionState.getValue(),
+        completed: false,
+        sentVs: 0,
+        completionToken,
+        response: '',
+        lastChunk: '',
+        log,
         message,
-        error: message,
       };
     }
   }
 
-  private async writeCommand(command: string, lineEnding: string): Promise<void> {
+  private async writeCommand(command: string): Promise<Uint8Array> {
     if (!this.port?.writable) {
       throw new Error('Machine controller serial port is not writable.');
     }
 
+    const frame = this.buildCommandFrame(command);
     const writer = this.port.writable.getWriter();
+
     try {
-      const encodedCommand = new TextEncoder().encode(command + lineEnding);
-      await writer.write(encodedCommand);
+      this.debugConsole('TX COMMAND', {
+        command,
+        bytesHex: this.toHex(frame),
+        bytesDec: Array.from(frame),
+        checksum: this.resolveUseChecksum(),
+      });
+      await writer.write(frame);
     } finally {
       writer.releaseLock();
     }
+
+    return frame;
   }
 
-  private async sendAndRead(command: string, lineEnding: string, timeoutMs: number): Promise<string> {
+  private async sendAndRead(command: string, timeoutMs: number): Promise<string> {
     this.clearReadBuffer();
-    await this.writeCommand(command, lineEnding);
+    await this.writeCommand(command);
 
     const startTime = Date.now();
     while (Date.now() - startTime < timeoutMs) {
       const latest = this.readLatest(false);
-      if (latest.trim().length) {
+      if (this.hasMeaningfulResponse(latest)) {
         return latest;
       }
 
@@ -360,20 +598,56 @@ export class MachineSerial {
     return this.readLatest(false);
   }
 
-  private resolveLineTerminator(): string {
-    const rawValue = localStorage.getItem('machineSerial.lineTerminator');
-    if (rawValue === '\\n') {
-      return '\n';
+  private buildCommandFrame(command: string): Uint8Array {
+    if (!command.trim().length) {
+      throw new Error('Machine command is required.');
     }
-    if (rawValue === '\\r') {
-      return '\r';
+
+    const commandBytes = this.textEncoder.encode(command);
+    const useChecksum = this.resolveUseChecksum();
+    const frameLength = 1 + 3 + commandBytes.length + (useChecksum ? 1 : 0) + 1;
+    const frame = new Uint8Array(frameLength);
+
+    frame[0] = ESC;
+    frame[1] = (commandBytes.length >> 16) & 0xff;
+    frame[2] = (commandBytes.length >> 8) & 0xff;
+    frame[3] = commandBytes.length & 0xff;
+    frame.set(commandBytes, 4);
+
+    let cursor = 4 + commandBytes.length;
+    if (useChecksum) {
+      frame[cursor] = this.computeChecksum(commandBytes.length, commandBytes);
+      cursor += 1;
     }
-    if (rawValue === '\\r\\n') {
-      return '\r\n';
+
+    frame[cursor] = CR;
+    return frame;
+  }
+
+  private computeChecksum(dataLength: number, data: Uint8Array): number {
+    let checksum = 0;
+    checksum ^= (dataLength >> 16) & 0xff;
+    checksum ^= (dataLength >> 8) & 0xff;
+    checksum ^= dataLength & 0xff;
+
+    for (const byte of data) {
+      checksum ^= byte;
     }
-    return MACHINE_SERIAL_DEFAULTS.lineTerminator
-      .replace('\\r', '\r')
-      .replace('\\n', '\n');
+
+    return checksum & 0xff;
+  }
+
+  private hasMeaningfulResponse(value: string): boolean {
+    const lines = value
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+
+    if (!lines.length) {
+      return false;
+    }
+
+    return lines.some((line) => line !== 'ACK');
   }
 
   private resolveBaudRate(): number {
@@ -392,6 +666,11 @@ export class MachineSerial {
       localStorage.getItem('machineSerial.completionToken') ||
       MACHINE_SERIAL_DEFAULTS.completionToken
     );
+  }
+
+  private resolveUseChecksum(): boolean {
+    const rawValue = localStorage.getItem('machineSerial.useChecksum');
+    return rawValue === null ? MACHINE_SERIAL_DEFAULTS.useChecksum : rawValue === 'true';
   }
 
   private resolveInterDelayMs(): number {
@@ -501,6 +780,20 @@ export class MachineSerial {
     return details.length ? details.join(' | ') : 'Previously selected machine port';
   }
 
+  private emitLine(line: string): void {
+    const parsed = line.trim();
+    if (!parsed.length) {
+      return;
+    }
+
+    this.debugConsole('RX LINE', {
+      decoded: this.escapeForLog(parsed),
+      charCodes: this.toCharCodes(parsed),
+    });
+    this.dataSubject.next(parsed);
+    this.appendToReadBuffer(parsed);
+  }
+
   private appendToReadBuffer(value: string): void {
     this.rxBuffer.append(value);
     this.rxBuffer.append('\n');
@@ -509,8 +802,26 @@ export class MachineSerial {
     }
   }
 
+  private appendHexChunk(chunk: Uint8Array): void {
+    if (!chunk.length) {
+      return;
+    }
+
+    this.rxHexBuffer.append(this.toHex(chunk));
+    this.rxHexBuffer.append('\n');
+    if (this.rxHexBuffer.length > 200_000) {
+      this.rxHexBuffer.delete(0, this.rxHexBuffer.length - 50_000);
+    }
+  }
+
   private clearReadBuffer(): void {
     this.rxBuffer.clear();
+  }
+
+  private clearReadState(): void {
+    this.rxBuffer.clear();
+    this.rxHexBuffer.clear();
+    this.frameBuffer.length = 0;
   }
 
   private readLatest(clear: boolean): string {
@@ -567,6 +878,24 @@ export class MachineSerial {
 
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private debugConsole(label: string, payload: unknown): void {
+    console.log(`[MachineSerial] ${label}`, payload);
+  }
+
+  private escapeForLog(value: string): string {
+    return value.replace(/\r/g, '\\r').replace(/\n/g, '\\n');
+  }
+
+  private toHex(bytes: Iterable<number>): string {
+    return Array.from(bytes)
+      .map((byte) => byte.toString(16).padStart(2, '0').toUpperCase())
+      .join(' ');
+  }
+
+  private toCharCodes(value: string): number[] {
+    return Array.from(value).map((char) => char.charCodeAt(0));
   }
 }
 

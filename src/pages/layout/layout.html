@@ -77,10 +77,10 @@
     </mat-menu>
 
     <mat-menu #helpMenu="matMenu">
-      @if (showSerialTerminalMenuItem) {
+      @if (!showSerialTerminalMenuItem) {
         <button mat-menu-item [routerLink]="['/app/serialTerminal']">Serial Terminal</button>
       }
-      @if (showSerialDevelopmentMenuItem) {
+      @if (!showSerialDevelopmentMenuItem) {
         <button mat-menu-item [routerLink]="['/app/serial-development']">Serial Development</button>
       }
       <button mat-menu-item [routerLink]="['/app/about']">About</button>
