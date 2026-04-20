@@ -76,7 +76,7 @@ export const routes: Routes = [
           import('../pages/about/about').then(m => m.About),
       },
 
-      { path: '', pathMatch: 'full', redirectTo: 'excel-upload' },
+      { path: '', pathMatch: 'full', redirectTo: 'marking' },
     ],
   },
 

@@ -88,7 +88,10 @@ export function hasRoleAccess(
 }
 
 export function getFirstAllowedPath(role: UserRole | null): string {
+  if (hasRoleAccess(role, ['Admin', 'Supervisor', 'Operator'])) {
+    return '/app/marking';
+  }
+
   const first = APP_NAV_ITEMS.find((item) => hasRoleAccess(role, item.roles));
   return first?.path ?? '/login';
 }
-

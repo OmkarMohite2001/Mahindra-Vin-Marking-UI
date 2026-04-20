@@ -22,6 +22,7 @@ export class EngraveApi {
   private baseUrl = API_BASE_URL;
 
   runWithParameter(payload: EngraveRequest) {
-    return this.http.post<EngraveResponse>(`${this.baseUrl}/engrave/runwithparameter`, payload);
+    // return this.http.post<EngraveResponse>(`${this.baseUrl}/engrave/runwithparameter`, payload);
+    return this.http.post<EngraveResponse>(`${this.baseUrl}/engrave/run-dynamic`, payload);
   }
 }

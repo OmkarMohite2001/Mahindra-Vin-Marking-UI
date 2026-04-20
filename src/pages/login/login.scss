@@ -26,29 +26,43 @@
 }
 
 .hero {
-  padding: clamp(14px, 2vw, 24px);
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(7, 25, 56, 0.52), rgba(10, 41, 80, 0.32));
-  border: 1px solid rgba(157, 199, 248, 0.2);
+  width: min(100%, 620px);
+  min-height: clamp(340px, 38vw, 430px);
+  margin: 0 auto;
+  padding: clamp(10px, 1.4vw, 16px);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(7, 25, 56, 0.44), rgba(10, 41, 80, 0.22));
+  border: 1px solid rgba(157, 199, 248, 0.14);
   backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 18px 34px rgba(4, 18, 39, 0.14);
 }
 
 .hero-brand {
-  display: inline-flex;
+  width: 100%;
+  min-height: clamp(300px, 34vw, 380px);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(210, 228, 255, 0.18);
+  justify-content: center;
+  gap: 14px;
+  padding: clamp(16px, 2vw, 24px);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(210, 228, 255, 0.12);
+  text-align: center;
 }
 
 .logo {
-  width: clamp(120px, 14vw, 170px);
-  height: clamp(57px, 6vw, 73px);
-  object-fit: cover;
-  object-position: 18% center;
-  border-radius: 8px;
+  width: min(100%, 460px);
+  max-width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 10px;
   background: transparent;
   padding: 0;
 }
@@ -56,77 +70,17 @@
 .brand-text .title {
   font-family: 'Bahnschrift', 'Segoe UI Variable', sans-serif;
   font-weight: 700;
-  font-size: clamp(18px, 2vw, 26px);
+  font-size: clamp(22px, 2.5vw, 34px);
   line-height: 1.1;
   color: #f3f7ff;
 }
 
 .brand-text .sub {
-  margin-top: 3px;
-  font-size: 12px;
-  letter-spacing: 0.08em;
+  margin-top: 6px;
+  font-size: 13px;
+  letter-spacing: 0.1em;
   color: #b9d0ee;
   text-transform: uppercase;
-}
-
-.hero-copy {
-  margin-top: 22px;
-}
-
-.kicker {
-  display: inline-block;
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: #87d8ff;
-  border: 1px solid rgba(135, 216, 255, 0.42);
-  background: rgba(4, 40, 78, 0.45);
-}
-
-.hero h1 {
-  margin: 12px 0 0;
-  font-family: 'Bahnschrift', 'Segoe UI Variable', sans-serif;
-  font-size: clamp(32px, 4vw, 58px);
-  line-height: 1.02;
-  font-weight: 800;
-  color: #ffffff;
-}
-
-.hero p {
-  margin: 14px 0 0;
-  max-width: 52ch;
-  color: #c4d6ee;
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-.hero-points {
-  margin-top: 22px;
-  display: grid;
-  gap: 10px;
-  max-width: 520px;
-}
-
-.point {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(9, 34, 68, 0.52);
-  border: 1px solid rgba(162, 194, 230, 0.2);
-  color: #d3e3f8;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.point mat-icon {
-  color: #7ed2ff;
-  font-size: 19px;
-  width: 19px;
-  height: 19px;
 }
 
 .card {
@@ -219,6 +173,11 @@
     gap: 20px;
   }
 
+  .hero {
+    width: min(100%, 560px);
+    min-height: 320px;
+  }
+
   .card {
     width: min(100%, 520px);
   }
@@ -229,6 +188,22 @@
     padding: 14px;
   }
 
+  .hero {
+    width: 100%;
+    min-height: 260px;
+    padding: 10px;
+  }
+
+  .hero-brand {
+    min-height: 240px;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .logo {
+    width: min(100%, 320px);
+  }
+
   .card {
     padding: 18px;
   }
@@ -237,10 +212,6 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
-  }
-
-  .hero h1 {
-    font-size: clamp(30px, 9vw, 44px);
   }
 
   .footer {

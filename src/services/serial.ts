@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 
+export type ScannerParity = 'None' | 'Even' | 'Odd' | 'Mark' | 'Space';
+export type ScannerFlowControl = 'None' | 'RTS/CTS' | 'XON/XOFF';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -18,15 +21,16 @@ export class Serial {
     if (this.isSupported()) {
       (navigator as any).serial.addEventListener('disconnect', (event: any) => {
         if (event.port === this.port) {
-           console.log("Device Disconnected manually!");
-           this.connectionState.next(false);
-           this.port = null;
-           this.keepReading = false;
-           this.clearFlushTimer();
+          console.log('Device disconnected manually');
+          this.connectionState.next(false);
+          this.port = null;
+          this.keepReading = false;
+          this.clearFlushTimer();
         }
       });
-      (navigator as any).serial.addEventListener('connect', (event: any) => {
-         console.log("Device Connected to USB port");
+
+      (navigator as any).serial.addEventListener('connect', () => {
+        console.log('Device connected to USB port');
       });
     }
   }
@@ -35,28 +39,92 @@ export class Serial {
     return 'serial' in navigator;
   }
 
-  async requestPort() {
+  getPortSummary(): string {
+    if (!this.port) {
+      return 'No scanner port selected in this session';
+    }
+
+    const info = this.getPortInfo(this.port);
+    const details: string[] = [];
+    if (info.usbVendorId !== undefined) {
+      details.push(`VID ${info.usbVendorId}`);
+    }
+    if (info.usbProductId !== undefined) {
+      details.push(`PID ${info.usbProductId}`);
+    }
+
+    return details.length ? details.join(' | ') : 'Scanner port selected';
+  }
+
+  getPortName(): string {
+    if (!this.port) {
+      return 'COM';
+    }
+
+    const info = this.getPortInfo(this.port) as Record<string, unknown>;
+    const candidates = [
+      this.port?.displayName,
+      this.port?.friendlyName,
+      this.port?.name,
+      this.port?.path,
+      this.port?.portName,
+      this.port?.label,
+      info?.['path'],
+      info?.['displayName'],
+      info?.['friendlyName'],
+      info?.['name'],
+    ];
+
+    for (const candidate of candidates) {
+      const resolved = this.extractComName(candidate);
+      if (resolved) {
+        return resolved;
+      }
+    }
+
+    return 'COM';
+  }
+
+  async requestPort(): Promise<boolean> {
+    if (!this.isSupported()) {
+      return false;
+    }
+
     try {
       this.port = await (navigator as any).serial.requestPort();
       await this.connectToPort();
+      return this.connectionState.getValue();
     } catch (error) {
       console.error('Port selection failed', error);
+      return false;
     }
   }
 
-  async autoConnect() {
-    const ports = await (navigator as any).serial.getPorts();
-    if (ports.length > 0) {
-      this.port = ports[0];
-      await this.connectToPort();
+  async autoConnect(): Promise<boolean> {
+    if (!this.isSupported()) {
+      return false;
     }
+
+    const ports = await (navigator as any).serial.getPorts();
+    if (!ports.length) {
+      return false;
+    }
+
+    this.port = ports[0];
+    await this.connectToPort();
+    return this.connectionState.getValue();
   }
 
   private async connectToPort() {
-    if (!this.port) return;
-    if (this.port.readable) {
+    if (!this.port) {
       return;
     }
+
+    if (this.port.readable) {
+      this.connectionState.next(true);
+      return;
+    }
+
     try {
       await this.port.open({
         baudRate: 9600,
@@ -68,7 +136,7 @@ export class Serial {
       console.log('Port connected!');
       this.connectionState.next(true);
       this.keepReading = true;
-      this.readLoop();
+      void this.readLoop();
     } catch (error) {
       console.error('Error opening port:', error);
       this.connectionState.next(false);
@@ -95,7 +163,7 @@ export class Serial {
         }
       }
     } catch (error) {
-      console.error('Read error (Device lost?):', error);
+      console.error('Read error (device lost?):', error);
       this.connectionState.next(false);
       this.port = null;
     } finally {
@@ -146,5 +214,36 @@ export class Serial {
     if (parsed.length > 0) {
       this.dataSubject.next(parsed);
     }
+  }
+
+  private getPortInfo(port: any): {
+    usbVendorId?: number;
+    usbProductId?: number;
+    bluetoothServiceClassId?: number;
+  } {
+    if (!port?.getInfo) {
+      return {};
+    }
+
+    const info = port.getInfo();
+    return {
+      usbVendorId: info?.usbVendorId,
+      usbProductId: info?.usbProductId,
+      bluetoothServiceClassId: info?.bluetoothServiceClassId,
+    };
+  }
+
+  private extractComName(value: unknown): string | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const match = trimmed.match(/\bCOM\d+\b/i);
+    return match ? match[0].toUpperCase() : null;
   }
 }

@@ -78,6 +78,9 @@
 
     <mat-menu #helpMenu="matMenu">
       <button mat-menu-item [routerLink]="['/app/about']">About</button>
+      <button mat-menu-item *ngIf="loggedInRole === 'Admin'" [routerLink]="['/app/serialTerminal']">
+        Serial Terminal
+      </button>
       <button mat-menu-item>Support</button>
     </mat-menu>
 

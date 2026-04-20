@@ -32,17 +32,13 @@ import { APP_NAV_ITEMS, NavItemAccess, normalizeRole, UserRole } from '../../app
 export class Layout {
   private router = inject(Router);
   private currentRole: UserRole | null = normalizeRole(localStorage.getItem('role'));
-  private readonly isDeveloperSession = localStorage.getItem('isDeveloperSession') === 'true';
   readonly navItems: readonly NavItemAccess[] = APP_NAV_ITEMS;
-  readonly visibleNavItems = this.navItems.filter((item) => {
-    if (!this.currentRole || !item.roles.includes(this.currentRole)) {
-      return false;
-    }
-    if (item.path === '/app/serialTerminal') {
-      return this.isDeveloperSession;
-    }
-    return true;
-  });
+  readonly visibleNavItems = this.navItems.filter(
+    (item) =>
+      item.path !== '/app/serialTerminal' &&
+      !!this.currentRole &&
+      item.roles.includes(this.currentRole),
+  );
   readonly loggedInUserName = (localStorage.getItem('username') || 'User').trim() || 'User';
   readonly loggedInRole = this.currentRole ?? 'Operator';
   readonly loggedInInitial = this.loggedInUserName.charAt(0).toUpperCase();
@@ -66,11 +62,7 @@ export class Layout {
 
   logout() {
     if(confirm("Are you sure want to logout!!")){
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      localStorage.removeItem('username');
-      localStorage.removeItem('userId');
-      localStorage.removeItem('isDeveloperSession');
+      localStorage.clear();
       this.router.navigateByUrl('/login');
 
     }
