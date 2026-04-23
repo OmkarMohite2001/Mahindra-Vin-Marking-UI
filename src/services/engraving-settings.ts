@@ -70,7 +70,7 @@ export class EngravingSettingsApi {
   private updateUrl = `${API_BASE_URL}/communication/update`;
 
   getSettings(): Observable<EngravingSettingsResponse> {
-    return this.http.get<unknown>(this.getAllUrl).pipe(
+    return this.http.post<unknown>(this.getAllUrl, {}).pipe(
       map((response) => this.normalizeResponse(response)),
       catchError(() => of(this.createFallbackResponse())),
     );
