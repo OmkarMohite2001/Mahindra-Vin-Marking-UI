@@ -14,6 +14,9 @@ export class PrinterApi {
   }
 
   printLabel(payload: any) {
-    return this.http.post(`${this.baseUrl}/Usb/print`, payload);
+    return this.http.post(`${this.baseUrl}/zebra/print`, payload);
   }
+  // printLabel(payload: any) {
+  //   return this.http.post(`${this.baseUrl}/Usb/print`, payload);
+  // }
 }
