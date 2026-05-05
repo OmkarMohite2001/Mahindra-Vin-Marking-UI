@@ -14,7 +14,16 @@
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: true }">
           <div class="nav-item-content">
-            @if (getNavImageSrc(item); as navImage) {
+            @if (item.path === '/app/dashboard') {
+              <div class="nav-dashboard-logo" aria-hidden="true">
+                <div class="dashboard-shell">
+                  <span class="dashboard-tile tile-main"></span>
+                  <span class="dashboard-tile tile-side"></span>
+                  <span class="dashboard-tile tile-foot"></span>
+                  <span class="dashboard-pulse"></span>
+                </div>
+              </div>
+            } @else if (getNavImageSrc(item); as navImage) {
               <img class="nav-img" [src]="navImage" [alt]="item.label" />
             } @else {
               <mat-icon class="nav-ic">{{ item.icon }}</mat-icon>
@@ -56,7 +65,7 @@
       <button mat-button (click)="logout()">Exit</button>
     </mat-toolbar>
 
-    <mat-menu #adminMenu="matMenu">
+    <mat-menu #adminMenu="matMenu" class="app-submenu">
       <button mat-menu-item [routerLink]="['/app/user-management']">Users Master</button>
       <button mat-menu-item>Color Master</button>
       <button mat-menu-item>Country Master</button>
@@ -67,16 +76,16 @@
       <button mat-menu-item>Email Recipients</button>
     </mat-menu>
 
-    <mat-menu #maintMenu="matMenu">
+    <mat-menu #maintMenu="matMenu" class="app-submenu">
       <button mat-menu-item [routerLink]="['/app/excel-upload']">Upload Data</button>
       <button mat-menu-item [routerLink]="['/app/settings']">Settings</button>
     </mat-menu>
 
-    <mat-menu #assocMenu="matMenu">
+    <mat-menu #assocMenu="matMenu" class="app-submenu">
       <button mat-menu-item [routerLink]="['/app/marking']">Marking Cycle</button>
     </mat-menu>
 
-    <mat-menu #helpMenu="matMenu">
+    <mat-menu #helpMenu="matMenu" class="app-submenu">
       <button mat-menu-item [routerLink]="['/app/about']">About</button>
       <button mat-menu-item *ngIf="loggedInRole === 'Admin'" [routerLink]="['/app/serialTerminal']">
         Serial Terminal

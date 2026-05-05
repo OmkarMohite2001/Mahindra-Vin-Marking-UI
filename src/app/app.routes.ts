@@ -26,6 +26,13 @@ export const routes: Routes = [
           import('../pages/marking/marking').then(m => m.Marking),
       },
       {
+        path: 'dashboard',
+        canActivate: [roleRouteGuard],
+        data: { roles: ['Admin', 'Supervisor', 'Operator'] },
+        loadComponent: () =>
+          import('../pages/dashboard/dashboard').then(m => m.Dashboard),
+      },
+      {
         path: 'settings',
         canActivate: [roleRouteGuard],
         data: { roles: ['Admin'] },

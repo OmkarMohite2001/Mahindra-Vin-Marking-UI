@@ -70,3 +70,18 @@ body {
   --mdc-snackbar-supporting-text-color: #ffffff;
   --mat-snack-bar-button-color: #ffffff;
 }
+
+.app-submenu {
+  --mat-menu-item-label-text-size: 32px;
+  --mat-menu-item-label-text-weight: 600;
+  --mat-menu-item-label-text-line-height: 1.1;
+}
+
+.app-submenu .mat-mdc-menu-item {
+  min-height: 64px;
+  padding: 0 18px;
+}
+
+.app-submenu .mat-mdc-menu-item .mat-mdc-menu-item-text {
+  color: #111;
+}

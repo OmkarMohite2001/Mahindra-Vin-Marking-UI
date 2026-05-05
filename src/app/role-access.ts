@@ -21,6 +21,12 @@ export const APP_NAV_ITEMS: readonly NavItemAccess[] = [
     roles: ['Admin', 'Supervisor', 'Operator'],
   },
   {
+    path: '/app/dashboard',
+    label: 'DASHBOARD',
+    icon: 'dashboard',
+    roles: ['Admin', 'Supervisor', 'Operator'],
+  },
+  {
     path: '/app/settings',
     label: 'SETTINGS',
     icon: 'settings',

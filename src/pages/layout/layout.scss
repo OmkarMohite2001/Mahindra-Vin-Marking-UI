@@ -146,8 +146,87 @@
   mix-blend-mode: multiply;
   image-rendering: auto;
 }
+.nav-dashboard-logo {
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.dashboard-shell {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(13, 65, 116, 0.18);
+  background: linear-gradient(145deg, #eef7ff, #b7ddff);
+  box-shadow: 0 8px 16px rgba(25, 73, 126, 0.12);
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+}
+
+.dashboard-shell::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.dashboard-tile {
+  position: absolute;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #2a76c7, #194a8d);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.tile-main {
+  left: 10px;
+  top: 10px;
+  width: 26px;
+  height: 23px;
+}
+
+.tile-side {
+  right: 10px;
+  top: 10px;
+  width: 18px;
+  height: 23px;
+}
+
+.tile-foot {
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  height: 18px;
+  background: linear-gradient(180deg, #39a4de, #1b6faf);
+}
+
+.dashboard-pulse {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 0 0 rgba(57, 164, 222, 0.45);
+  animation: dashboardPulse 2.1s ease-in-out infinite;
+}
+
 .nav-link:hover .nav-ic{ color: #0d2a5c; }
 .nav-link.active .nav-ic{ color: #006e8c; }
+.nav-link:hover .dashboard-shell {
+  transform: translateY(-2px) scale(1.03);
+  border-color: rgba(0, 110, 140, 0.38);
+  box-shadow: 0 12px 20px rgba(17, 74, 120, 0.18);
+}
+
+.nav-link.active .dashboard-shell {
+  border-color: rgba(0, 110, 140, 0.46);
+  background: linear-gradient(145deg, #e6fbff, #a8e0f0);
+}
 
 .nav-title{
   font-weight: 800;
@@ -278,17 +357,16 @@
 }
 
 .topmenu{
-  height: auto;              /* ✅ fixed 38px नको */
+  height: auto;
   min-height: 38px;
   padding: 0 8px;
   background: #c8bfa7 !important;
   color: #1f1f1f !important;
-
-  display: flex;             /* ✅ */
-  flex-wrap: wrap;           /* ✅ main fix */
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;                  /* ✅ buttons मध्ये gap */
-  overflow-x: hidden;        /* ✅ */
+  gap: 4px;
+  overflow-x: hidden;
   -ms-overflow-style: none;
   scrollbar-width: none;
   ::-webkit-scrollbar {
@@ -298,14 +376,10 @@
 
 .topmenu button{
   font-weight: 600;
-  font-size: 24px;
-  padding: 10px 14px;            /* ✅ compact */
-  min-width: auto;           /* ✅ mat-button default wide असतो */
-  white-space: nowrap;       /* ✅ button text तुटणार नाही */
-  gap: 4px;                  /* ✅ icon आणि text मध्ये gap */
-
+  font-size: 39px;
+  padding: 10px 14px;
+  white-space: nowrap;
 }
-
 
 .spacer{ flex: 1; }
 
@@ -380,14 +454,9 @@
   .nav-ic {
     margin-right: 6px;
   }
-  .topmenu {
-    height: auto;
-    min-height: 32px;
-    padding: 0 4px;
-  }
   .topmenu button {
     padding: 0 4px;
-    font-size: 11px;
+    font-size: 26px;
   }
   .workarea {
     padding: 8px;
@@ -395,7 +464,7 @@
 }
 @media (max-width: 1100px){
   .topmenu button{
-    font-size: 18px;
+    font-size: 33px;
     padding: 0 8px;
   }
 }
@@ -417,16 +486,26 @@
   }
 }
 
-/* ✅ Global safe: page horizontal scroll बंद */
 :host, .shell, .main {
   width: 100%;
   overflow-x: hidden;
 }
 
-/* ✅ Material container sometimes creates extra width */
 :host ::ng-deep .mat-drawer-container,
 :host ::ng-deep .mat-drawer-content {
   overflow-x: hidden !important;
+}
+
+@keyframes dashboardPulse {
+  0%,
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(57, 164, 222, 0.4);
+  }
+  60% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 8px rgba(57, 164, 222, 0);
+  }
 }
 
 

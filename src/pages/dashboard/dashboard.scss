@@ -1,0 +1,45 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.dashboard-page {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.dashboard-card {
+  width: min(100%, 720px);
+  padding: 36px 32px;
+  border-radius: 24px;
+  text-align: center;
+  border: 1px solid rgba(22, 61, 122, 0.12);
+  background: linear-gradient(145deg, #f7fbff, #e7f0ff);
+  box-shadow: 0 16px 34px rgba(18, 40, 74, 0.12);
+}
+
+.eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #49658b;
+  margin-bottom: 14px;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2rem, 1.4rem + 1.8vw, 3.2rem);
+  font-weight: 900;
+  color: #12315e;
+}
+
+p {
+  margin: 14px 0 0;
+  font-size: 1rem;
+  color: #435c7f;
+}
