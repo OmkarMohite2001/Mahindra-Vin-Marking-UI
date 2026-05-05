@@ -22,69 +22,69 @@
 
     <div class="form-row">
       <label>Model No</label>
-      <input type="text" readonly class="full-width" formControlName="modelNo">
+      <input type="text" class="full-width" formControlName="modelNo">
     </div>
     <div class="form-row">
       <label>Description</label>
-      <input type="text" readonly class="full-width" formControlName="description">
+      <input type="text" class="full-width" formControlName="description">
     </div>
     <div class="form-row">
       <label>Description 1</label>
-      <input type="text" readonly class="full-width" formControlName="description1">
+      <input type="text" class="full-width" formControlName="description1">
     </div>
 
     <div class="grid-fields">
       <label>Market</label>
-      <input type="text" readonly formControlName="market">
+      <input type="text" formControlName="market">
 
       <label class="text-right">Country</label>
-      <input type="text" readonly formControlName="country">
+      <input type="text" formControlName="country">
 
       <label>Drive Type</label>
-      <input type="text" readonly formControlName="driveType">
+      <input type="text" formControlName="driveType">
 
       <label class="text-right">Trim</label>
-      <input type="text" readonly formControlName="trim">
+      <input type="text" formControlName="trim">
 
       <label>FLW</label>
-      <input type="text" readonly formControlName="flw">
+      <input type="text" formControlName="flw">
 
       <label class="text-right">GVW</label>
-      <input type="text" readonly formControlName="gvw">
+      <input type="text" formControlName="gvw">
 
       <label>FAW</label>
-      <input type="text" readonly formControlName="faw">
+      <input type="text" formControlName="faw">
 
       <label class="text-right">RAW</label>
-      <input type="text" readonly formControlName="raw">
+      <input type="text" formControlName="raw">
 
       <label>Seat Code</label>
-      <input type="text" readonly formControlName="seatCode">
+      <input type="text" formControlName="seatCode">
 
       <label class="text-right">Color</label>
-      <input type="text" readonly formControlName="color">
+      <input type="text" formControlName="color">
 
       <label>Engine</label>
-      <input type="text" readonly formControlName="engine">
+      <input type="text" formControlName="engine">
 
       <label class="text-right">BS Stage</label>
-      <input type="text" readonly formControlName="bsStage">
+      <input type="text" formControlName="bsStage">
 
       <label>Batch No</label>
-      <input type="text" readonly formControlName="batchNo">
+      <input type="text" formControlName="batchNo">
 
       <label class="text-right">Date</label>
-      <input type="date" readonly formControlName="date">
+      <input type="date" formControlName="date">
     </div>
 
     <div class="form-row mt-2">
       <label>VIN No</label>
-      <input type="text" readonly class="full-width highlight-input" formControlName="vinNo">
+      <input type="text" class="full-width highlight-input" formControlName="vinNo">
     </div>
 
     <div class="form-row mt-2">
       <label>Engine Sr No</label>
-      <input type="text" readonly class="full-width" formControlName="engineSrNo">
+      <input type="text" class="full-width" formControlName="engineSrNo">
     </div>
 
     <fieldset class="cng-group">
@@ -93,23 +93,23 @@
         <div class="cng-fields">
           <div class="row">
             <label>CNG Tank Id</label>
-            <input type="text" readonly formControlName="cngTankId">
+            <input type="text" formControlName="cngTankId">
           </div>
           <div class="row">
             <label>Dt. Of Install</label>
-            <input type="date" readonly formControlName="cngInstallDate">
+            <input type="date" formControlName="cngInstallDate">
           </div>
           <div class="row">
             <label>Dt. Of. Last Retest</label>
-            <input type="date" readonly formControlName="cngRetestDate">
+            <input type="date" formControlName="cngRetestDate">
           </div>
           <div class="row">
             <label>Water Capacity</label>
-            <input type="text" readonly formControlName="waterCapacity">
+            <input type="text" formControlName="waterCapacity">
           </div>
           <div class="row">
             <label>VIN(Last 8 Chars)</label>
-            <input type="text" readonly formControlName="vinLast8">
+            <input type="text" formControlName="vinLast8">
           </div>
         </div>
 
@@ -144,15 +144,15 @@
           <img *ngIf="countryFlag" [src]="countryFlag" alt="Country Image" class="country-image">
 
           <!-- Overlay text fields positioned over the plate image. They bind to form values. -->
-          <div class="overlay model-overlay" *ngIf="form.get('modelNo')?.value">
+          <div class="overlay model-overlay" *ngIf="countryFlag && form.get('modelNo')?.value">
             {{ form.get('modelNo')?.value }}
           </div>
 
-          <div class="overlay vin-overlay" *ngIf="form.get('vinNo')?.value">
+          <div class="overlay vin-overlay" *ngIf="countryFlag && form.get('vinNo')?.value">
             {{ form.get('vinNo')?.value }}
           </div>
 
-          <div class="overlay engine-overlay" *ngIf="form.get('engineSrNo')?.value">
+          <div class="overlay engine-overlay" *ngIf="countryFlag && form.get('engineSrNo')?.value">
             {{ form.get('engineSrNo')?.value }}
           </div>
 

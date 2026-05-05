@@ -144,15 +144,15 @@
           <img *ngIf="countryFlag" [src]="countryFlag" alt="Country Image" class="country-image">
 
           <!-- Overlay text fields positioned over the plate image. They bind to form values. -->
-          <div class="overlay model-overlay" *ngIf="form.get('modelNo')?.value">
+          <div class="overlay model-overlay" *ngIf="countryFlag && form.get('modelNo')?.value">
             {{ form.get('modelNo')?.value }}
           </div>
 
-          <div class="overlay vin-overlay" *ngIf="form.get('vinNo')?.value">
+          <div class="overlay vin-overlay" *ngIf="countryFlag && form.get('vinNo')?.value">
             {{ form.get('vinNo')?.value }}
           </div>
 
-          <div class="overlay engine-overlay" *ngIf="form.get('engineSrNo')?.value">
+          <div class="overlay engine-overlay" *ngIf="countryFlag && form.get('engineSrNo')?.value">
             {{ form.get('engineSrNo')?.value }}
           </div>
 
