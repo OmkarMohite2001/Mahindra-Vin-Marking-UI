@@ -4,7 +4,7 @@ import { Component, Input } from '@angular/core';
   selector: 'app-engrave-loader',
   imports: [],
   templateUrl: './engrave-loader.html',
-  styleUrl: './engrave-loader.scss',
+  styleUrls: ['./engrave-loader.scss'],
 })
 export class EngraveLoader {
   @Input() mainMessage: string = 'Engraving Data';

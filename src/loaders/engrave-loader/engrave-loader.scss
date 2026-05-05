@@ -1,4 +1,4 @@
-.loader-overlay {
+.engrave-loader-overlay {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -8,21 +8,22 @@
   place-items: center;
   z-index: 10001;
   backdrop-filter: blur(2px);
+  padding: 16px;
 }
 
-.loader-card {
-  width: 380px;
-  height: 380px;
+.engrave-loader-card {
+  width: min(560px, calc(100vw - 32px));
+  height: min(560px, calc(100vh - 32px));
   border-radius: 16px;
   background: linear-gradient(180deg, rgba(10, 12, 16, 0.95), rgba(6, 8, 11, 0.95));
   border: 1px solid rgba(0, 255, 255, 0.25);
   box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
-  padding: 18px 14px 14px;
+  padding: 34px 30px 30px;
   position: relative;
   overflow: hidden;
 }
 
-.circuit-bg {
+.engrave-circuit-bg {
   position: absolute;
   inset: 0;
   background-image:
@@ -34,7 +35,7 @@
   z-index: 0;
 }
 
-.loader-container {
+.engrave-loader-container {
   position: relative;
   z-index: 1;
   text-align: center;
@@ -43,14 +44,14 @@
 
 svg {
   width: 100%;
-  height: 140px;
+  height: 238px;
   filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.2));
 }
 
 text {
   font-family: sans-serif;
   font-weight: 900;
-  font-size: 24px;
+  font-size: 42px;
   letter-spacing: 1px;
 }
 
@@ -85,17 +86,17 @@ text {
   animation: powerUpLoop 10s ease-out infinite;
 }
 
-.progress-container {
+.engrave-progress-container {
   width: 82%;
-  height: 4px;
+  height: 7px;
   background: #111;
-  margin: 8px auto 16px;
+  margin: 20px auto 32px;
   position: relative;
   border-radius: 2px;
   overflow: hidden;
 }
 
-.progress-bar {
+.engrave-progress-bar {
   width: 0%;
   height: 100%;
   background: #00ffff;
@@ -103,31 +104,31 @@ text {
   animation: progressBarLoop 10s linear infinite;
 }
 
-.main-text {
+.engrave-main-text {
   font-family: 'Segoe UI', sans-serif;
   color: #fff;
-  font-size: 15px;
+  font-size: 40px;
   letter-spacing: 1px;
   font-weight: 700;
   text-transform: uppercase;
 }
 
-.sub-text {
+.engrave-sub-text {
   color: #98a7b5;
-  font-size: 11px;
-  margin-top: 6px;
+  font-size: 27px;
+  margin-top: 14px;
   font-family: 'Segoe UI', sans-serif;
 }
 
-.status-text {
-  margin-top: 8px;
-  font-size: 11px;
+.engrave-status-text {
+  margin-top: 18px;
+  font-size: 28px;
   text-transform: uppercase;
   letter-spacing: 1px;
   opacity: 0.85;
 }
 
-.status-text::after {
+.engrave-status-text::after {
   content: 'SYSTEM INITIALIZING...';
   animation: statusLoop 10s linear infinite;
 }
