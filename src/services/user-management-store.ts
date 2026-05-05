@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-export type UserRole = 'Admin' | 'Supervisor' | 'User';
+export type UserRole = 'Admin' | 'Operator';
 
 export interface UserRecord {
   id: number;
@@ -80,7 +80,9 @@ export class UserManagementStore {
         return [];
       }
 
-      return parsed.filter((item) => this.isUserRecord(item));
+      return parsed
+        .map((item) => this.toUserRecord(item))
+        .filter((item): item is UserRecord => item !== null);
     } catch {
       return [];
     }
@@ -90,19 +92,44 @@ export class UserManagementStore {
     localStorage.setItem(this.storageKey, JSON.stringify(users));
   }
 
-  private isUserRecord(item: unknown): item is UserRecord {
+  private toUserRecord(item: unknown): UserRecord | null {
     if (!item || typeof item !== 'object') {
-      return false;
+      return null;
     }
 
     const user = item as Partial<UserRecord>;
-    const hasValidRole = user.role === 'Admin' || user.role === 'Supervisor' || user.role === 'User';
+    const normalizedRole = this.normalizeRole(user.role);
 
-    return (
-      typeof user.id === 'number' &&
-      typeof user.username === 'string' &&
-      typeof user.password === 'string' &&
-      hasValidRole
-    );
+    if (
+      typeof user.id !== 'number' ||
+      typeof user.username !== 'string' ||
+      typeof user.password !== 'string' ||
+      !normalizedRole
+    ) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      username: user.username,
+      password: user.password,
+      role: normalizedRole,
+    };
+  }
+
+  private normalizeRole(role: unknown): UserRole | null {
+    if (typeof role !== 'string') {
+      return null;
+    }
+
+    const value = role.trim().toLowerCase();
+    if (value === 'admin' || value === 'supervisor') {
+      return 'Admin';
+    }
+    if (value === 'operator' || value === 'user') {
+      return 'Operator';
+    }
+
+    return null;
   }
 }

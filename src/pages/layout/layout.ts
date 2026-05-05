@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
-import { APP_NAV_ITEMS, NavItemAccess, normalizeRole, UserRole } from '../../app/role-access';
+import { APP_NAV_ITEMS, hasRoleAccess, NavItemAccess, normalizeRole, UserRole } from '../../app/role-access';
 @Component({
   selector: 'app-layout',
   imports: [
@@ -32,6 +32,12 @@ import { APP_NAV_ITEMS, NavItemAccess, normalizeRole, UserRole } from '../../app
 export class Layout {
   private router = inject(Router);
   private currentRole: UserRole | null = normalizeRole(localStorage.getItem('role'));
+  readonly isAdmin = this.currentRole === 'Admin';
+  readonly canViewAdminMenu = this.isAdmin;
+  readonly canViewMaintenanceMenu = this.isAdmin;
+  readonly canViewAssociateMenu = !!this.currentRole;
+  readonly canViewReports = this.isAdmin;
+  readonly canViewHelpMenu = this.isAdmin;
   readonly navItems: readonly NavItemAccess[] = APP_NAV_ITEMS;
   readonly visibleNavItems = this.navItems.filter(
     (item) =>
@@ -58,6 +64,17 @@ export class Layout {
 
   getNavImageSrc(item: NavItemAccess): string | null {
     return this.navImageByPath[item.path] ?? null;
+  }
+
+  canAccess(allowedRoles: readonly UserRole[]): boolean {
+    return hasRoleAccess(this.currentRole, allowedRoles);
+  }
+
+  navigateIfAllowed(path: string, allowed: boolean): void {
+    if (!allowed) {
+      return;
+    }
+    this.router.navigateByUrl(path);
   }
 
   logout() {

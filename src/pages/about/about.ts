@@ -50,7 +50,7 @@ export class About {
       helper: 'http://localhost:7192/api',
       href: 'http://localhost:7192/api',
     },
-    { label: 'Authentication', value: 'Role Based Access (Admin/Supervisor/Operator)' },
+    { label: 'Authentication', value: 'Role Based Access (Admin/Operator)' },
   ];
 
   readonly supportItems: SupportItem[] = [

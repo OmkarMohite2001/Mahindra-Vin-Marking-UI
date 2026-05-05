@@ -1,4 +1,4 @@
-export type UserRole = 'Admin' | 'Supervisor' | 'Operator';
+export type UserRole = 'Admin' | 'Operator';
 
 export interface NavItemAccess {
   path: string;
@@ -12,19 +12,19 @@ export const APP_NAV_ITEMS: readonly NavItemAccess[] = [
     path: '/app/excel-upload',
     label: 'EXCEL UPLOAD',
     icon: 'backup',
-    roles: ['Admin', 'Supervisor'],
+    roles: ['Admin'],
   },
   {
     path: '/app/marking',
     label: 'MARKING',
     icon: 'precision_manufacturing',
-    roles: ['Admin', 'Supervisor', 'Operator'],
+    roles: ['Admin', 'Operator'],
   },
   {
     path: '/app/dashboard',
     label: 'DASHBOARD',
     icon: 'dashboard',
-    roles: ['Admin', 'Supervisor', 'Operator'],
+    roles: ['Admin', 'Operator'],
   },
   {
     path: '/app/settings',
@@ -42,25 +42,25 @@ export const APP_NAV_ITEMS: readonly NavItemAccess[] = [
     path: '/app/reports',
     label: 'REPORTS',
     icon: 'description',
-    roles: ['Admin', 'Supervisor', 'Operator'],
+    roles: ['Admin'],
   },
   {
     path: '/app/vehicle-images',
     label: 'VEHICLE IMAGES',
     icon: 'image',
-    roles: ['Admin', 'Supervisor'],
+    roles: ['Admin'],
   },
   {
     path: '/app/user-management',
     label: 'USER MANAGEMENT',
     icon: 'people',
-    roles: ['Admin', 'Supervisor'],
+    roles: ['Admin'],
   },
   {
     path: '/app/re-engrave',
     label: 'RE-ENGRAVE',
     icon: 'edit',
-    roles: ['Admin', 'Supervisor'],
+    roles: ['Admin'],
   },
 ];
 
@@ -71,7 +71,7 @@ export function normalizeRole(role: string | null | undefined): UserRole | null 
     return 'Admin';
   }
   if (value === 'supervisor') {
-    return 'Supervisor';
+    return 'Admin';
   }
   if (value === 'operator' || value === 'user') {
     return 'Operator';
@@ -94,7 +94,7 @@ export function hasRoleAccess(
 }
 
 export function getFirstAllowedPath(role: UserRole | null): string {
-  if (hasRoleAccess(role, ['Admin', 'Supervisor', 'Operator'])) {
+  if (hasRoleAccess(role, ['Admin', 'Operator'])) {
     return '/app/marking';
   }
 

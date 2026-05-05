@@ -14,21 +14,21 @@ export const routes: Routes = [
       {
         path: 'excel-upload',
         canActivate: [roleRouteGuard],
-        data: { roles: ['Admin', 'Supervisor'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('../pages/excel-upload/excel-upload').then(m => m.ExcelUpload),
       },
       {
         path: 'marking',
         canActivate: [roleRouteGuard],
-        data: { roles: ['Admin', 'Supervisor', 'Operator'] },
+        data: { roles: ['Admin', 'Operator'] },
         loadComponent: () =>
           import('../pages/marking/marking').then(m => m.Marking),
       },
       {
         path: 'dashboard',
         canActivate: [roleRouteGuard],
-        data: { roles: ['Admin', 'Supervisor', 'Operator'] },
+        data: { roles: ['Admin', 'Operator'] },
         loadComponent: () =>
           import('../pages/dashboard/dashboard').then(m => m.Dashboard),
       },
@@ -42,7 +42,7 @@ export const routes: Routes = [
       {
         path: 'reports',
         canActivate: [roleRouteGuard],
-        data: { roles: ['Admin', 'Supervisor', 'Operator'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('../pages/reports/reports').then(m => m.Reports),
       },
@@ -57,28 +57,28 @@ export const routes: Routes = [
       {
         path: 'vehicle-images',
         canActivate: [roleRouteGuard],
-        data: { roles: ['Admin', 'Supervisor'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('../pages/vehicle-images/vehicle-images').then(m => m.VehicleImages),
       },
       {
         path: 'user-management',
         canActivate: [roleRouteGuard],
-        data: { roles: ['Admin', 'Supervisor'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('../pages/user-management/user-management').then(m => m.UserManagement),
       },
       {
         path: 're-engrave',
         canActivate: [roleRouteGuard],
-        data: { roles: ['Admin', 'Supervisor'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('../pages/re-engrave/re-engrave').then(m => m.ReEngrave),
       },
       {
         path: 'about',
         canActivate: [roleRouteGuard],
-        data: { roles: ['Admin', 'Supervisor', 'Operator'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('../pages/about/about').then(m => m.About),
       },
