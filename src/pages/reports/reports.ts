@@ -13,6 +13,8 @@ import {
   ProductionReportRecord,
 } from '../../services/production-data-report-api';
 
+type ShiftFilter = 'all' | 'A' | 'B' | 'C';
+
 @Component({
   selector: 'app-reports',
   imports: [
@@ -44,29 +46,28 @@ export class Reports {
   records: ProductionReportRecord[] = [];
   filteredRecords: ProductionReportRecord[] = [];
   selectedDatePreset: 'none' | '1d' | '7d' | '1m' = 'none';
+  selectedShift: ShiftFilter = 'all';
   fromDate = '';
   toDate = '';
   activeDateRangeLabel = '';
 
   readonly displayedColumns: string[] = [
     'sequenceID',
+    'modelCode',
     'viN_NO',
     'serialNo',
-    'modelCode',
+    'country',
+    'engineNo',
     'rollingDate',
     'shift',
-    'country',
+    'colour',
     'vehical',
     'verient',
     'drive',
     'rhdlhd',
-    'engineNo',
-    'colour',
     'emission',
     'market',
     'enginE_TYPE',
-    'engraveCount',
-    'reEngraveDateTime',
   ];
 
   constructor() {
@@ -84,7 +85,7 @@ export class Reports {
             try {
               const result = this.resolveApiResponse(response);
               this.records = result.data;
-              this.applyDateFilter();
+              this.applyFilters();
               this.showSnack(result.message, result.success);
             } catch {
               this.records = [];
@@ -118,47 +119,65 @@ export class Reports {
       return;
     }
 
-    const XLSX = await import('xlsx');
-    const rows = this.filteredRecords.map((item) => ({
-      SequenceID: item.sequenceID,
-      VIN_NO: item.viN_NO,
-      SerialNo: item.serialNo,
-      ModelCode: item.modelCode,
-      RollingDate: this.formatDate(item.rollingDate),
-      Shift: item.shift,
-      Country: item.country,
-      Vehicle: item.vehical,
-      Variant: item.verient,
-      Drive: item.drive,
-      RHD_LHD: item.rhdlhd,
-      EngineNo: item.engineNo,
-      Colour: item.colour,
-      Emission: item.emission,
-      Market: item.market,
-      EngineType: item.enginE_TYPE,
-      EngraveCount: item.engraveCount,
-      ReEngraveDateTime: this.formatDate(item.reEngraveDateTime),
-    }));
+    this.startLoading(
+      'Preparing Excel Download...',
+      'Generating report file and starting download...',
+    );
 
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'ProductionReport');
+    await this.waitForLoaderPaint();
 
-    const stamp = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(workbook, `production-data-report-${stamp}.xlsx`);
-    this.showSnack('Report downloaded successfully.', true);
+    try {
+      const XLSX = await import('xlsx-js-style');
+      const worksheet = this.buildStyledReportWorksheet(XLSX);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'ProductionReport');
+
+      const stamp = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `production-data-report-${stamp}.xlsx`, {
+        compression: true,
+      });
+      this.showSnack('Report downloaded successfully.', true);
+    } catch {
+      this.showSnack('Unable to download report.', false);
+    } finally {
+      this.stopLoading();
+    }
   }
 
   headerLabel(column: string): string {
     switch (column) {
+      case 'modelCode':
+        return 'ModelCode';
       case 'viN_NO':
-        return 'VIN';
+        return 'VIN NO';
+      case 'serialNo':
+        return 'Serial No';
+      case 'country':
+        return 'Country';
+      case 'engineNo':
+        return 'Engine No';
+      case 'rollingDate':
+        return 'Rolling Date';
+      case 'shift':
+        return 'Shift';
+      case 'colour':
+        return 'Colour';
+      case 'vehical':
+        return 'Vehical';
+      case 'verient':
+        return 'Verient';
+      case 'drive':
+        return 'Drive';
+      case 'rhdlhd':
+        return 'RHDLHD';
+      case 'emission':
+        return 'Emission';
+      case 'market':
+        return 'Market';
       case 'enginE_TYPE':
-        return 'Engine Type';
+        return 'ENGINE_TYPE';
       case 'sequenceID':
         return 'Sequence ID';
-      case 'reEngraveDateTime':
-        return 'Re-Engrave Date';
       default:
         return column.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim();
     }
@@ -181,19 +200,24 @@ export class Reports {
       this.fromDate = '';
       this.toDate = '';
     }
-    this.applyDateFilter();
+    this.applyFilters();
+  }
+
+  onShiftChange(shift: ShiftFilter): void {
+    this.selectedShift = shift;
+    this.applyFilters();
   }
 
   onFromDateChange(value: string): void {
     this.fromDate = value;
     this.selectedDatePreset = 'none';
-    this.applyDateFilter();
+    this.applyFilters();
   }
 
   onToDateChange(value: string): void {
     this.toDate = value;
     this.selectedDatePreset = 'none';
-    this.applyDateFilter();
+    this.applyFilters();
   }
 
   trackByColumn(_: number, column: string): string {
@@ -408,7 +432,106 @@ export class Reports {
     }
   }
 
-  private applyDateFilter(): void {
+  private async waitForLoaderPaint(): Promise<void> {
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    await new Promise<void>((resolve) => {
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(() => resolve());
+        return;
+      }
+      setTimeout(resolve, 16);
+    });
+  }
+
+  private buildStyledReportWorksheet(XLSX: typeof import('xlsx-js-style')) {
+    const headers = this.displayedColumns.map((column) => this.headerLabel(column));
+    const dataRows = this.filteredRecords.map((record) =>
+      this.displayedColumns.map((column) => this.exportCell(column, record)),
+    );
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...dataRows]);
+
+    const columnWidths = this.displayedColumns.map((column, index) =>
+      this.measureColumnWidth(headers[index], dataRows, index),
+    );
+    worksheet['!cols'] = columnWidths.map((width) => ({ wch: width }));
+    worksheet['!rows'] = [{ hpt: 22 }];
+
+    if (headers.length > 0) {
+      worksheet['!autofilter'] = {
+        ref: XLSX.utils.encode_range({
+          s: { r: 0, c: 0 },
+          e: { r: Math.max(dataRows.length, 1), c: headers.length - 1 },
+        }),
+      };
+    }
+
+    const headerStyle = {
+      fill: { patternType: 'solid', fgColor: { rgb: '4F81BD' } },
+      font: { bold: true, color: { rgb: 'FFFFFFFF' }, sz: 11 },
+      alignment: { horizontal: 'center', vertical: 'center' },
+      border: {
+        top: { style: 'thin', color: { rgb: 'D9E2F3' } },
+        right: { style: 'thin', color: { rgb: 'D9E2F3' } },
+        bottom: { style: 'thin', color: { rgb: 'D9E2F3' } },
+        left: { style: 'thin', color: { rgb: 'D9E2F3' } },
+      },
+    };
+
+    const bodyStyle = {
+      alignment: { vertical: 'center' },
+      border: {
+        top: { style: 'thin', color: { rgb: 'E3EAF5' } },
+        right: { style: 'thin', color: { rgb: 'E3EAF5' } },
+        bottom: { style: 'thin', color: { rgb: 'E3EAF5' } },
+        left: { style: 'thin', color: { rgb: 'E3EAF5' } },
+      },
+    };
+
+    for (let columnIndex = 0; columnIndex < headers.length; columnIndex++) {
+      const headerCell = XLSX.utils.encode_cell({ r: 0, c: columnIndex });
+      if (worksheet[headerCell]) {
+        worksheet[headerCell].s = headerStyle;
+      }
+
+      for (let rowIndex = 0; rowIndex < dataRows.length; rowIndex++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: rowIndex + 1, c: columnIndex });
+        if (worksheet[cellAddress]) {
+          worksheet[cellAddress].s = bodyStyle;
+        }
+      }
+    }
+
+    return worksheet;
+  }
+
+  private exportCell(column: string, row: ProductionReportRecord): string | number {
+    const value = row[column as keyof ProductionReportRecord];
+    if (column === 'rollingDate' || column === 'reEngraveDateTime') {
+      return this.formatDate(value as string | null);
+    }
+    if (column === 'sequenceID' && typeof value === 'number') {
+      return value;
+    }
+    if (value === null || value === undefined || value === '') {
+      return '-';
+    }
+    return String(value);
+  }
+
+  private measureColumnWidth(
+    header: string,
+    rows: Array<Array<string | number>>,
+    columnIndex: number,
+  ): number {
+    const contentLength = rows.reduce((max, row) => {
+      const value = row[columnIndex];
+      return Math.max(max, String(value ?? '').length);
+    }, header.length);
+
+    return Math.min(Math.max(contentLength + 2, 12), 24);
+  }
+
+  private applyFilters(): void {
     const list = [...this.records];
     const now = new Date();
     let fromDate: Date | null = null;
@@ -443,14 +566,15 @@ export class Reports {
       }
     }
 
-    if (!fromDate && !toDate) {
-      this.filteredRecords = list;
-      this.activeDateRangeLabel = '';
-      this.cdr.markForCheck();
-      return;
-    }
-
     this.filteredRecords = list.filter((item) => {
+      if (!this.matchesShift(item.shift)) {
+        return false;
+      }
+
+      if (!fromDate && !toDate) {
+        return true;
+      }
+
       const date = new Date(item.rollingDate);
       if (Number.isNaN(date.getTime())) {
         return false;
@@ -464,10 +588,23 @@ export class Reports {
       return true;
     });
 
-    const fromLabel = fromDate ? this.formatDate(fromDate.toISOString()) : 'Start';
-    const toLabel = toDate ? this.formatDate(toDate.toISOString()) : 'Now';
-    this.activeDateRangeLabel = `${fromLabel} to ${toLabel}`;
+    if (fromDate || toDate) {
+      const fromLabel = fromDate ? this.formatDate(fromDate.toISOString()) : 'Start';
+      const toLabel = toDate ? this.formatDate(toDate.toISOString()) : 'Now';
+      this.activeDateRangeLabel = `${fromLabel} to ${toLabel}`;
+    } else {
+      this.activeDateRangeLabel = '';
+    }
+
     this.cdr.markForCheck();
+  }
+
+  private matchesShift(value: string): boolean {
+    if (this.selectedShift === 'all') {
+      return true;
+    }
+
+    return value.trim().toUpperCase() === this.selectedShift;
   }
 
   private parseDateStart(value: string): Date | null {

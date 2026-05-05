@@ -67,7 +67,7 @@
 
     </div>
 
-    <mat-tab-group (selectedIndexChange)="onTabChange($event)" class="tabs" [dynamicHeight]="true">
+    <mat-tab-group (selectedIndexChange)="onTabChange($event)" class="tabs">
       <mat-tab *ngFor="let t of tables; let i = index">
         <ng-template mat-tab-label>
           <span class="tabLabel">
@@ -77,7 +77,6 @@
         </ng-template>
 
         <div class="tableWrap">
-
           <div class="mat-elevation-z1 tableScroll">
             <table mat-table [dataSource]="t.dataSource" matSort class="matTable">
 
@@ -95,11 +94,6 @@
                 </td>
               </tr>
             </table>
-          </div>
-
-          <div class="pager">
-            <mat-paginator [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 50, 100]" showFirstLastButtons>
-            </mat-paginator>
           </div>
         </div>
       </mat-tab>

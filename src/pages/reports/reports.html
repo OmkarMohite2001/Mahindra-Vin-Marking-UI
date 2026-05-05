@@ -20,6 +20,16 @@
           </mat-select>
         </mat-form-field>
 
+        <mat-form-field appearance="outline" class="range-field shift-field">
+          <mat-label>Shift</mat-label>
+          <mat-select [value]="selectedShift" (valueChange)="onShiftChange($event)">
+            <mat-option value="all">All</mat-option>
+            <mat-option value="A">A</mat-option>
+            <mat-option value="B">B</mat-option>
+            <mat-option value="C">C</mat-option>
+          </mat-select>
+        </mat-form-field>
+
         <label class="manual-date-field">
           <span>From</span>
           <input type="date" [value]="fromDate" (change)="onFromDateChange($any($event.target).value)" />
@@ -34,7 +44,7 @@
           <mat-icon>refresh</mat-icon>
           Refresh
         </button>
-        <button mat-raised-button color="primary" type="button" (click)="downloadExcel()" [disabled]="loading || !records.length">
+        <button mat-raised-button color="primary" type="button" (click)="downloadExcel()" [disabled]="loading || !filteredRecords.length">
           <mat-icon>download</mat-icon>
           Download Excel
         </button>
@@ -46,9 +56,14 @@
   <mat-card class="table-card">
     <div class="table-meta">
       <span>Total Records: {{ filteredRecords.length }}</span>
-      <span *ngIf="activeDateRangeLabel" class="range-chip">
-        {{ activeDateRangeLabel }}
-      </span>
+      <div class="meta-chips">
+        <span *ngIf="selectedShift !== 'all'" class="range-chip">
+          Shift: {{ selectedShift }}
+        </span>
+        <span *ngIf="activeDateRangeLabel" class="range-chip">
+          {{ activeDateRangeLabel }}
+        </span>
+      </div>
     </div>
 
     <div class="table-wrap" *ngIf="filteredRecords.length; else emptyState">
@@ -68,7 +83,7 @@
     </div>
 
     <ng-template #emptyState>
-      <div class="empty-state">No production report data available.</div>
+      <div class="empty-state">No production report data available for the selected filters.</div>
     </ng-template>
   </mat-card>
 </div>

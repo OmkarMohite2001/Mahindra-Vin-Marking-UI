@@ -112,12 +112,52 @@ h1 {
   color: #205493;
 }
 
+.meta-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .table-wrap {
-  overflow: auto;
+  width: 100%;
+  min-height: 320px;
+  height: 540px;
+  max-height: 540px;
+  overflow-x: auto;
+  overflow-y: scroll;
   border: 1px solid #d9e4f5;
   border-radius: 14px;
   background: #ffffff;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  scrollbar-gutter: stable both-edges;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(67, 90, 125, 0.72) rgba(217, 228, 245, 0.9);
+}
+
+.table-wrap::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.table-wrap::-webkit-scrollbar-track {
+  background: rgba(217, 228, 245, 0.9);
+  border-radius: 999px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+  background: rgba(67, 90, 125, 0.72);
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+.table-wrap::-webkit-scrollbar-thumb:hover {
+  background: rgba(43, 62, 92, 0.85);
+}
+
+.shift-field {
+  width: 130px;
 }
 
 .report-table {
@@ -219,5 +259,10 @@ h1 {
 
   h1 {
     font-size: 24px;
+  }
+
+  .table-wrap {
+    height: 440px;
+    max-height: 440px;
   }
 }

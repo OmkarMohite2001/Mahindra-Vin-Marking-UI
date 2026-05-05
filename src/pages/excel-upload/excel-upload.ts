@@ -10,7 +10,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -44,7 +43,6 @@ type SheetTable = {
     MatTableModule,
     MatFormFieldModule,
     MatInputModule,
-    MatPaginatorModule,
     MatSortModule,
     MatProgressBarModule,
     ExcelLoader,
@@ -79,7 +77,6 @@ export class ExcelUpload {
     private snackBar: MatSnackBar,
     private excelService: ExcelImport,
   ) {}
-  @ViewChild(MatPaginator) paginator?: MatPaginator;
   @ViewChild(MatSort) sort?: MatSort;
 
   onPickFile(input: HTMLInputElement) {
@@ -164,7 +161,7 @@ export class ExcelUpload {
         }
 
         this.cdr.detectChanges(); // force paint now
-        setTimeout(() => this.attachPagingSorting(), 0);
+        setTimeout(() => this.attachSorting(), 0);
       });
     } catch (e) {
       this.zone.run(() => {
@@ -179,14 +176,13 @@ export class ExcelUpload {
 
   onTabChange(index: number) {
     this.activeIndex = index;
-    setTimeout(() => this.attachPagingSorting(), 0);
+    setTimeout(() => this.attachSorting(), 0);
   }
 
   applyFilter(value: string) {
     const t = this.tables[this.activeIndex];
     if (!t) return;
     t.dataSource.filter = (value || '').trim().toLowerCase();
-    t.dataSource.paginator?.firstPage();
   }
 
   clearAll() {
@@ -293,11 +289,10 @@ export class ExcelUpload {
     this.cdr.markForCheck();
   }
 
-  private attachPagingSorting() {
+  private attachSorting() {
     const t = this.tables[this.activeIndex];
     if (!t) return;
 
-    if (this.paginator) t.dataSource.paginator = this.paginator;
     if (this.sort) t.dataSource.sort = this.sort;
   }
 
