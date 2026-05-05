@@ -82,7 +82,7 @@ export class VehicleImages implements OnInit {
   // Helper to show snackbar
   private showSnackbar(message: string, isSuccess: boolean = true) {
     this.snackBar.open(message, 'Close', {
-      duration: 4000,
+      duration: 5000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
       panelClass: isSuccess ? ['success-snackbar'] : ['error-snackbar'],

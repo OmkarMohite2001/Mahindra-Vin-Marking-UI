@@ -254,7 +254,7 @@ export class ExcelUpload {
 
   showSnackbar(message: string, type: 'success' | 'error') {
     this.snackBar.open(message, 'Close', {
-      duration: 3000,
+      duration: 5000,
       horizontalPosition: 'center', // Top Center
       verticalPosition: 'top', // Top Center
       panelClass: type === 'error' ? ['error-snackbar'] : ['success-snackbar'],

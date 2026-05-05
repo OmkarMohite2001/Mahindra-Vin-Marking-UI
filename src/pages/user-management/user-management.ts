@@ -358,7 +358,7 @@ export class UserManagement {
 
   private showSnack(message: string, ok: boolean): void {
     this.snackBar.open(message, 'Close', {
-      duration: 3000,
+      duration: 5000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
       panelClass: ok ? ['snackbar-success'] : ['snackbar-error'],

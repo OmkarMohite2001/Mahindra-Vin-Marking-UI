@@ -390,7 +390,7 @@ export class Reports {
 
   private showSnack(message: string, success: boolean): void {
     this.snackBar.open(message, 'Close', {
-      duration: 3000,
+      duration: 5000,
       horizontalPosition: 'center',
       verticalPosition: 'top',
       panelClass: success ? ['snackbar-success'] : ['snackbar-error'],

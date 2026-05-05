@@ -168,7 +168,7 @@ export class Settings implements OnInit {
           };
           this.applySettingsToForm(response.settings);
           this.snackBar.open(response.message || 'Settings updated successfully', 'Close', {
-            duration: 3000,
+            duration: 5000,
             horizontalPosition: 'center',
             verticalPosition: 'top',
           });
@@ -176,7 +176,7 @@ export class Settings implements OnInit {
         error: (error) => {
           this.isSavingSettings = false;
           this.snackBar.open(this.readErrorMessage(error), 'Close', {
-            duration: 3000,
+            duration: 5000,
             horizontalPosition: 'center',
             verticalPosition: 'top',
           });

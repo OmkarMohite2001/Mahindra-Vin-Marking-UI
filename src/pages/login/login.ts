@@ -92,7 +92,7 @@ export class Login {
       observeOn(asyncScheduler),
       catchError((err) => {
         console.error(err);
-        this.snackBar.open('Login Failed', 'Close', { duration: 3000, horizontalPosition: 'center', verticalPosition: 'top' });
+        this.snackBar.open('Login Failed', 'Close', { duration: 5000, horizontalPosition: 'center', verticalPosition: 'top' });
         return of(null);
       }),
       finalize(() => {
@@ -106,7 +106,7 @@ export class Login {
 
       if (!token || res?.success === false) {
         if (res !== null) {
-          this.snackBar.open(res?.message || 'Login Failed', 'Close', { duration: 3000 , horizontalPosition: 'center', verticalPosition: 'top' });
+          this.snackBar.open(res?.message || 'Login Failed', 'Close', { duration: 5000 , horizontalPosition: 'center', verticalPosition: 'top' });
         }
         return;
       }

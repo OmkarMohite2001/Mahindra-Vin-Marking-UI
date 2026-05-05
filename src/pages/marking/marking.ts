@@ -151,18 +151,18 @@ private latestPreviewRequestId = 0;
 
       // Validate VIN and Model
       if (!this.vehicleUtils.isValidVIN(vinNumber)) {
-        this.snackBar.open('Invalid VIN format in QR code (must start with MA1 and be 17 characters)', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+        this.snackBar.open('Invalid VIN format in QR code (must start with MA1 and be 17 characters)', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
         return;
       }
       if (!this.vehicleUtils.isValidModelNumber(modelNumber)) {
-        this.snackBar.open('Invalid Model Number format in QR code (expected 18 digits)', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+        this.snackBar.open('Invalid Model Number format in QR code (expected 18 digits)', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
         return;
       }
 
       // Bind VIN/color only after user confirms popup by clicking OK.
       this.processModelScan(modelNumber, { vinNumber, color, qrData });
     } else {
-      this.snackBar.open('Invalid QR code format (expected VIN_MODEL_... )', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+      this.snackBar.open('Invalid QR code format (expected VIN_MODEL_... )', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
     }
   }
 
@@ -178,7 +178,7 @@ private latestPreviewRequestId = 0;
     } else if (this.vehicleUtils.isValidEngineNumber(cleanedData)) {
       this.processEngineScan(cleanedData);
     } else {
-      this.snackBar.open('Invalid scan data! Expected VIN (MA1 + 17 chars), Model (18), or Engine (10) digits', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+      this.snackBar.open('Invalid scan data! Expected VIN (MA1 + 17 chars), Model (18), or Engine (10) digits', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
     }
   }
 
@@ -187,7 +187,7 @@ private latestPreviewRequestId = 0;
     this.form.patchValue({ vinNo: vinNumber });
     this.updateCanvas();
     this.fetchLabelPreview();
-    this.snackBar.open('VIN Number scanned successfully', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+    this.snackBar.open('VIN Number scanned successfully', 'OK', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 
   // Process Engine scan
@@ -195,7 +195,7 @@ private latestPreviewRequestId = 0;
     this.form.patchValue({ engineSrNo: engineNumber });
     this.updateCanvas();
     this.fetchLabelPreview();
-    this.snackBar.open('Engine Number scanned successfully', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+    this.snackBar.open('Engine Number scanned successfully', 'OK', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 
   // Process Model scan
@@ -206,7 +206,7 @@ private latestPreviewRequestId = 0;
     // Extract 2-letter code from model number
     const twoLetterCode = this.vehicleUtils.extractTwoLetterCode(modelNumber);
     if (!twoLetterCode) {
-      this.snackBar.open('Cannot extract letter code from model number', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+      this.snackBar.open('Cannot extract letter code from model number', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
       return;
     }
 
@@ -239,7 +239,7 @@ private latestPreviewRequestId = 0;
           const rawBase64 = data.imageBase64 || data.base64Image || data.base64 || data.base64Img || null;
 
           if (!rawBase64) {
-            this.snackBar.open('Vehicle image not found', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+            this.snackBar.open('Vehicle image not found', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
             return;
           }
 
@@ -251,13 +251,13 @@ private latestPreviewRequestId = 0;
           // Show image in popup
           this.showImagePopup(dataUrl, modelNumber, combinedData);
         } else {
-          this.snackBar.open('Vehicle image not found', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+          this.snackBar.open('Vehicle image not found', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
         }
       },
       error: (err: any) => {
         this.isFetchingImage = false;
         console.error('Image Fetch Error:', err);
-        this.snackBar.open('Failed to fetch vehicle image', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+        this.snackBar.open('Failed to fetch vehicle image', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
       }
     });
   }
@@ -292,7 +292,7 @@ private latestPreviewRequestId = 0;
             ...(combinedData.color ? { color: combinedData.color } : {})
           });
           this.updateCanvas();
-          this.snackBar.open('QR code processed successfully', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+          this.snackBar.open('QR code processed successfully', 'OK', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
         }
 
         // User clicked OK - proceed to fetch model details
@@ -331,14 +331,14 @@ private latestPreviewRequestId = 0;
 
           this.updateCanvas();
           this.fetchLabelPreview();
-          this.snackBar.open('Data Auto-filled Successfully!', 'OK', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+          this.snackBar.open('Data Auto-filled Successfully!', 'OK', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
         } else {
-          this.snackBar.open('Model not found in Database', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+          this.snackBar.open('Model not found in Database', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
         }
       },
       error: (err: any) => {
         console.error('API Error:', err);
-        this.snackBar.open('API Connection Failed', 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+        this.snackBar.open('API Connection Failed', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
       }
     });
   }
@@ -393,7 +393,7 @@ private latestPreviewRequestId = 0;
     ).subscribe({
       next: (response: any) => {
         const msg = response?.message || 'Print command sent successfully';
-        this.snackBar.open(msg, 'OK', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+        this.snackBar.open(msg, 'OK', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
       },
       error: (err) => {
         console.error('Print API Error:', err);
@@ -401,7 +401,7 @@ private latestPreviewRequestId = 0;
         if (err.error?.errors?.PrintData?.[0]) {
           msg = err.error.errors.PrintData[0];
         }
-        this.snackBar.open(msg, 'Close', { duration: 3000, verticalPosition: 'top', horizontalPosition: 'center' });
+        this.snackBar.open(msg, 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
       }
     });
   }
@@ -414,7 +414,7 @@ private latestPreviewRequestId = 0;
 
     if (!modelNo || !vinNo || !engineSrNo) {
       this.snackBar.open('Model No, VIN No and Engine Sr No are required for engrave', 'Close', {
-        duration: 3000,
+        duration: 5000,
         verticalPosition: 'top',
         horizontalPosition: 'center'
       });
@@ -448,7 +448,7 @@ private latestPreviewRequestId = 0;
       switchMap((response: EngraveResponse) => {
         const engraveMessage = response?.message || 'Engrave response received';
         this.snackBar.open(engraveMessage, 'OK', {
-          duration: 3000,
+          duration: 5000,
           verticalPosition: 'top',
           horizontalPosition: 'center'
         });
@@ -461,7 +461,7 @@ private latestPreviewRequestId = 0;
           tap((addResponse: any) => {
             const addMessage = addResponse?.message || 'Production data added successfully';
             this.snackBar.open(addMessage, 'OK', {
-              duration: 3000,
+              duration: 5000,
               verticalPosition: 'top',
               horizontalPosition: 'center'
             });
@@ -473,7 +473,7 @@ private latestPreviewRequestId = 0;
               'Failed to add production data';
 
             this.snackBar.open(addMessage, 'Close', {
-              duration: 3000,
+              duration: 5000,
               verticalPosition: 'top',
               horizontalPosition: 'center'
             });
@@ -487,7 +487,7 @@ private latestPreviewRequestId = 0;
               tap((printResponse: any) => {
                 const printMessage = printResponse?.message || 'Print command sent successfully';
                 this.snackBar.open(printMessage, 'OK', {
-                  duration: 3000,
+                  duration: 5000,
                   verticalPosition: 'top',
                   horizontalPosition: 'center'
                 });
@@ -504,7 +504,7 @@ private latestPreviewRequestId = 0;
           'Engrave API failed';
 
         this.snackBar.open(message, 'Close', {
-          duration: 3000,
+          duration: 5000,
           verticalPosition: 'top',
           horizontalPosition: 'center'
         });
@@ -589,7 +589,7 @@ private latestPreviewRequestId = 0;
     });
     this.updateCanvas();
     this.cdr.markForCheck();
-    this.snackBar.open('Form cleared successfully', 'OK', { duration: 2000, verticalPosition: 'top', horizontalPosition: 'center' });
+    this.snackBar.open('Form cleared successfully', 'OK', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
   }
 
   private showScanLoader(mainMessage: string, subMessage: string) {

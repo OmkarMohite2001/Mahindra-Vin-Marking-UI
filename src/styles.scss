@@ -59,16 +59,55 @@ body {
 }
 /* You can add global styles to this file, and also import other style files */
 
-.snackbar-success {
+.snackbar-success,
+.success-snackbar {
   --mdc-snackbar-container-color: #1d7d4b;
   --mdc-snackbar-supporting-text-color: #ffffff;
   --mat-snack-bar-button-color: #ffffff;
 }
 
-.snackbar-error {
+.snackbar-error,
+.error-snackbar {
   --mdc-snackbar-container-color: #b13049;
   --mdc-snackbar-supporting-text-color: #ffffff;
   --mat-snack-bar-button-color: #ffffff;
+}
+
+.mat-mdc-snack-bar-container {
+  margin-top: 10px;
+  --mat-snack-bar-supporting-text-size: 24px;
+  --mat-snack-bar-supporting-text-line-height: 1.35;
+  --mat-snack-bar-supporting-text-weight: 500;
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  min-width: min(370px, calc(100vw - 24px));
+  max-width: min(645px, calc(100vw - 24px));
+  min-height: 73px;
+  padding: 22px 26px;
+  border-radius: 10px;
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__label {
+  padding: 0;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.mat-mdc-snack-bar-container .mat-mdc-simple-snack-bar .mat-mdc-snack-bar-label,
+.mat-mdc-snack-bar-container .mat-mdc-simple-snack-bar .mat-mdc-snack-bar-label * {
+  font-size: 24px !important;
+  line-height: 1.35 !important;
+}
+
+.mat-mdc-snack-bar-container .mat-mdc-snack-bar-action {
+  align-self: center;
+}
+
+.mat-mdc-snack-bar-container .mat-mdc-snack-bar-action .mdc-button__label {
+  font-size: 20px;
+  font-weight: 600;
 }
 
 .app-submenu {
