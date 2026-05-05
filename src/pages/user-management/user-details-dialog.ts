@@ -55,13 +55,13 @@ export class UserDetailsDialog {
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: UserDetailsDialogData) {
     this.userForm = this.fb.group({
-      userName: [this.data.user.userName, [Validators.required, Validators.minLength(3)]],
+      userName: [this.data.user.userName, [Validators.required]],
       userRole: [this.resolveRole(this.data.user.userRole), Validators.required],
     });
 
     this.passwordForm = this.fb.group({
-      newPassword: ['', [Validators.required, Validators.minLength(4)]],
-      confirmPassword: ['', [Validators.required, Validators.minLength(4)]],
+      newPassword: ['', [Validators.required]],
+      confirmPassword: ['', [Validators.required]],
     }, { validators: this.matchFieldsValidator('newPassword', 'confirmPassword') });
   }
 

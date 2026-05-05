@@ -52,7 +52,7 @@
         <mat-label>New Password</mat-label>
         <input matInput type="password" formControlName="newPassword" />
         <mat-error *ngIf="passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.invalid">
-          New password is required (minimum 4 characters)
+          New password is required
         </mat-error>
       </mat-form-field>
 
@@ -62,7 +62,7 @@
         <mat-error
           *ngIf="passwordForm.controls.confirmPassword.touched && passwordForm.controls.confirmPassword.invalid"
         >
-          Confirm password is required (minimum 4 characters)
+          Confirm password is required
         </mat-error>
         <mat-error *ngIf="passwordForm.touched && passwordForm.hasError('fieldMismatch')">
           New password and confirm password must match

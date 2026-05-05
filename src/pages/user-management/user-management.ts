@@ -45,7 +45,7 @@ export class UserManagement {
   private zone = inject(NgZone);
   private cdr = inject(ChangeDetectorRef);
 
-  readonly roleOptions = ['Admin', 'Supervisor', 'Operator'] as const;
+  readonly roleOptions = ['Admin', 'Operator'] as const;
 
   users: UserManagementRecord[] = [];
   loadingUsers = false;
@@ -55,9 +55,9 @@ export class UserManagement {
   statusTone: 'success' | 'error' | 'info' = 'info';
 
   userForm = this.fb.group({
-    username: ['', [Validators.required, Validators.minLength(3)]],
-    password: ['', [Validators.required, Validators.minLength(4)]],
-    confirmPassword: ['', [Validators.required, Validators.minLength(4)]],
+    username: ['', [Validators.required]],
+    password: ['', [Validators.required]],
+    confirmPassword: ['', [Validators.required]],
     role: ['Operator', Validators.required],
   }, { validators: this.matchFieldsValidator('password', 'confirmPassword') });
 

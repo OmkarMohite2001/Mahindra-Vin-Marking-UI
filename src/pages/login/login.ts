@@ -41,7 +41,7 @@ export class Login {
 
   form = this.fb.group({
     username: ['', [Validators.required]],
-    password: ['', [Validators.required, Validators.minLength(4)]],
+    password: ['', [Validators.required]],
   });
 
   get username() { return this.form.controls.username; }

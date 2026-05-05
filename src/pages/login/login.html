@@ -39,7 +39,6 @@
           </button>
           <mat-error *ngIf="password.touched && password.invalid">
             <span *ngIf="password.errors?.['required']">Password is required</span>
-            <span *ngIf="password.errors?.['minlength']">Minimum 4 characters</span>
           </mat-error>
         </mat-form-field>
 
