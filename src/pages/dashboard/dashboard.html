@@ -1,7 +1,53 @@
-<div class="dashboard-page">
-  <mat-card class="dashboard-card">
-    <div class="eyebrow">Dashboard</div>
-    <h1>UI is Processing</h1>
-    <p>This dashboard component is ready.</p>
-  </mat-card>
+<div class="dashboard-page" *ngIf="dashboard$ | async as dashboard; else loadingState">
+  <div class="dashboard-shell">
+    <div class="dashboard-header">
+      <h1>{{ dashboard.title }}</h1>
+    </div>
+
+    <section class="panel">
+      <div class="panel-title">Production Summary</div>
+      <div class="table-scroll summary-scroll">
+        <table class="dashboard-table summary-table">
+          <thead>
+            <tr>
+              <th *ngFor="let column of summaryColumns">{{ column.label }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of dashboard.summaryRows; trackBy: trackSummaryRow">
+              <td *ngFor="let column of summaryColumns">
+                {{ row[column.key] }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel details-panel">
+      <div class="panel-title">Vehicle Details</div>
+      <div class="table-scroll details-scroll">
+        <table class="dashboard-table detail-table">
+          <thead>
+            <tr>
+              <th *ngFor="let column of detailColumns">{{ column.label }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of dashboard.vehicleRows; trackBy: trackVehicleRow">
+              <td *ngFor="let column of detailColumns">
+                {{ row[column.key] }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
 </div>
+
+<ng-template #loadingState>
+  <div class="dashboard-page loading-page">
+    <div class="loading-card">Loading dashboard...</div>
+  </div>
+</ng-template>
