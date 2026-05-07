@@ -44,12 +44,14 @@ export const APP_NAV_ITEMS: readonly NavItemAccess[] = [
     icon: 'description',
     roles: ['Admin'],
   },
+  /*
   {
     path: '/app/vehicle-images',
     label: 'VEHICLE IMAGES',
     icon: 'image',
     roles: ['Admin'],
   },
+  */
   {
     path: '/app/user-management',
     label: 'USER MANAGEMENT',
