@@ -239,7 +239,7 @@ private latestPreviewRequestId = 0;
           const rawBase64 = data.imageBase64 || data.base64Image || data.base64 || data.base64Img || null;
 
           if (!rawBase64) {
-            this.snackBar.open('Vehicle image not found', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
+            this.showVehicleImageNotFound(modelNumber);
             return;
           }
 
@@ -251,14 +251,22 @@ private latestPreviewRequestId = 0;
           // Show image in popup
           this.showImagePopup(dataUrl, modelNumber, combinedData);
         } else {
-          this.snackBar.open('Vehicle image not found', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
+          this.showVehicleImageNotFound(modelNumber);
         }
       },
       error: (err: any) => {
         this.isFetchingImage = false;
         console.error('Image Fetch Error:', err);
-        this.snackBar.open('Failed to fetch vehicle image', 'Close', { duration: 5000, verticalPosition: 'top', horizontalPosition: 'center' });
+        this.showVehicleImageNotFound(modelNumber);
       }
+    });
+  }
+
+  private showVehicleImageNotFound(modelNumber: string) {
+    this.snackBar.open(`Vehicle image not found for model number ${modelNumber}`, 'Close', {
+      duration: 5000,
+      verticalPosition: 'top',
+      horizontalPosition: 'center'
     });
   }
 
