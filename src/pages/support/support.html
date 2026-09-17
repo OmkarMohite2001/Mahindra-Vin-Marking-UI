@@ -1,0 +1,46 @@
+<div class="support-page">
+  <header class="support-header">
+    <div>
+      <p class="eyebrow">Support</p>
+      <h1>Testing Console</h1>
+    </div>
+  </header>
+
+  <nav class="support-nav" aria-label="Support sections">
+    <button
+      type="button"
+      *ngFor="let item of navItems"
+      class="support-tab"
+      [class.active]="selectedTab === item.label"
+      (click)="selectTab(item.label)">
+      {{ item.label }}
+    </button>
+  </nav>
+
+  <section class="support-content">
+    <ng-container *ngIf="selectedTab === 'USB'">
+      <app-usb></app-usb>
+    </ng-container>
+
+    <ng-container *ngIf="selectedTab !== 'USB'">
+      <div class="support-panel">
+        <div class="panel-header">
+          <div>
+            <p class="panel-label">Module</p>
+            <h2>{{ activeTab.label }}</h2>
+          </div>
+          <span class="status-pill">Ready</span>
+        </div>
+
+        <p class="panel-description">{{ activeTab.description }}</p>
+
+        <div class="checklist">
+          <div class="check-item" *ngFor="let detail of activeTab.details">
+            <span class="check-mark">✓</span>
+            <span>{{ detail }}</span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </section>
+</div>

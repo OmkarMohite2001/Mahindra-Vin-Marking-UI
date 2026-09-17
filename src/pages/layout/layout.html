@@ -88,7 +88,7 @@
     <mat-menu #helpMenu="matMenu" class="app-submenu">
       <button mat-menu-item (click)="navigateIfAllowed('/app/about', canAccess(['Admin']))">About</button>
       <button mat-menu-item (click)="navigateIfAllowed('/app/serialTerminal', canAccess(['Admin']))">Serial Terminal</button>
-      <button mat-menu-item>Support</button>
+      <button mat-menu-item (click)="navigateIfAllowed('/app/support', canAccess(['Admin']))">Support</button>
     </mat-menu>
 
     <!-- Header strip -->

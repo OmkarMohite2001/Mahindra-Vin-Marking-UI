@@ -1,0 +1,82 @@
+<div class="usb-page">
+  <div class="usb-header">
+    <h1>Usb</h1>
+  </div>
+
+  <div class="usb-list" *ngIf="endpoints.length">
+    <div
+      class="usb-row"
+      *ngFor="let item of endpoints; let i = index"
+      [class.active]="expandedIndex === i"
+      [class.blue]="item.tone === 'blue'"
+      [class.green]="item.tone === 'green'"
+      (click)="toggleEndpoint(i)">
+      <span class="method" [class.blue-method]="item.tone === 'blue'" [class.green-method]="item.tone === 'green'">
+        {{ item.method }}
+      </span>
+      <span class="path">/{{ cleanPath(item.path) }}</span>
+      <span class="actions">
+        <span class="chevron">{{ expandedIndex === i ? '⌃' : '⌄' }}</span>
+        <span class="lock">🔒</span>
+      </span>
+    </div>
+  </div>
+
+  <section class="api-panel" *ngIf="getActiveEndpoint() as active">
+    <div class="api-row">
+      <span class="method" [class.blue-method]="active.tone === 'blue'" [class.green-method]="active.tone === 'green'">
+        {{ active.method }}
+      </span>
+      <span class="path">/{{ cleanPath(active.path) }}</span>
+      <span class="actions">
+        <span class="chevron">⌃</span>
+        <span class="lock">🔒</span>
+      </span>
+    </div>
+
+    <div class="api-body">
+      <div class="request-block">
+        <div class="block-head">
+          <span>Request</span>
+          <button mat-stroked-button type="button" (click)="resetRequest()">Reset</button>
+        </div>
+
+        <mat-form-field appearance="outline" class="field-block">
+          <mat-label>Content type</mat-label>
+          <mat-select [(ngModel)]="selectedContentType">
+            <mat-option value="application/json">application/json</mat-option>
+            <mat-option value="text/plain">text/plain</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="field-block">
+          <mat-label>Request body</mat-label>
+          <textarea matInput rows="10" [(ngModel)]="requestBody" placeholder='{
+  "key": "value"
+}'></textarea>
+        </mat-form-field>
+
+        <div class="action-row">
+          <button mat-flat-button color="primary" type="button" (click)="executeActiveEndpoint()" [disabled]="isLoading">
+            {{ isLoading ? 'Running...' : 'Send request' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="response-block">
+        <div class="block-head">
+          <span>Response</span>
+          <span class="status-tag" [class.ok]="responseCode >= 200 && responseCode < 400" [class.error]="responseCode >= 400 || responseCode === 0">
+            {{ responseCode || 'N/A' }}
+          </span>
+        </div>
+
+        <div class="response-meta">
+          <span>{{ responseDescription || 'Awaiting response' }}</span>
+        </div>
+
+        <pre class="response-box">{{ responseText || 'No response yet' }}</pre>
+      </div>
+    </div>
+  </section>
+</div>

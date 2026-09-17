@@ -66,6 +66,37 @@ private latestPreviewRequestId = 0;
   engraveSubMessage = 'Connecting to engraving machine...';
   engraveDisplayText = 'MAHINDRA';
 
+  readonly countryOptions: string[] = [
+    'GULF',
+    'INDIA',
+    'SOUTH AFRICA',
+    'ITALY/SPAIN',
+    'CHILE',
+    'AUSTRALIA',
+    'LATIN AMER',
+    'GUATEMALA',
+    'COLOMBIA',
+    'SHRILANKA-OTHER',
+    'OTHER',
+    'TUNISIA',
+    'ECUADOR',
+    'NEW ZEALAND',
+    'ITALY',
+    'IRAN',
+    'DOMESTIC',
+    'EXPORT',
+    'NEPAL',
+    'CONGO',
+    'MOZAMBIQUE',
+    'MOROCCO',
+    'NAAF',
+    'MADAGASCAR',
+    'JORDAN',
+    'FIJI',
+    'PNG'
+  ];
+  visibleCountryOptions: string[] = [...this.countryOptions];
+
   // Mapping of backend country names to image names
   countryImageMap: { [key: string]: string } = {
     '00': 'INDIA',
@@ -108,11 +139,12 @@ private latestPreviewRequestId = 0;
 });
 
   ngOnInit(): void {
-    // Listen for country changes from form
+    // Keep backend country value visible in the dropdown, but plate selection depends on Market.
     this.form.get('country')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((countryName) => {
         if (countryName) {
+          this.ensureCountryOption(countryName);
           this.loadCountryImage(countryName);
         } else {
           this.countryFlag = null;
@@ -581,6 +613,21 @@ private latestPreviewRequestId = 0;
       }),
       finalize(() => this.hideEngraveLoader())
     ).subscribe();
+  }
+
+  private ensureCountryOption(countryName: string) {
+    const normalizedCountryName = (countryName || '').trim();
+    if (!normalizedCountryName) {
+      return;
+    }
+
+    const isExistingOption = this.visibleCountryOptions.some(
+      (country) => country.toUpperCase() === normalizedCountryName.toUpperCase()
+    );
+
+    if (!isExistingOption) {
+      this.visibleCountryOptions = [normalizedCountryName, ...this.countryOptions];
+    }
   }
 
   private loadCountryImage(countryName: string) {

@@ -89,6 +89,20 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../pages/about/about').then(m => m.About),
       },
+      {
+        path: 'support',
+        canActivate: [roleRouteGuard],
+        data: { roles: ['Admin'] },
+        loadComponent: () =>
+          import('../pages/support/support').then(m => m.Support),
+      },
+      {
+        path: 'usb',
+        canActivate: [roleRouteGuard],
+        data: { roles: ['Admin'] },
+        loadComponent: () =>
+          import('../pages/support-pages/usb/usb').then(m => m.Usb),
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'marking' },
     ],
