@@ -38,7 +38,12 @@
       <input type="text" formControlName="market">
 
       <label class="text-right">Country</label>
-      <input type="text" formControlName="country">
+      <select formControlName="country">
+        <option [ngValue]="null">Select Country</option>
+        <option *ngFor="let country of visibleCountryOptions" [value]="country">
+          {{ country }}
+        </option>
+      </select>
 
       <label>Drive Type</label>
       <input type="text" formControlName="driveType">

@@ -66,11 +66,44 @@ private latestPreviewRequestId = 0;
   engraveSubMessage = 'Connecting to engraving machine...';
   engraveDisplayText = 'MAHINDRA';
 
-  // Mapping of backend country names to image names
-  countryImageMap: { [key: string]: string } = {
+  readonly countryOptions: string[] = [
+    'GULF',
+    'INDIA',
+    'SOUTH AFRICA',
+    'ITALY/SPAIN',
+    'CHILE',
+    'AUSTRALIA',
+    'LATIN AMER',
+    'GUATEMALA',
+    'COLOMBIA',
+    'SHRILANKA-OTHER',
+    'OTHER',
+    'TUNISIA',
+    'ECUADOR',
+    'NEW ZEALAND',
+    'ITALY',
+    'IRAN',
+    'DOMESTIC',
+    'EXPORT',
+    'NEPAL',
+    'CONGO',
+    'MOZAMBIQUE',
+    'MOROCCO',
+    'NAAF',
+    'MADAGASCAR',
+    'JORDAN',
+    'FIJI',
+    'PNG'
+  ];
+  visibleCountryOptions: string[] = [...this.countryOptions];
+
+  // Mapping of market/country codes to number plate image names.
+  plateImageMap: { [key: string]: string } = {
     '00': 'INDIA',
     '06': '06',
     '08': '08',
+    'DOMESTIC': 'INDIA',
+    'EXPORT': 'Export',
     'INDIA': 'INDIA',
     'USA': 'usa',
     'UK': 'uk',
@@ -78,6 +111,15 @@ private latestPreviewRequestId = 0;
     'GERMANY': 'germany',
     'AUSTRALIA': 'AUSTRALIA'
   };
+  private readonly availablePlateImages = new Set([
+    '06',
+    '08',
+    'AUSTRALIA',
+    'Domestic',
+    'Export',
+    'INDIA',
+    'MOROCO'
+  ]);
 
   form = this.fb.group({
   modelNo: [''],
@@ -108,17 +150,20 @@ private latestPreviewRequestId = 0;
 });
 
   ngOnInit(): void {
-    // Listen for country changes from form
+    // Keep backend country value visible in the dropdown, but plate selection depends on Market.
     this.form.get('country')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((countryName) => {
         if (countryName) {
-          this.loadCountryImage(countryName);
-        } else {
-          this.countryFlag = null;
-          this.currentPlateType = null;
+          this.ensureCountryOption(countryName);
         }
       });
+
+    ['market', 'modelNo'].forEach(field => {
+      this.form.get(field)?.valueChanges
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.updatePlateImageFromMarket());
+    });
 
     // Listen for changes in Model, VIN, and Engine fields to update the canvas automatically
     ['modelNo', 'vinNo', 'engineSrNo'].forEach(field => {
@@ -197,6 +242,18 @@ private latestPreviewRequestId = 0;
 
   // Process Engine scan
   private processEngineScan(engineNumber: string) {
+    const cleanedEngine = engineNumber.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const modelNumber = (this.form.get('modelNo')?.value || '').toString().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+    if (modelNumber.length >= 8 && !this.vehicleUtils.matchesModelEnginePrefix(modelNumber, cleanedEngine)) {
+      this.snackBar.open('Please Scan Valid Engine Number', 'Close', {
+        duration: 5000,
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
+      return;
+    }
+
     this.form.patchValue({ engineSrNo: engineNumber });
     this.updateCanvas();
     this.fetchLabelPreview();
@@ -457,17 +514,17 @@ private latestPreviewRequestId = 0;
     const modelNo = (formData.modelNo || '').toString().trim();
     const rawVinNo = (formData.vinNo || '').toString().trim();
     const engineSrNo = (formData.engineSrNo || '').toString().trim();
-    const description1 = (formData.description1 || '').toString().trim();
     const flw = (formData.flw || '').toString().trim();
     const gvw = (formData.gvw || '').toString().trim();
     const faw = (formData.faw || '').toString().trim();
     const raw = (formData.raw || '').toString().trim();
+    const marketName = (formData.market || '').toString().toUpperCase().trim();
+    const exportDescription = 'XXXXXXXXXXXXXXXXXXXXXXXXXX';
 
-    const countryCode = this.vehicleUtils.getCountryCodeFromModelNumber(modelNo);
-    const isPlate06or08 = this.currentPlateType === '06' || this.currentPlateType === '08' || countryCode === '06' || countryCode === '08';
-    const vinNoForEngrave = isPlate06or08 ? rawVinNo.replace(/^MA1/i, '') : rawVinNo;
+    const isExportMarket = marketName.includes('EXPORT');
+    const vinNoForEngrave = isExportMarket ? rawVinNo.replace(/^MA1/i, '') : rawVinNo;
 
-    if (isPlate06or08) {
+    if (isExportMarket) {
       if (!modelNo || !rawVinNo) {
         this.snackBar.open('Model No and VIN No are required for engrave', 'Close', {
           duration: 5000,
@@ -487,8 +544,8 @@ private latestPreviewRequestId = 0;
       }
     }
 
-    const parameters = isPlate06or08
-      ? [description1, vinNoForEngrave, flw, gvw, faw, raw, modelNo]
+    const parameters = isExportMarket
+      ? [exportDescription, vinNoForEngrave, flw, gvw, faw, raw, modelNo]
       : [modelNo, rawVinNo, engineSrNo];
 
     const engravePayload = {
@@ -509,8 +566,8 @@ private latestPreviewRequestId = 0;
       engineNo: engineSrNo
     };
 
-    const displaySubtitle = isPlate06or08
-      ? `${description1} | ${vinNoForEngrave} | ${flw} | ${gvw} | ${faw} | ${raw} | ${modelNo}`
+    const displaySubtitle = isExportMarket
+      ? `${exportDescription} | ${vinNoForEngrave} | ${flw} | ${gvw} | ${faw} | ${raw} | ${modelNo}`
       : `${modelNo} | ${rawVinNo} | ${engineSrNo}`;
 
     this.showEngraveLoader(
@@ -595,25 +652,17 @@ private latestPreviewRequestId = 0;
     ).subscribe();
   }
 
-  private loadCountryImage(countryName: string) {
-    const normalizedCountryName = (countryName || '').toUpperCase().trim();
-    const modelCountryCode = this.vehicleUtils.getCountryCodeFromModelNumber(this.form.get('modelNo')?.value || '');
-    const countryCode = (modelCountryCode || '').toUpperCase();
-
-    const imageNameFromCode = countryCode ? this.countryImageMap[countryCode] : null;
-    const imageNameFromCountry = this.countryImageMap[normalizedCountryName] || null;
-
-    const resolvedImageName = imageNameFromCode || imageNameFromCountry || null;
+  private updatePlateImageFromMarket() {
+    const formData = this.form.getRawValue();
+    const resolvedImageName = this.resolvePlateImageName(
+      formData.market || '',
+      formData.modelNo || ''
+    );
 
     if (!resolvedImageName) {
       this.countryFlag = null;
       this.currentPlateType = null;
       this.cdr.markForCheck();
-      this.snackBar.open('This region number plate image cannot found', 'Close', {
-        duration: 5000,
-        verticalPosition: 'top',
-        horizontalPosition: 'center'
-      });
       return;
     }
 
@@ -621,6 +670,55 @@ private latestPreviewRequestId = 0;
     const imagePath = `assets/countries/${resolvedImageName}.jpeg`;
     this.countryFlag = this.sanitizer.bypassSecurityTrustUrl(imagePath);
     this.cdr.markForCheck();
+  }
+
+  private resolvePlateImageName(marketName: string, modelNo: string): string | null {
+    const normalizedMarketName = (marketName || '').toUpperCase().trim();
+    if (!normalizedMarketName) {
+      return null;
+    }
+
+    if (normalizedMarketName.includes('DOMESTIC')) {
+      return 'INDIA';
+    }
+
+    if (normalizedMarketName.includes('EXPORT')) {
+      const modelCountryCode = this.vehicleUtils.getCountryCodeFromModelNumber(modelNo);
+      const plateFromModelCode = this.getAvailablePlateImageName(modelCountryCode || '');
+      return plateFromModelCode || 'Export';
+    }
+
+    const plateFromMarket = this.getAvailablePlateImageName(normalizedMarketName);
+    if (plateFromMarket) {
+      return plateFromMarket;
+    }
+
+    return null;
+  }
+
+  private getAvailablePlateImageName(value: string): string | null {
+    const normalizedValue = (value || '').toUpperCase().trim();
+    if (!normalizedValue) {
+      return null;
+    }
+
+    const mappedImageName = this.plateImageMap[normalizedValue] || value.trim();
+    return this.availablePlateImages.has(mappedImageName) ? mappedImageName : null;
+  }
+
+  private ensureCountryOption(countryName: string) {
+    const normalizedCountryName = (countryName || '').trim();
+    if (!normalizedCountryName) {
+      return;
+    }
+
+    const isExistingOption = this.visibleCountryOptions.some(
+      (country) => country.toUpperCase() === normalizedCountryName.toUpperCase()
+    );
+
+    if (!isExistingOption) {
+      this.visibleCountryOptions = [normalizedCountryName, ...this.countryOptions];
+    }
   }
 
   // Update the canvas with current form data (Number Plate)

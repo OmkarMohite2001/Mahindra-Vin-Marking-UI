@@ -39,4 +39,13 @@ describe('VehicleUtils', () => {
     expect(service.getCountryCodeFromModelNumber(alphanumericIndiaModelNumber)).toBe('06');
     expect(service.getCountryNameFromModelNumber(alphanumericIndiaModelNumber)).toBe('INDIA');
   });
+
+  it('should validate engine prefix against model number characters 7 and 8', () => {
+    const validModelNumber = '123456AB123456789';
+    const validEngineNumber = 'AB12345678';
+    const invalidEngineNumber = 'CD12345678';
+
+    expect(service.matchesModelEnginePrefix(validModelNumber, validEngineNumber)).toBeTrue();
+    expect(service.matchesModelEnginePrefix(validModelNumber, invalidEngineNumber)).toBeFalse();
+  });
 });

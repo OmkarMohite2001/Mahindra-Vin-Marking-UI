@@ -28,6 +28,20 @@ export class VehicleUtils {
     return cleaned.length === 10;
   }
 
+  // Check if engine number’s first two letters match model number positions 7 and 8
+  matchesModelEnginePrefix(modelNumber: string, engineNumber: string): boolean {
+    const cleanedModel = (modelNumber || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const cleanedEngine = (engineNumber || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+    if (!cleanedModel || !cleanedEngine || cleanedModel.length < 8 || cleanedEngine.length < 2) {
+      return false;
+    }
+
+    const modelPrefix = cleanedModel.slice(6, 8);
+    const enginePrefix = cleanedEngine.slice(0, 2);
+    return modelPrefix === enginePrefix;
+  }
+
   // Extract 2-letter code from scanned data (e.g., for image fetching)
   extractTwoLetterCode(scannedData: string): string | null {
     const letters = scannedData.match(/[A-Za-z]/g);

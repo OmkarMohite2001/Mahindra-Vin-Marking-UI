@@ -196,6 +196,18 @@ private latestPreviewRequestId = 0;
 
   // Process Engine scan
   private processEngineScan(engineNumber: string) {
+    const cleanedEngine = engineNumber.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const modelNumber = (this.form.get('modelNo')?.value || '').toString().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+    if (modelNumber.length >= 8 && !this.vehicleUtils.matchesModelEnginePrefix(modelNumber, cleanedEngine)) {
+      this.snackBar.open('Please Scan Valid Engine Number', 'Close', {
+        duration: 5000,
+        verticalPosition: 'top',
+        horizontalPosition: 'center'
+      });
+      return;
+    }
+
     this.form.patchValue({ engineSrNo: engineNumber });
     this.updateCanvas();
     this.fetchLabelPreview();
