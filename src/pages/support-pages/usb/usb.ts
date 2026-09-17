@@ -36,22 +36,24 @@ export class Usb implements OnInit {
   responseText = '';
   responseCode = 0;
   responseDescription = 'Awaiting response';
+  responseState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
   selectedContentType = 'application/json';
   isLoading = false;
+  lastUpdatedAt = '';
 
   ngOnInit(): void {
     this.usbApi.getEndpointCatalog().subscribe({
       next: (response) => {
-        this.endpoints = Array.isArray(response) && response.length > 0
-          ? response
-          : this.usbApi.getFallbackEndpoints();
+        this.endpoints = this.resolveEndpoints(response);
         this.expandedIndex = this.endpoints.length > 0 ? 0 : null;
-        this.cdr.markForCheck();
+        this.applyDefaultRequestBody();
+        this.refreshView(true);
       },
       error: () => {
         this.endpoints = this.usbApi.getFallbackEndpoints();
         this.expandedIndex = 0;
-        this.cdr.markForCheck();
+        this.applyDefaultRequestBody();
+        this.refreshView(true);
       },
     });
   }
@@ -61,8 +63,9 @@ export class Usb implements OnInit {
   }
 
   toggleEndpoint(index: number): void {
-    this.expandedIndex = this.expandedIndex === index ? null : index;
-    this.cdr.markForCheck();
+    this.expandedIndex = index;
+    this.applyDefaultRequestBody();
+    this.refreshView();
   }
 
   getActiveEndpoint(): UsbEndpointConfig | null {
@@ -71,6 +74,18 @@ export class Usb implements OnInit {
     }
 
     return this.endpoints[this.expandedIndex];
+  }
+
+  hasRequestBody(endpoint: UsbEndpointConfig): boolean {
+    return endpoint.method !== 'GET';
+  }
+
+  get responseStatusLabel(): string {
+    if (this.responseState === 'loading') {
+      return 'Running';
+    }
+
+    return this.responseCode ? String(this.responseCode) : 'Ready';
   }
 
   executeActiveEndpoint(): void {
@@ -88,18 +103,29 @@ export class Usb implements OnInit {
       this.responseText = JSON.stringify({
         message: 'No matching USB API method was found for the selected endpoint.',
       }, null, 2);
-      this.cdr.markForCheck();
+      this.responseState = 'error';
+      this.lastUpdatedAt = this.getCurrentTime();
+      this.refreshView();
       return;
     }
 
     this.isLoading = true;
+    this.responseCode = 0;
+    this.responseDescription = `Running ${active.method} /${this.cleanPath(active.path)}`;
+    this.responseText = 'Waiting for API response...';
+    this.responseState = 'loading';
+    this.lastUpdatedAt = this.getCurrentTime();
+    this.refreshView(true);
+
     request$.subscribe({
       next: (result) => {
         this.responseCode = 200;
         this.responseDescription = 'Success';
         this.responseText = this.stringifyResponse(result);
+        this.responseState = 'success';
         this.isLoading = false;
-        this.cdr.markForCheck();
+        this.lastUpdatedAt = this.getCurrentTime();
+        this.refreshView(true);
       },
       error: (error: HttpErrorResponse) => {
         this.responseCode = error.status || 500;
@@ -109,22 +135,30 @@ export class Usb implements OnInit {
           status: error.status,
           message: error.message,
         });
+        this.responseState = 'error';
         this.isLoading = false;
-        this.cdr.markForCheck();
+        this.lastUpdatedAt = this.getCurrentTime();
+        this.refreshView(true);
       },
     });
   }
 
   resetRequest(): void {
-    this.requestBody = '';
+    this.applyDefaultRequestBody();
     this.responseText = '';
     this.responseCode = 0;
     this.responseDescription = 'Awaiting response';
-    this.cdr.markForCheck();
+    this.responseState = 'idle';
+    this.lastUpdatedAt = '';
+    this.refreshView();
   }
 
   private parseRequestBody(): unknown {
     const trimmed = this.requestBody.trim();
+    if (this.selectedContentType === 'text/plain') {
+      return trimmed;
+    }
+
     if (!trimmed) {
       return {};
     }
@@ -136,6 +170,75 @@ export class Usb implements OnInit {
     }
   }
 
+  private applyDefaultRequestBody(): void {
+    const active = this.getActiveEndpoint();
+    this.requestBody = active ? this.getDefaultRequestBody(active) : '';
+  }
+
+  private getDefaultRequestBody(endpoint: UsbEndpointConfig): string {
+    const normalizedPath = endpoint.path.toLowerCase();
+
+    if (!this.hasRequestBody(endpoint)) {
+      return '';
+    }
+
+    if (normalizedPath.includes('tspl_print')) {
+      return this.stringifyResponse({
+        printData: 'string',
+        vendorId: 'string',
+        productId: 'string',
+        useMacValidation: true,
+        macAddressList: 'string',
+        matchMacAddress: 'string',
+        noOfBytes: 0,
+      });
+    }
+
+    if (normalizedPath.includes('printinone') || normalizedPath.includes('printinfo')) {
+      return this.stringifyResponse({
+        command: '1203|0230|false||^^NO|45|CLS\r\nTEXT 10,10,"0",0,10,10,"www.credentialsintegrated.com"\r\nPRINT 1,1\r\nEOJ\r\n',
+      });
+    }
+
+    if (normalizedPath.includes('print')) {
+      return this.stringifyResponse({
+        modelNo: 'string',
+        vinNo: 'string',
+        engineSrNo: 'string',
+        description: 'string',
+        qr: 'string',
+      });
+    }
+
+    return '';
+  }
+
+  private resolveEndpoints(response: unknown): UsbEndpointConfig[] {
+    if (Array.isArray(response)) {
+      const endpoints = response.filter((item): item is UsbEndpointConfig =>
+        this.isEndpointConfig(item),
+      );
+
+      if (endpoints.length > 0) {
+        return endpoints;
+      }
+    }
+
+    return this.usbApi.getFallbackEndpoints();
+  }
+
+  private isEndpointConfig(value: unknown): value is UsbEndpointConfig {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const endpoint = value as Partial<UsbEndpointConfig>;
+    const isMethodValid = endpoint.method === 'GET' || endpoint.method === 'POST';
+    const isToneValid = endpoint.tone === 'blue' || endpoint.tone === 'green';
+
+    return isMethodValid && typeof endpoint.path === 'string' && isToneValid;
+  }
+
   private getEndpointRequest$(active: UsbEndpointConfig, payload: unknown): Observable<unknown> | null {
     const normalizedPath = active.path.toLowerCase();
 
@@ -145,6 +248,10 @@ export class Usb implements OnInit {
 
     if (normalizedPath.includes('tspl_print')) {
       return this.usbApi.printTspL(payload);
+    }
+
+    if (normalizedPath.includes('printinone')) {
+      return this.usbApi.printInOne(payload);
     }
 
     if (normalizedPath.includes('printinfo')) {
@@ -167,6 +274,22 @@ export class Usb implements OnInit {
       return JSON.stringify(value, null, 2);
     } catch {
       return String(value);
+    }
+  }
+
+  private getCurrentTime(): string {
+    return new Date().toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+  }
+
+  private refreshView(immediate = false): void {
+    this.cdr.markForCheck();
+
+    if (immediate) {
+      this.cdr.detectChanges();
     }
   }
 }

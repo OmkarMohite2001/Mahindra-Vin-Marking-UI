@@ -21,7 +21,7 @@ export class UsbApi {
     { method: 'GET', path: '/api/Usb/devices', tone: 'blue', locked: true },
     { method: 'POST', path: '/api/Usb/tspl_print', tone: 'green', locked: true },
     { method: 'POST', path: '/api/Usb/print', tone: 'green', locked: true },
-    { method: 'POST', path: '/api/Usb/printinfo', tone: 'green', locked: true },
+    { method: 'POST', path: '/api/Usb/printinone', tone: 'green', locked: true },
   ];
 
   getEndpointCatalog(): Observable<UsbEndpointConfig[]> {
@@ -44,6 +44,10 @@ export class UsbApi {
 
   print(payload: unknown): Observable<unknown> {
     return this.http.post(`${this.baseUrl}/Usb/print`, payload);
+  }
+
+  printInOne(payload: unknown): Observable<unknown> {
+    return this.http.post(`${this.baseUrl}/Usb/printinone`, payload);
   }
 
   printInfo(payload: unknown): Observable<unknown> {

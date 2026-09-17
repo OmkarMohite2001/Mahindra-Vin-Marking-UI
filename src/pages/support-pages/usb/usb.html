@@ -1,44 +1,50 @@
 <div class="usb-page">
-  <div class="usb-header">
-    <h1>Usb</h1>
-  </div>
-
-  <div class="usb-list" *ngIf="endpoints.length">
-    <div
-      class="usb-row"
-      *ngFor="let item of endpoints; let i = index"
-      [class.active]="expandedIndex === i"
-      [class.blue]="item.tone === 'blue'"
-      [class.green]="item.tone === 'green'"
-      (click)="toggleEndpoint(i)">
-      <span class="method" [class.blue-method]="item.tone === 'blue'" [class.green-method]="item.tone === 'green'">
-        {{ item.method }}
-      </span>
-      <span class="path">/{{ cleanPath(item.path) }}</span>
-      <span class="actions">
-        <span class="chevron">{{ expandedIndex === i ? '⌃' : '⌄' }}</span>
-        <span class="lock">🔒</span>
-      </span>
-    </div>
-  </div>
-
-  <section class="api-panel" *ngIf="getActiveEndpoint() as active">
-    <div class="api-row">
-      <span class="method" [class.blue-method]="active.tone === 'blue'" [class.green-method]="active.tone === 'green'">
-        {{ active.method }}
-      </span>
-      <span class="path">/{{ cleanPath(active.path) }}</span>
-      <span class="actions">
-        <span class="chevron">⌃</span>
-        <span class="lock">🔒</span>
-      </span>
+  <header class="usb-shell-header">
+    <div>
+      <span class="eyebrow">Support tools</span>
+      <h1>USB API Workbench</h1>
     </div>
 
-    <div class="api-body">
-      <div class="request-block">
-        <div class="block-head">
-          <span>Request</span>
-          <button mat-stroked-button type="button" (click)="resetRequest()">Reset</button>
+    <div class="header-meter">
+      <span>{{ endpoints.length }}</span>
+      <small>Endpoints</small>
+    </div>
+  </header>
+
+  <section class="usb-workbench" *ngIf="endpoints.length; else noEndpoints">
+    <aside class="endpoint-rail" aria-label="USB API endpoints">
+      <button
+        class="endpoint-card"
+        type="button"
+        *ngFor="let item of endpoints; let i = index"
+        [class.active]="expandedIndex === i"
+        [class.green]="item.tone === 'green'"
+        (click)="toggleEndpoint(i)">
+        <span class="method-pill" [class.green-method]="item.tone === 'green'">
+          {{ item.method }}
+        </span>
+
+        <span class="endpoint-copy">
+          <strong>/{{ cleanPath(item.path) }}</strong>
+          <small>{{ hasRequestBody(item) ? 'Body required' : 'Read only' }}</small>
+        </span>
+
+        <mat-icon aria-hidden="true">{{ expandedIndex === i ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
+      </button>
+    </aside>
+
+    <ng-container *ngIf="getActiveEndpoint() as active">
+      <main class="request-panel">
+        <div class="panel-title">
+          <div>
+            <span class="panel-kicker">Request</span>
+            <h2>{{ active.method }} /{{ cleanPath(active.path) }}</h2>
+          </div>
+
+          <span class="secure-chip">
+            <mat-icon aria-hidden="true">lock</mat-icon>
+            Locked
+          </span>
         </div>
 
         <mat-form-field appearance="outline" class="field-block">
@@ -49,34 +55,83 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="field-block">
+        <mat-form-field
+          appearance="outline"
+          class="field-block body-field"
+          *ngIf="hasRequestBody(active); else getHint">
           <mat-label>Request body</mat-label>
-          <textarea matInput rows="10" [(ngModel)]="requestBody" placeholder='{
+          <textarea
+            matInput
+            rows="12"
+            spellcheck="false"
+            [(ngModel)]="requestBody"
+            placeholder='{
   "key": "value"
 }'></textarea>
         </mat-form-field>
 
-        <div class="action-row">
-          <button mat-flat-button color="primary" type="button" (click)="executeActiveEndpoint()" [disabled]="isLoading">
+        <ng-template #getHint>
+          <div class="get-note">
+            <mat-icon aria-hidden="true">info</mat-icon>
+            <span>This GET endpoint runs without a request body.</span>
+          </div>
+        </ng-template>
+
+        <div class="action-bar">
+          <button mat-stroked-button type="button" (click)="resetRequest()" [disabled]="isLoading">
+            <mat-icon aria-hidden="true">restart_alt</mat-icon>
+            Reset
+          </button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            (click)="executeActiveEndpoint()"
+            [disabled]="isLoading">
+            <mat-icon aria-hidden="true">{{ isLoading ? 'sync' : 'send' }}</mat-icon>
             {{ isLoading ? 'Running...' : 'Send request' }}
           </button>
         </div>
-      </div>
+      </main>
 
-      <div class="response-block">
-        <div class="block-head">
-          <span>Response</span>
-          <span class="status-tag" [class.ok]="responseCode >= 200 && responseCode < 400" [class.error]="responseCode >= 400 || responseCode === 0">
-            {{ responseCode || 'N/A' }}
+      <aside
+        class="response-panel"
+        [class.is-idle]="responseState === 'idle'"
+        [class.is-loading]="responseState === 'loading'"
+        [class.is-success]="responseState === 'success'"
+        [class.is-error]="responseState === 'error'">
+        <div class="panel-title">
+          <div>
+            <span class="panel-kicker">Output</span>
+            <h2>API Response</h2>
+          </div>
+
+          <span class="status-chip">
+            {{ responseStatusLabel }}
           </span>
         </div>
 
-        <div class="response-meta">
-          <span>{{ responseDescription || 'Awaiting response' }}</span>
+        <div class="response-details">
+          <div>
+            <span>Status</span>
+            <strong>{{ responseDescription || 'Awaiting response' }}</strong>
+          </div>
+          <div>
+            <span>Last run</span>
+            <strong>{{ lastUpdatedAt || '-' }}</strong>
+          </div>
         </div>
 
-        <pre class="response-box">{{ responseText || 'No response yet' }}</pre>
-      </div>
-    </div>
+        <pre class="response-console">{{ responseText || 'No response yet' }}</pre>
+      </aside>
+    </ng-container>
   </section>
+
+  <ng-template #noEndpoints>
+    <section class="empty-state">
+      <mat-icon aria-hidden="true">usb_off</mat-icon>
+      <h2>No USB endpoints found</h2>
+      <p>Endpoint catalog is empty and fallback endpoints could not be loaded.</p>
+    </section>
+  </ng-template>
 </div>

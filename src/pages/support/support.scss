@@ -6,9 +6,6 @@
 }
 
 .support-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
   margin-bottom: 20px;
   background: #f5f7fb;
   padding-top: 6px;
@@ -30,9 +27,6 @@
 }
 
 .support-nav {
-  position: sticky;
-  top: 72px;
-  z-index: 9;
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -71,6 +65,7 @@
 
 .support-content {
   display: block;
+  min-width: 0;
 }
 
 .support-panel {
@@ -162,7 +157,6 @@
   }
 
   .support-nav {
-    top: 60px;
     gap: 8px;
   }
 
