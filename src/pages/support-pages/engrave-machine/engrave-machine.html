@@ -1,0 +1,231 @@
+<div class="machine-page">
+  <mat-card class="hero-card">
+    <div class="hero-main">
+      <div>
+        <div class="eyebrow">Engrave Machine</div>
+        <h1>Machine Command Center</h1>
+      </div>
+
+      <div class="health-strip">
+        <div class="health-tile" [ngClass]="healthOk === true ? 'good' : healthOk === false ? 'bad' : 'idle'">
+          <span>Health</span>
+          <strong>{{ healthLabel }}</strong>
+        </div>
+        <div class="health-tile" [ngClass]="connected ? 'good' : 'idle'">
+          <span>Status</span>
+          <strong>{{ connected ? 'Connected' : 'Disconnected' }}</strong>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+
+  <mat-progress-bar *ngIf="isBusy" mode="indeterminate"></mat-progress-bar>
+
+  <div class="status-banner" [ngClass]="statusTone">
+    <mat-icon>{{ statusTone === 'error' ? 'error' : statusTone === 'success' ? 'check_circle' : 'info' }}</mat-icon>
+    <span>{{ statusMessage }}</span>
+  </div>
+
+  <div class="machine-grid">
+    <mat-card class="panel connection-panel">
+      <div class="panel-title">
+        <div>
+          <h2>Connection</h2>
+          <p>/api/engrave/machine</p>
+        </div>
+        <button mat-icon-button type="button" (click)="refreshStatus()" [disabled]="isBusy" aria-label="Refresh status">
+          <mat-icon>sync</mat-icon>
+        </button>
+      </div>
+
+      <form class="form-grid" [formGroup]="connectionForm">
+        <mat-form-field appearance="outline">
+          <mat-label>IP Address</mat-label>
+          <input matInput formControlName="ip" />
+          <mat-error *ngIf="connectionForm.controls.ip.touched && connectionForm.controls.ip.invalid">
+            Enter valid IP
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Port</mat-label>
+          <input matInput type="number" formControlName="port" />
+          <mat-error *ngIf="connectionForm.controls.port.touched && connectionForm.controls.port.invalid">
+            1 - 65535
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Timeout MS</mat-label>
+          <input matInput type="number" formControlName="timeoutMs" />
+        </mat-form-field>
+      </form>
+
+      <div class="button-row">
+        <button mat-raised-button color="primary" type="button" (click)="checkHealth()" [disabled]="isBusy">
+          <mat-icon>health_and_safety</mat-icon>
+          Health
+        </button>
+        <button mat-raised-button color="primary" type="button" (click)="connect()" [disabled]="isBusy">
+          <mat-icon>power</mat-icon>
+          Connect
+        </button>
+        <button mat-stroked-button type="button" (click)="disconnect()" [disabled]="isBusy">
+          <mat-icon>power_off</mat-icon>
+          Disconnect
+        </button>
+      </div>
+
+      <div class="button-row secondary">
+        <button mat-stroked-button type="button" (click)="readLatest(false)" [disabled]="isBusy">
+          <mat-icon>receipt_long</mat-icon>
+          Read Latest
+        </button>
+        <button mat-stroked-button type="button" (click)="readLatest(true)" [disabled]="isBusy">
+          <mat-icon>cleaning_services</mat-icon>
+          Read & Clear
+        </button>
+      </div>
+    </mat-card>
+
+    <mat-card class="panel response-panel">
+      <div class="panel-title">
+        <div>
+          <h2>{{ responseTitle }}</h2>
+          <p>{{ loadingAction ? 'Running ' + loadingAction : 'Ready' }}</p>
+        </div>
+      </div>
+
+      <pre class="response-console">{{ responseText }}</pre>
+
+      <div class="latest-box" *ngIf="latestData">
+        <span>Latest data</span>
+        <code>{{ latestData }}</code>
+      </div>
+    </mat-card>
+  </div>
+
+  <mat-card class="panel tool-panel">
+    <div class="tool-tabs" aria-label="Engrave machine tools">
+      <button type="button" [class.active]="selectedTool === 'command'" (click)="selectTool('command')">
+        <mat-icon>terminal</mat-icon>
+        Command
+      </button>
+      <button type="button" [class.active]="selectedTool === 'run'" (click)="selectTool('run')">
+        <mat-icon>precision_manufacturing</mat-icon>
+        TCP Run
+      </button>
+      <button type="button" [class.active]="selectedTool === 'dynamic'" (click)="selectTool('dynamic')">
+        <mat-icon>dynamic_form</mat-icon>
+        Dynamic
+      </button>
+      <button type="button" [class.active]="selectedTool === 'serial'" (click)="selectTool('serial')">
+        <mat-icon>settings_input_component</mat-icon>
+        Serial
+      </button>
+    </div>
+
+    <form class="tool-form" [formGroup]="commandForm" *ngIf="selectedTool === 'command'">
+      <mat-form-field appearance="outline">
+        <mat-label>Command</mat-label>
+        <input matInput formControlName="command" placeholder="ST" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Read Timeout MS</mat-label>
+        <input matInput type="number" formControlName="readTimeoutMs" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Line Ending</mat-label>
+        <input matInput formControlName="lineEnding" />
+      </mat-form-field>
+      <button mat-raised-button color="primary" type="button" (click)="sendCommand()" [disabled]="isBusy">
+        <mat-icon>send</mat-icon>
+        Send Command
+      </button>
+    </form>
+
+    <form class="tool-form run-form" [formGroup]="runForm" *ngIf="selectedTool === 'run'">
+      <mat-form-field appearance="outline">
+        <mat-label>Template</mat-label>
+        <input matInput formControlName="template" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Inter Delay MS</mat-label>
+        <input matInput type="number" formControlName="interDelayMs" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Read Timeout MS</mat-label>
+        <input matInput type="number" formControlName="readTimeoutMs" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Completion Token</mat-label>
+        <input matInput formControlName="completionToken" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Line Ending</mat-label>
+        <input matInput formControlName="lineEnding" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="wide">
+        <mat-label>Parameters</mat-label>
+        <textarea matInput rows="5" formControlName="parametersText"></textarea>
+      </mat-form-field>
+      <button mat-raised-button color="primary" type="button" (click)="runEngrave()" [disabled]="isBusy">
+        <mat-icon>play_arrow</mat-icon>
+        Run TCP
+      </button>
+    </form>
+
+    <form class="tool-form dynamic-form" [formGroup]="dynamicForm" *ngIf="selectedTool === 'dynamic'">
+      <mat-form-field appearance="outline" class="wide">
+        <mat-label>Parameters</mat-label>
+        <textarea matInput rows="5" formControlName="parametersText"></textarea>
+      </mat-form-field>
+      <mat-checkbox formControlName="isReengrave">Re-engrave request</mat-checkbox>
+      <div class="button-row">
+        <button mat-raised-button color="primary" type="button" (click)="runDynamic()" [disabled]="isBusy">
+          <mat-icon>play_circle</mat-icon>
+          Run Dynamic
+        </button>
+        <button mat-stroked-button type="button" (click)="runWithParameter()" [disabled]="isBusy">
+          <mat-icon>rule</mat-icon>
+          Run With Parameter
+        </button>
+      </div>
+    </form>
+
+    <form class="tool-form run-form" [formGroup]="serialForm" *ngIf="selectedTool === 'serial'">
+      <mat-form-field appearance="outline">
+        <mat-label>COM Port</mat-label>
+        <input matInput formControlName="comPort" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Baud Rate</mat-label>
+        <input matInput type="number" formControlName="baudRate" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Template</mat-label>
+        <input matInput formControlName="template" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Line Ending</mat-label>
+        <input matInput formControlName="lineEnding" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Inter Delay MS</mat-label>
+        <input matInput type="number" formControlName="interDelayMs" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Read Timeout MS</mat-label>
+        <input matInput type="number" formControlName="readTimeoutMs" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="wide">
+        <mat-label>Parameters</mat-label>
+        <textarea matInput rows="5" formControlName="parametersText"></textarea>
+      </mat-form-field>
+      <button mat-raised-button color="primary" type="button" (click)="runSerial()" [disabled]="isBusy">
+        <mat-icon>play_arrow</mat-icon>
+        Run Serial
+      </button>
+    </form>
+  </mat-card>
+</div>

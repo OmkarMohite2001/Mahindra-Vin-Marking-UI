@@ -22,6 +22,10 @@
       <app-usb></app-usb>
     </ng-container>
 
+    <ng-container *ngIf="selectedTab === 'Serial Terminal'">
+      <app-serial-terminal></app-serial-terminal>
+    </ng-container>
+
     <ng-container *ngIf="selectedTab === 'Templates'">
       <app-templates></app-templates>
     </ng-container>
@@ -30,8 +34,18 @@
       <app-engrave-communication></app-engrave-communication>
     </ng-container>
 
+    <ng-container *ngIf="selectedTab === 'Engrave Machine'">
+      <app-engrave-machine></app-engrave-machine>
+    </ng-container>
+
     <ng-container
-      *ngIf="selectedTab !== 'USB' && selectedTab !== 'Templates' && selectedTab !== 'Engrave Communication'">
+      *ngIf="
+        selectedTab !== 'USB' &&
+        selectedTab !== 'Serial Terminal' &&
+        selectedTab !== 'Templates' &&
+        selectedTab !== 'Engrave Machine' &&
+        selectedTab !== 'Engrave Communication'
+      ">
       <div class="support-panel">
         <div class="panel-header">
           <div>

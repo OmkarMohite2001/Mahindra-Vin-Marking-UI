@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { SerialTerminal } from '../serial-terminal/serial-terminal';
 import { EngraveCommunication } from '../support-pages/engrave-communication/engrave-communication';
+import { EngraveMachine } from '../support-pages/engrave-machine/engrave-machine';
 import { Templates } from '../support-pages/templates/templates';
 import { Usb } from '../support-pages/usb/usb';
 
@@ -12,7 +14,7 @@ interface SupportTab {
 
 @Component({
   selector: 'app-support',
-  imports: [CommonModule, Usb, Templates, EngraveCommunication],
+  imports: [CommonModule, Usb, Templates, EngraveCommunication, EngraveMachine, SerialTerminal],
   templateUrl: './support.html',
   styleUrl: './support.scss',
 })
