@@ -508,8 +508,8 @@ private latestPreviewRequestId = 0;
     }
 
     const parameters = isPlate06or08
-      ? [description1, vinNoForEngrave, flw, gvw, faw, raw, modelNo]
-      : [modelNo, rawVinNo, engineSrNo];
+      ? [modelNo, description1, vinNoForEngrave, flw, gvw, faw, raw, modelNo]
+      : [modelNo,modelNo, rawVinNo, engineSrNo];
 
     const engravePayload = {
       parameters,
@@ -529,9 +529,7 @@ private latestPreviewRequestId = 0;
       engineNo: engineSrNo
     };
 
-    const displaySubtitle = isPlate06or08
-      ? `${description1} | ${vinNoForEngrave} | ${flw} | ${gvw} | ${faw} | ${raw} | ${modelNo}`
-      : `${modelNo} | ${rawVinNo} | ${engineSrNo}`;
+    const displaySubtitle = parameters.join(' | ');
 
     this.showEngraveLoader(
       'Engraving Data',
