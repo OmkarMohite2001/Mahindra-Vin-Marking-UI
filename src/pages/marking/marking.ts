@@ -545,8 +545,8 @@ private latestPreviewRequestId = 0;
     }
 
     const parameters = isExportMarket
-      ? [exportDescription, vinNoForEngrave, flw, gvw, faw, raw, modelNo]
-      : [modelNo, rawVinNo, engineSrNo];
+      ? [modelNo, exportDescription, vinNoForEngrave, flw, gvw, faw, raw, modelNo]
+      : [modelNo, modelNo, rawVinNo, engineSrNo];
 
     const engravePayload = {
       parameters,
@@ -566,9 +566,7 @@ private latestPreviewRequestId = 0;
       engineNo: engineSrNo
     };
 
-    const displaySubtitle = isExportMarket
-      ? `${exportDescription} | ${vinNoForEngrave} | ${flw} | ${gvw} | ${faw} | ${raw} | ${modelNo}`
-      : `${modelNo} | ${rawVinNo} | ${engineSrNo}`;
+    const displaySubtitle = parameters.join(' | ');
 
     this.showEngraveLoader(
       'Engraving Data',
