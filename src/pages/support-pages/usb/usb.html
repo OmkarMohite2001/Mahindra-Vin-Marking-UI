@@ -1,40 +1,64 @@
 <div class="usb-page">
-  <header class="usb-shell-header">
-    <div>
-      <span class="eyebrow">Support tools</span>
-      <h1>USB API Workbench</h1>
-    </div>
+  <mat-card class="hero-card">
+    <div class="hero-content">
+      <div>
+        <div class="eyebrow">USB Support</div>
+        <h1>Device API Workbench</h1>
+        <p>{{ activeEndpointLabel }}</p>
+      </div>
 
-    <div class="header-meter">
-      <span>{{ endpoints.length }}</span>
-      <small>Endpoints</small>
+      <div class="hero-stats">
+        <div class="stat-tile">
+          <span>Total</span>
+          <strong>{{ endpoints.length }}</strong>
+        </div>
+        <div class="stat-tile read">
+          <span>GET</span>
+          <strong>{{ getEndpointCount }}</strong>
+        </div>
+        <div class="stat-tile post">
+          <span>POST</span>
+          <strong>{{ postEndpointCount }}</strong>
+        </div>
+      </div>
     </div>
-  </header>
+  </mat-card>
+
+  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
 
   <section class="usb-workbench" *ngIf="endpoints.length; else noEndpoints">
-    <aside class="endpoint-rail" aria-label="USB API endpoints">
-      <button
-        class="endpoint-card"
-        type="button"
-        *ngFor="let item of endpoints; let i = index"
-        [class.active]="expandedIndex === i"
-        [class.green]="item.tone === 'green'"
-        (click)="toggleEndpoint(i)">
-        <span class="method-pill" [class.green-method]="item.tone === 'green'">
-          {{ item.method }}
-        </span>
+    <mat-card class="endpoint-panel">
+      <div class="panel-title compact">
+        <div>
+          <span class="panel-kicker">Endpoints</span>
+          <h2>USB Actions</h2>
+        </div>
+      </div>
 
-        <span class="endpoint-copy">
-          <strong>/{{ cleanPath(item.path) }}</strong>
-          <small>{{ hasRequestBody(item) ? 'Body required' : 'Read only' }}</small>
-        </span>
+      <aside class="endpoint-rail" aria-label="USB API endpoints">
+        <button
+          class="endpoint-card"
+          type="button"
+          *ngFor="let item of endpoints; let i = index"
+          [class.active]="expandedIndex === i"
+          [class.green]="item.tone === 'green'"
+          (click)="toggleEndpoint(i)">
+          <span class="method-pill" [class.green-method]="item.tone === 'green'">
+            {{ item.method }}
+          </span>
 
-        <mat-icon aria-hidden="true">{{ expandedIndex === i ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
-      </button>
-    </aside>
+          <span class="endpoint-copy">
+            <strong>/{{ cleanPath(item.path) }}</strong>
+            <small>{{ hasRequestBody(item) ? 'Body required' : 'Read only' }}</small>
+          </span>
+
+          <mat-icon aria-hidden="true">{{ expandedIndex === i ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+        </button>
+      </aside>
+    </mat-card>
 
     <ng-container *ngIf="getActiveEndpoint() as active">
-      <main class="request-panel">
+      <mat-card class="request-panel">
         <div class="panel-title">
           <div>
             <span class="panel-kicker">Request</span>
@@ -47,35 +71,37 @@
           </span>
         </div>
 
-        <mat-form-field appearance="outline" class="field-block">
-          <mat-label>Content type</mat-label>
-          <mat-select [(ngModel)]="selectedContentType">
-            <mat-option value="application/json">application/json</mat-option>
-            <mat-option value="text/plain">text/plain</mat-option>
-          </mat-select>
-        </mat-form-field>
+        <div class="request-form">
+          <mat-form-field appearance="outline" class="field-block">
+            <mat-label>Content type</mat-label>
+            <mat-select [(ngModel)]="selectedContentType">
+              <mat-option value="application/json">application/json</mat-option>
+              <mat-option value="text/plain">text/plain</mat-option>
+            </mat-select>
+          </mat-form-field>
 
-        <mat-form-field
-          appearance="outline"
-          class="field-block body-field"
-          *ngIf="hasRequestBody(active); else getHint">
-          <mat-label>Request body</mat-label>
-          <textarea
-            matInput
-            rows="12"
-            spellcheck="false"
-            [(ngModel)]="requestBody"
-            placeholder='{
+          <mat-form-field
+            appearance="outline"
+            class="field-block body-field"
+            *ngIf="hasRequestBody(active); else getHint">
+            <mat-label>Request body</mat-label>
+            <textarea
+              matInput
+              rows="12"
+              spellcheck="false"
+              [(ngModel)]="requestBody"
+              placeholder='{
   "key": "value"
 }'></textarea>
-        </mat-form-field>
+          </mat-form-field>
 
-        <ng-template #getHint>
-          <div class="get-note">
-            <mat-icon aria-hidden="true">info</mat-icon>
-            <span>This GET endpoint runs without a request body.</span>
-          </div>
-        </ng-template>
+          <ng-template #getHint>
+            <div class="get-note">
+              <mat-icon aria-hidden="true">info</mat-icon>
+              <span>This GET endpoint runs without a request body.</span>
+            </div>
+          </ng-template>
+        </div>
 
         <div class="action-bar">
           <button mat-stroked-button type="button" (click)="resetRequest()" [disabled]="isLoading">
@@ -92,9 +118,9 @@
             {{ isLoading ? 'Running...' : 'Send request' }}
           </button>
         </div>
-      </main>
+      </mat-card>
 
-      <aside
+      <mat-card
         class="response-panel"
         [class.is-idle]="responseState === 'idle'"
         [class.is-loading]="responseState === 'loading'"
@@ -123,7 +149,7 @@
         </div>
 
         <pre class="response-console">{{ responseText || 'No response yet' }}</pre>
-      </aside>
+      </mat-card>
     </ng-container>
   </section>
 

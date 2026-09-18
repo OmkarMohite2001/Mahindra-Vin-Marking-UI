@@ -1,0 +1,134 @@
+<div class="template-page">
+  <mat-card class="hero-card">
+    <div class="hero-content">
+      <div>
+        <div class="eyebrow">Engrave Template</div>
+        <h1>Country Template Setup</h1>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-tile">
+          <span>Total</span>
+          <strong>{{ totalTemplates }}</strong>
+        </div>
+        <div class="stat-tile accent">
+          <span>Countries</span>
+          <strong>{{ countryCount }}</strong>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+
+  <mat-progress-bar *ngIf="loadingTemplates" mode="indeterminate"></mat-progress-bar>
+
+  <div class="status-banner" *ngIf="statusMessage" [ngClass]="statusTone">
+    <mat-icon>{{ statusTone === 'error' ? 'error' : statusTone === 'success' ? 'check_circle' : 'info' }}</mat-icon>
+    <span>{{ statusMessage }}</span>
+  </div>
+
+  <div class="template-grid">
+    <mat-card class="panel form-panel">
+      <div class="panel-title">
+        <div>
+          <h2>{{ isEditMode ? 'Update Template' : 'Add Template' }}</h2>
+          <p>ID {{ selectedTemplate?.id || 'New' }}</p>
+        </div>
+        <button mat-icon-button type="button" (click)="resetForm()" [disabled]="savingTemplate" aria-label="Reset form">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+
+      <form class="template-form" [formGroup]="templateForm">
+        <mat-form-field appearance="outline">
+          <mat-label>Country Code</mat-label>
+          <input matInput formControlName="countryCode" placeholder="IN" />
+          <mat-error *ngIf="templateForm.controls.countryCode.touched && templateForm.controls.countryCode.invalid">
+            Country code is required
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Country Name</mat-label>
+          <input matInput formControlName="countryName" placeholder="India" />
+          <mat-error *ngIf="templateForm.controls.countryName.touched && templateForm.controls.countryName.invalid">
+            Country name is required
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Template Name</mat-label>
+          <input matInput formControlName="templateName" placeholder="Domestic VIN Template" />
+          <mat-error *ngIf="templateForm.controls.templateName.touched && templateForm.controls.templateName.invalid">
+            Template name is required
+          </mat-error>
+        </mat-form-field>
+
+        <div class="action-row">
+          <button mat-raised-button color="primary" type="button" (click)="saveTemplate()" [disabled]="savingTemplate">
+            <mat-icon>{{ isEditMode ? 'save' : 'add' }}</mat-icon>
+            {{ isEditMode ? 'Update' : 'Add' }}
+          </button>
+          <button mat-stroked-button type="button" (click)="resetForm()" [disabled]="savingTemplate">
+            <mat-icon>close</mat-icon>
+            Clear
+          </button>
+        </div>
+      </form>
+    </mat-card>
+
+    <mat-card class="panel list-panel">
+      <div class="panel-title list-title">
+        <div>
+          <h2>Template Directory</h2>
+          <p>{{ filteredTemplates.length }} visible</p>
+        </div>
+
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search</mat-label>
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput [(ngModel)]="searchTerm" placeholder="Country, code, template" />
+        </mat-form-field>
+      </div>
+
+      <div class="empty-state" *ngIf="!loadingTemplates && !filteredTemplates.length">
+        <mat-icon>folder_open</mat-icon>
+        <span>No templates available.</span>
+      </div>
+
+      <div class="template-list" *ngIf="filteredTemplates.length">
+        <div class="template-card" *ngFor="let template of filteredTemplates; trackBy: trackByTemplateId">
+          <div class="template-main">
+            <div class="country-badge">{{ template.countryCode }}</div>
+            <div>
+              <h3>{{ template.templateName }}</h3>
+              <p>{{ template.countryName }}</p>
+            </div>
+          </div>
+
+          <div class="template-meta">
+            <span>ID: {{ template.id }}</span>
+            <span class="state-pill" [ngClass]="template.isActive ? 'active' : 'inactive'">
+              {{ template.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+
+          <div class="button-row">
+            <button mat-stroked-button type="button" (click)="editTemplate(template)">
+              <mat-icon>edit</mat-icon>
+              Edit
+            </button>
+            <button
+              mat-stroked-button
+              class="danger-btn"
+              type="button"
+              (click)="deleteTemplate(template)"
+              [disabled]="deletingTemplateId === template.id">
+              <mat-icon>delete</mat-icon>
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+</div>

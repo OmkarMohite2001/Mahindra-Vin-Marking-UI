@@ -25,14 +25,14 @@ describe('ReEngrave', () => {
   });
 
   it('should include the extra model parameter for re-engraving payloads', () => {
-    const engraveSpy = jasmine.createSpy().and.returnValue(of({ ok: true, message: 'Engrave ok' }));
-    const reengraveSpy = jasmine.createSpy().and.returnValue(of({ message: 'Re-engrave ok' }));
-    const printSpy = jasmine.createSpy().and.returnValue(of({ message: 'Printed' }));
+    const engraveSpy = vi.fn().mockReturnValue(of({ ok: true, message: 'Engrave ok' }));
+    const reengraveSpy = vi.fn().mockReturnValue(of({ message: 'Re-engrave ok' }));
+    const printSpy = vi.fn().mockReturnValue(of({ message: 'Printed' }));
 
     component['engraveService'] = { runWithParameter: engraveSpy } as any;
     component['productionDataReportApi'] = { reengrave: reengraveSpy } as any;
     component['printerService'] = { printLabel: printSpy } as any;
-    component['snackBar'] = { open: jasmine.createSpy() } as any;
+    component['snackBar'] = { open: vi.fn() } as any;
 
     component.form.patchValue({
       modelNo: 'M123',

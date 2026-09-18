@@ -1,8 +1,8 @@
 <div class="support-page">
   <header class="support-header">
     <div>
-      <p class="eyebrow">Support</p>
-      <h1>Testing Console</h1>
+      <p class="eyebrow">Development</p>
+      <h1>Testing</h1>
     </div>
   </header>
 
@@ -22,7 +22,11 @@
       <app-usb></app-usb>
     </ng-container>
 
-    <ng-container *ngIf="selectedTab !== 'USB'">
+    <ng-container *ngIf="selectedTab === 'Templates'">
+      <app-templates></app-templates>
+    </ng-container>
+
+    <ng-container *ngIf="selectedTab !== 'USB' && selectedTab !== 'Templates'">
       <div class="support-panel">
         <div class="panel-header">
           <div>

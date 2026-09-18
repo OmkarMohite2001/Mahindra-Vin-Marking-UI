@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { Templates } from '../support-pages/templates/templates';
 import { Usb } from '../support-pages/usb/usb';
 
 interface SupportTab {
@@ -10,7 +11,7 @@ interface SupportTab {
 
 @Component({
   selector: 'app-support',
-  imports: [CommonModule, Usb],
+  imports: [CommonModule, Usb, Templates],
   templateUrl: './support.html',
   styleUrl: './support.scss',
 })
@@ -35,6 +36,11 @@ export class Support {
       label: 'USB',
       description: 'USB connectivity checks for scanner, printer, and machine peripherals.',
       details: ['Validate device enumeration', 'Confirm USB permissions', 'Check connection stability'],
+    },
+    {
+      label: 'Templates',
+      description: 'Manage country-wise engrave templates used by the marking flow.',
+      details: ['Fetch saved templates', 'Add country template', 'Update template mapping'],
     },
     {
       label: 'Engrave Machine',
