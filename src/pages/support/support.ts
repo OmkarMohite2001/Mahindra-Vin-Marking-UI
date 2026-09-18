@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
+import { EngraveCommunication } from '../support-pages/engrave-communication/engrave-communication';
 import { Templates } from '../support-pages/templates/templates';
 import { Usb } from '../support-pages/usb/usb';
 
@@ -11,7 +12,7 @@ interface SupportTab {
 
 @Component({
   selector: 'app-support',
-  imports: [CommonModule, Usb, Templates],
+  imports: [CommonModule, Usb, Templates, EngraveCommunication],
   templateUrl: './support.html',
   styleUrl: './support.scss',
 })
@@ -48,9 +49,9 @@ export class Support {
       details: ['Check engrave parameter payload', 'Verify machine handshake', 'Validate engraved output'],
     },
     {
-      label: 'Communication',
-      description: 'Communication layer health check for all integrated devices.',
-      details: ['Review protocol state', 'Monitor ping and response time', 'Confirm fallback logic'],
+      label: 'Engrave Communication',
+      description: 'Engraving machine IP and port communication settings.',
+      details: ['Fetch saved communication settings', 'Update machine IP address', 'Update machine port'],
     }
   ];
 

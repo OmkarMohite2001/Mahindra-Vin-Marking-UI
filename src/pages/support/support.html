@@ -26,7 +26,12 @@
       <app-templates></app-templates>
     </ng-container>
 
-    <ng-container *ngIf="selectedTab !== 'USB' && selectedTab !== 'Templates'">
+    <ng-container *ngIf="selectedTab === 'Engrave Communication'">
+      <app-engrave-communication></app-engrave-communication>
+    </ng-container>
+
+    <ng-container
+      *ngIf="selectedTab !== 'USB' && selectedTab !== 'Templates' && selectedTab !== 'Engrave Communication'">
       <div class="support-panel">
         <div class="panel-header">
           <div>

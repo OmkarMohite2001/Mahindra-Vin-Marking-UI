@@ -1,1 +1,143 @@
-<p>engrave-communication works!</p>
+<div class="communication-page">
+  <mat-card class="summary-card">
+    <div class="summary-content">
+      <div>
+        <div class="eyebrow">Engrave Communication</div>
+        <h1>Machine Connection Setup</h1>
+      </div>
+
+      <div class="summary-stats">
+        <div class="stat-tile">
+          <span>Total</span>
+          <strong>{{ communicationList.length }}</strong>
+        </div>
+        <div class="stat-tile accent">
+          <span>Active</span>
+          <strong>{{ activeCount }}</strong>
+        </div>
+      </div>
+    </div>
+  </mat-card>
+
+  <mat-progress-bar *ngIf="loadingCommunication" mode="indeterminate"></mat-progress-bar>
+
+  <div class="status-banner" *ngIf="statusMessage" [ngClass]="statusTone">
+    <mat-icon>{{ statusTone === 'error' ? 'error' : statusTone === 'success' ? 'check_circle' : 'info' }}</mat-icon>
+    <span>{{ statusMessage }}</span>
+  </div>
+
+  <div class="communication-grid">
+    <mat-card class="panel form-panel">
+      <div class="panel-title">
+        <div>
+          <h2>Update Endpoint</h2>
+          <p>{{ selectedIdLabel }}</p>
+        </div>
+
+        <button
+          mat-icon-button
+          type="button"
+          (click)="loadCommunication()"
+          [disabled]="loadingCommunication || savingCommunication"
+          aria-label="Refresh communication settings">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </div>
+
+      <form class="communication-form" [formGroup]="communicationForm">
+        <mat-form-field appearance="outline">
+          <mat-label>ID</mat-label>
+          <input matInput type="number" formControlName="id" readonly />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>IP Address</mat-label>
+          <input matInput formControlName="ipAddress" placeholder="192.168.1.11" />
+          <mat-error
+            *ngIf="
+              communicationForm.controls.ipAddress.touched &&
+              communicationForm.controls.ipAddress.invalid
+            ">
+            Enter a valid IPv4 address
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Port</mat-label>
+          <input matInput type="number" formControlName="port" placeholder="5555" />
+          <mat-error
+            *ngIf="
+              communicationForm.controls.port.touched && communicationForm.controls.port.invalid
+            ">
+            Port must be between 1 and 65535
+          </mat-error>
+        </mat-form-field>
+
+        <div class="action-row">
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="updateCommunication()"
+            [disabled]="savingCommunication || loadingCommunication || communicationForm.invalid">
+            <mat-icon>save</mat-icon>
+            Update
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            (click)="resetForm()"
+            [disabled]="savingCommunication">
+            <mat-icon>close</mat-icon>
+            Clear
+          </button>
+        </div>
+      </form>
+    </mat-card>
+
+    <mat-card class="panel list-panel">
+      <div class="panel-title list-title">
+        <div>
+          <h2>Saved Settings</h2>
+          <p>{{ communicationList.length }} records loaded from get-all</p>
+        </div>
+
+        <button
+          mat-stroked-button
+          type="button"
+          (click)="loadCommunication()"
+          [disabled]="loadingCommunication || savingCommunication">
+          <mat-icon>sync</mat-icon>
+          Refresh
+        </button>
+      </div>
+
+      <div class="empty-state" *ngIf="!loadingCommunication && !communicationList.length">
+        <mat-icon>settings_ethernet</mat-icon>
+        <span>No communication settings available.</span>
+      </div>
+
+      <div class="communication-list" *ngIf="communicationList.length">
+        <button
+          class="communication-row"
+          type="button"
+          *ngFor="let item of communicationList; trackBy: trackByCommunicationId"
+          [class.selected]="selectedCommunication?.id === item.id"
+          (click)="editCommunication(item)">
+          <span class="row-icon">
+            <mat-icon>settings_ethernet</mat-icon>
+          </span>
+
+          <span class="row-main">
+            <strong>{{ item.ipAddress }}</strong>
+            <small>ID {{ item.id }} | Port {{ item.port }}</small>
+          </span>
+
+          <span class="state-pill" [ngClass]="item.isActive ? 'active' : 'inactive'">
+            {{ item.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </button>
+      </div>
+    </mat-card>
+  </div>
+</div>
