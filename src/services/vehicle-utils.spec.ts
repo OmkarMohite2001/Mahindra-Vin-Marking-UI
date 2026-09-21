@@ -48,4 +48,14 @@ describe('VehicleUtils', () => {
     expect(service.matchesModelEnginePrefix(validModelNumber, validEngineNumber)).toBeTrue();
     expect(service.matchesModelEnginePrefix(validModelNumber, invalidEngineNumber)).toBeFalse();
   });
+
+  it('should validate engine prefix against VIN number characters 7 and 8 (excluding MA1)', () => {
+    // VIN: MA1 + 123456 (chars 1-6) + AB (chars 7-8) + 123456 (chars 9-14)
+    const validVinNumber = 'MA1123456AB123456';
+    const validEngineNumber = 'AB12345678';
+    const invalidEngineNumber = 'CD12345678';
+
+    expect(service.matchesVinEnginePrefix(validVinNumber, validEngineNumber)).toBeTrue();
+    expect(service.matchesVinEnginePrefix(validVinNumber, invalidEngineNumber)).toBeFalse();
+  });
 });

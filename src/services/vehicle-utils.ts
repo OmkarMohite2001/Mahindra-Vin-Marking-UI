@@ -28,6 +28,25 @@ export class VehicleUtils {
     return cleaned.length === 10;
   }
 
+  // Check if engine number’s first two letters match VIN number positions 7 and 8 (excluding MA1 prefix)
+  matchesVinEnginePrefix(vinNumber: string, engineNumber: string): boolean {
+    const cleanedVin = (vinNumber || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const cleanedEngine = (engineNumber || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+    if (!cleanedVin || !cleanedEngine || cleanedEngine.length < 2) {
+      return false;
+    }
+
+    const vinWithoutMA1 = cleanedVin.startsWith('MA1') ? cleanedVin.slice(3) : cleanedVin;
+    if (vinWithoutMA1.length < 8) {
+      return false;
+    }
+
+    const vinPrefix = vinWithoutMA1.slice(6, 8);
+    const enginePrefix = cleanedEngine.slice(0, 2);
+    return vinPrefix === enginePrefix;
+  }
+
   // Check if engine number’s first two letters match model number positions 7 and 8
   matchesModelEnginePrefix(modelNumber: string, engineNumber: string): boolean {
     const cleanedModel = (modelNumber || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();

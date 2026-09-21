@@ -145,11 +145,14 @@
   <div class="right-section">
     <div class="display-box large-box">
       <div class="country-image-container">
-        <div class="image-wrapper" [ngClass]="{'plate-06-mode': currentPlateType === '06', 'plate-08-mode': currentPlateType === '08'}">
+        <div class="image-wrapper" [ngClass]="{
+          'plate-06-mode': currentPlateType === '06' || currentPlateType === 'Export' || (isExportPlate() && currentPlateType !== '08'),
+          'plate-08-mode': currentPlateType === '08'
+        }">
           <img *ngIf="countryFlag" [src]="countryFlag" alt="Country Image" class="country-image">
 
-          <!-- 06 and 08 Detailed Plate Layout -->
-          <ng-container *ngIf="currentPlateType === '06' || currentPlateType === '08'">
+          <!-- 06, 08 and Export Detailed Plate Layout (7 parameters) -->
+          <ng-container *ngIf="isExportPlate(); else defaultPlateOverlay">
             <div class="overlay-detail plate-description-overlay" *ngIf="countryFlag && form.get('description1')?.value">
               {{ form.get('description1')?.value }}
             </div>
@@ -179,8 +182,8 @@
             </div>
           </ng-container>
 
-          <!-- Default / INDIA (00) Plate Layout - Exact original structure -->
-          <ng-container *ngIf="currentPlateType !== '06' && currentPlateType !== '08'">
+          <!-- Default / INDIA (00) Plate Layout - Exact original structure (3 parameters) -->
+          <ng-template #defaultPlateOverlay>
             <div class="overlay model-overlay" *ngIf="countryFlag && form.get('modelNo')?.value">
               {{ form.get('modelNo')?.value }}
             </div>
@@ -192,7 +195,7 @@
             <div class="overlay engine-overlay" *ngIf="countryFlag && form.get('engineSrNo')?.value">
               {{ form.get('engineSrNo')?.value }}
             </div>
-          </ng-container>
+          </ng-template>
 
           <p *ngIf="!countryFlag" class="fallback-text">Please scan QR code to process VIN marking system</p>
         </div>

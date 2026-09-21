@@ -159,7 +159,7 @@ private latestPreviewRequestId = 0;
         }
       });
 
-    ['market', 'modelNo'].forEach(field => {
+    ['market', 'modelNo', 'country'].forEach(field => {
       this.form.get(field)?.valueChanges
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => this.updatePlateImageFromMarket());
@@ -243,9 +243,9 @@ private latestPreviewRequestId = 0;
   // Process Engine scan
   private processEngineScan(engineNumber: string) {
     const cleanedEngine = engineNumber.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    const modelNumber = (this.form.get('modelNo')?.value || '').toString().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const vinNumber = (this.form.get('vinNo')?.value || '').toString().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
 
-    if (modelNumber.length >= 8 && !this.vehicleUtils.matchesModelEnginePrefix(modelNumber, cleanedEngine)) {
+    if (vinNumber && !this.vehicleUtils.matchesVinEnginePrefix(vinNumber, cleanedEngine)) {
       this.snackBar.open('Please Scan Valid Engine Number', 'Close', {
         duration: 5000,
         verticalPosition: 'top',
@@ -504,6 +504,26 @@ private latestPreviewRequestId = 0;
     });
   }
 
+  isExportPlate(): boolean {
+    const plate = (this.currentPlateType || '').toUpperCase().trim();
+    const market = (this.form.get('market')?.value || '').toUpperCase().trim();
+    const country = (this.form.get('country')?.value || '').toUpperCase().trim();
+    const modelNo = (this.form.get('modelNo')?.value || '').toUpperCase().trim();
+    const modelCountryCode = (this.vehicleUtils.getCountryCodeFromModelNumber(modelNo) || '').toUpperCase().trim();
+
+    return (
+      plate === '06' ||
+      plate === '08' ||
+      plate === 'EXPORT' ||
+      modelCountryCode === '06' ||
+      modelCountryCode === '08' ||
+      country === '06' ||
+      country === '08' ||
+      country === 'EXPORT' ||
+      market.includes('EXPORT')
+    );
+  }
+
   getPlateVin(vin: string | null | undefined): string {
     if (!vin) return '';
     return vin.toString().trim().replace(/^MA1/i, '');
@@ -514,17 +534,16 @@ private latestPreviewRequestId = 0;
     const modelNo = (formData.modelNo || '').toString().trim();
     const rawVinNo = (formData.vinNo || '').toString().trim();
     const engineSrNo = (formData.engineSrNo || '').toString().trim();
+    const description1 = (formData.description1 || '').toString().trim();
     const flw = (formData.flw || '').toString().trim();
     const gvw = (formData.gvw || '').toString().trim();
     const faw = (formData.faw || '').toString().trim();
     const raw = (formData.raw || '').toString().trim();
-    const marketName = (formData.market || '').toString().toUpperCase().trim();
-    const exportDescription = 'XXXXXXXXXXXXXXXXXXXXXXXXXX';
 
-    const isExportMarket = marketName.includes('EXPORT');
-    const vinNoForEngrave = isExportMarket ? rawVinNo.replace(/^MA1/i, '') : rawVinNo;
+    const isExport = this.isExportPlate();
+    const vinNoForEngrave = isExport ? rawVinNo.replace(/^MA1/i, '') : rawVinNo;
 
-    if (isExportMarket) {
+    if (isExport) {
       if (!modelNo || !rawVinNo) {
         this.snackBar.open('Model No and VIN No are required for engrave', 'Close', {
           duration: 5000,
@@ -544,7 +563,9 @@ private latestPreviewRequestId = 0;
       }
     }
 
-    const parameters = isExportMarket
+    const exportDescription = 'XXXXXXXXXXXXXXXXXXXXXXXXXX';
+
+    const parameters = isExport
       ? [modelNo, exportDescription, vinNoForEngrave, flw, gvw, faw, raw, modelNo]
       : [modelNo, modelNo, rawVinNo, engineSrNo];
 
@@ -654,7 +675,8 @@ private latestPreviewRequestId = 0;
     const formData = this.form.getRawValue();
     const resolvedImageName = this.resolvePlateImageName(
       formData.market || '',
-      formData.modelNo || ''
+      formData.modelNo || '',
+      formData.country || ''
     );
 
     if (!resolvedImageName) {
@@ -670,20 +692,43 @@ private latestPreviewRequestId = 0;
     this.cdr.markForCheck();
   }
 
-  private resolvePlateImageName(marketName: string, modelNo: string): string | null {
+  private resolvePlateImageName(marketName: string, modelNo: string, countryName?: string): string | null {
     const normalizedMarketName = (marketName || '').toUpperCase().trim();
-    if (!normalizedMarketName) {
-      return null;
+    const normalizedCountryName = (countryName || '').toUpperCase().trim();
+
+    // 1. Model number country code (06, 08, 00)
+    const modelCountryCode = this.vehicleUtils.getCountryCodeFromModelNumber(modelNo);
+    if (modelCountryCode) {
+      const plateFromModelCode = this.getAvailablePlateImageName(modelCountryCode);
+      if (plateFromModelCode) {
+        return plateFromModelCode;
+      }
     }
 
+    // 2. If Country is explicitly given
+    if (normalizedCountryName) {
+      if (normalizedCountryName === '06' || normalizedCountryName === '08') {
+        return normalizedCountryName;
+      }
+      if (normalizedCountryName === 'EXPORT') {
+        return 'Export';
+      }
+      if (normalizedCountryName === 'INDIA' || normalizedCountryName === 'DOMESTIC' || normalizedCountryName === '00') {
+        return 'INDIA';
+      }
+      const plateFromCountry = this.getAvailablePlateImageName(normalizedCountryName);
+      if (plateFromCountry) {
+        return plateFromCountry;
+      }
+    }
+
+    // 3. Market check
     if (normalizedMarketName.includes('DOMESTIC')) {
       return 'INDIA';
     }
 
     if (normalizedMarketName.includes('EXPORT')) {
-      const modelCountryCode = this.vehicleUtils.getCountryCodeFromModelNumber(modelNo);
-      const plateFromModelCode = this.getAvailablePlateImageName(modelCountryCode || '');
-      return plateFromModelCode || 'Export';
+      return 'Export';
     }
 
     const plateFromMarket = this.getAvailablePlateImageName(normalizedMarketName);
