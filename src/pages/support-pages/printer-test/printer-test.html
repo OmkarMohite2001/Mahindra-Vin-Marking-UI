@@ -1,1 +1,107 @@
-<p>printer-test works!</p>
+<div class="printer-page">
+  <!-- Hero Header -->
+  <mat-card class="hero-card">
+    <div class="hero-main">
+      <div>
+        <div class="eyebrow">Printer Support</div>
+        <h1>Zebra Printer Workbench</h1>
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- Progress Bar -->
+  <mat-progress-bar *ngIf="isBusy" mode="indeterminate"></mat-progress-bar>
+
+  <!-- Status Banner -->
+  <div class="status-banner" [ngClass]="statusTone">
+    <mat-icon>{{ statusTone === 'error' ? 'error' : statusTone === 'success' ? 'check_circle' : 'info' }}</mat-icon>
+    <span>{{ statusMessage }}</span>
+  </div>
+
+  <div class="printer-grid">
+    <!-- Left Column: Actions & Input Form -->
+    <div class="actions-column">
+      <!-- 1. Quick API Buttons -->
+      <mat-card class="panel">
+        <div class="panel-title">
+          <h2>Printer APIs</h2>
+          <p>Instant API triggers</p>
+        </div>
+
+        <div class="button-row">
+          <button mat-raised-button color="primary" type="button" (click)="onTestPrint()" [disabled]="isBusy">
+            <mat-icon>print</mat-icon>
+            Test Print
+          </button>
+
+          <button mat-stroked-button type="button" (click)="onGetConfiguration()" [disabled]="isBusy">
+            <mat-icon>settings</mat-icon>
+            Get Configuration
+          </button>
+        </div>
+      </mat-card>
+
+      <!-- 2. Print Label Form -->
+      <mat-card class="panel form-panel">
+        <div class="panel-title">
+          <h2>Print Label API</h2>
+          <p>POST /api/zebra/print</p>
+        </div>
+
+        <form [formGroup]="printForm" class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Model No</mat-label>
+            <input matInput formControlName="modelNo" placeholder="W601" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>VIN Number</mat-label>
+            <input matInput formControlName="vinNo" placeholder="VIN Number" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Engine Sr No</mat-label>
+            <input matInput formControlName="engineSrNo" placeholder="Engine No" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Copies</mat-label>
+            <input matInput type="number" min="1" formControlName="copies" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <input matInput formControlName="description" placeholder="Description" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>QR Code</mat-label>
+            <input matInput formControlName="qr" placeholder="QR Payload" />
+          </mat-form-field>
+        </form>
+
+        <div class="button-row">
+          <button
+            mat-raised-button
+            color="primary"
+            type="button"
+            (click)="onPrintLabel()"
+            [disabled]="isBusy || printForm.invalid">
+            <mat-icon>send</mat-icon>
+            Send Print
+          </button>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Right Column: Response Console -->
+    <mat-card class="panel response-panel">
+      <div class="panel-title">
+        <h2>{{ responseTitle }}</h2>
+        <p>{{ isBusy ? 'Executing request...' : 'Ready' }}</p>
+      </div>
+
+      <pre class="response-console">{{ responseText }}</pre>
+    </mat-card>
+  </div>
+</div>

@@ -1,21 +1,63 @@
 <div class="container">
-  <h2>Serial Monitor</h2>
+  <!-- Connection Status Header Card -->
+  <div class="status-card" [ngClass]="{ 'is-connected': isConnected, 'is-connecting': isConnecting, 'is-disconnected': !isConnected && !isConnecting }">
+    <div class="status-left">
+      <div class="indicator-dot"></div>
+      <div class="status-info">
+        <div class="status-badge-row">
+          <span class="status-badge" *ngIf="isConnected">CONNECTED</span>
+          <span class="status-badge connecting" *ngIf="isConnecting && !isConnected">CONNECTING...</span>
+          <span class="status-badge disconnected" *ngIf="!isConnected && !isConnecting">DISCONNECTED</span>
 
-  <div *ngIf="!isConnected" class="controls">
-    <p>Auto-connect failed or first time use.</p>
-    <button (click)="connectManual()" >Connect Device 🔌</button>
+          <span class="rx-badge" [class.active]="rxActive" *ngIf="isConnected">
+            <span class="rx-dot"></span> RX ACTIVE
+          </span>
+        </div>
+
+        <p class="status-detail" *ngIf="isConnected">
+          Device: <strong>{{ serialService.getPortDetails() }}</strong> (9600 bps, 8-N-1)
+        </p>
+        <p class="status-detail" *ngIf="isConnecting">
+          Requesting serial port authorization from browser...
+        </p>
+        <p class="status-detail" *ngIf="!isConnected && !isConnecting">
+          No COM port connected. Click "Connect Device" to select your scanner port.
+        </p>
+      </div>
+    </div>
+
+    <div class="status-actions">
+      <!-- When Disconnected -->
+      <ng-container *ngIf="!isConnected">
+        <button class="btn-connect" (click)="connectManual()">
+          <span>Connect Device 🔌</span>
+        </button>
+        <button class="btn-secondary" (click)="retryAutoConnect()" [disabled]="isConnecting" title="Re-check previously paired COM port">
+          <span *ngIf="!isConnecting">Retry Auto-Connect 🔄</span>
+          <span *ngIf="isConnecting">Connecting...</span>
+        </button>
+      </ng-container>
+
+      <!-- When Connected -->
+      <ng-container *ngIf="isConnected">
+        <button class="btn-disconnect" (click)="disconnectManual()">
+          Disconnect 🔌
+        </button>
+        <button class="btn-secondary" (click)="clearTerminal()">
+          Clear Log 🧹
+        </button>
+      </ng-container>
+    </div>
   </div>
 
-  <div *ngIf="isConnected" class="status success">
-    ✅ Device Connected
-  </div>
 
+  <!-- Terminal Log Window -->
   <div class="terminal-window" #scrollMe>
     <div *ngFor="let line of terminalData">
-      <span class="prompt">></span> {{ line }}
+      <span class="prompt">&gt;</span> {{ line }}
     </div>
     <div *ngIf="terminalData.length === 0" class="placeholder">
-      Waiting for data...
+      Waiting for serial scan data...
     </div>
   </div>
 </div>

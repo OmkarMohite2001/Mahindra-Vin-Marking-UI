@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { SerialTerminal } from '../serial-terminal/serial-terminal';
 import { EngraveCommunication } from '../support-pages/engrave-communication/engrave-communication';
 import { EngraveMachine } from '../support-pages/engrave-machine/engrave-machine';
+import { PrinterTest } from '../support-pages/printer-test/printer-test';
 import { Templates } from '../support-pages/templates/templates';
 import { Usb } from '../support-pages/usb/usb';
 
@@ -14,7 +15,7 @@ interface SupportTab {
 
 @Component({
   selector: 'app-support',
-  imports: [CommonModule, Usb, Templates, EngraveCommunication, EngraveMachine, SerialTerminal],
+  imports: [CommonModule, Usb, Templates, EngraveCommunication, EngraveMachine, SerialTerminal, PrinterTest],
   templateUrl: './support.html',
   styleUrl: './support.scss',
 })
@@ -29,11 +30,6 @@ export class Support {
       label: 'Serial Terminal',
       description: 'Live terminal for machine and port debugging during testing.',
       details: ['Open communication log', 'Inspect incoming/outgoing frames', 'Test command payloads'],
-    },
-    {
-      label: 'Serial Ports',
-      description: 'Inspect available serial devices and current connection mapping.',
-      details: ['List active COM ports', 'Confirm device mapping', 'Check port status'],
     },
     {
       label: 'USB',

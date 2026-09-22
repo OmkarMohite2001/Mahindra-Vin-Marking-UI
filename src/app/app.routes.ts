@@ -103,6 +103,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('../pages/support-pages/usb/usb').then(m => m.Usb),
       },
+      {
+        path: 'printer-test',
+        canActivate: [roleRouteGuard],
+        data: { roles: ['Admin'] },
+        loadComponent: () =>
+          import('../pages/support-pages/printer-test/printer-test').then(m => m.PrinterTest),
+      },
 
       { path: '', pathMatch: 'full', redirectTo: 'marking' },
     ],

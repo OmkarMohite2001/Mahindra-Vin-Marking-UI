@@ -1,163 +1,102 @@
 <div class="usb-page">
+  <!-- Hero Header -->
   <mat-card class="hero-card">
-    <div class="hero-content">
+    <div class="hero-main">
       <div>
         <div class="eyebrow">USB Support</div>
-        <h1>Device API Workbench</h1>
-        <p>{{ activeEndpointLabel }}</p>
-      </div>
-
-      <div class="hero-stats">
-        <div class="stat-tile">
-          <span>Total</span>
-          <strong>{{ endpoints.length }}</strong>
-        </div>
-        <div class="stat-tile read">
-          <span>GET</span>
-          <strong>{{ getEndpointCount }}</strong>
-        </div>
-        <div class="stat-tile post">
-          <span>POST</span>
-          <strong>{{ postEndpointCount }}</strong>
-        </div>
+        <h1>USB Printer Workbench</h1>
       </div>
     </div>
   </mat-card>
 
-  <mat-progress-bar *ngIf="isLoading" mode="indeterminate"></mat-progress-bar>
+  <!-- Progress Bar -->
+  <mat-progress-bar *ngIf="isBusy" mode="indeterminate"></mat-progress-bar>
 
-  <section class="usb-workbench" *ngIf="endpoints.length; else noEndpoints">
-    <mat-card class="endpoint-panel">
-      <div class="panel-title compact">
-        <div>
-          <span class="panel-kicker">Endpoints</span>
-          <h2>USB Actions</h2>
-        </div>
-      </div>
+  <!-- Status Banner -->
+  <div class="status-banner" [ngClass]="statusTone">
+    <mat-icon>{{ statusTone === 'error' ? 'error' : statusTone === 'success' ? 'check_circle' : 'info' }}</mat-icon>
+    <span>{{ statusMessage }}</span>
+  </div>
 
-      <aside class="endpoint-rail" aria-label="USB API endpoints">
-        <button
-          class="endpoint-card"
-          type="button"
-          *ngFor="let item of endpoints; let i = index"
-          [class.active]="expandedIndex === i"
-          [class.green]="item.tone === 'green'"
-          (click)="toggleEndpoint(i)">
-          <span class="method-pill" [class.green-method]="item.tone === 'green'">
-            {{ item.method }}
-          </span>
-
-          <span class="endpoint-copy">
-            <strong>/{{ cleanPath(item.path) }}</strong>
-            <small>{{ hasRequestBody(item) ? 'Body required' : 'Read only' }}</small>
-          </span>
-
-          <mat-icon aria-hidden="true">{{ expandedIndex === i ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
-        </button>
-      </aside>
-    </mat-card>
-
-    <ng-container *ngIf="getActiveEndpoint() as active">
-      <mat-card class="request-panel">
+  <div class="usb-grid">
+    <!-- Left Column: Actions & Input Form -->
+    <div class="actions-column">
+      <!-- 1. Quick API Buttons -->
+      <mat-card class="panel">
         <div class="panel-title">
-          <div>
-            <span class="panel-kicker">Request</span>
-            <h2>{{ active.method }} /{{ cleanPath(active.path) }}</h2>
-          </div>
-
-          <span class="secure-chip">
-            <mat-icon aria-hidden="true">lock</mat-icon>
-            Locked
-          </span>
+          <h2>USB Actions</h2>
+          <p>Instant API triggers</p>
         </div>
 
-        <div class="request-form">
-          <mat-form-field appearance="outline" class="field-block">
-            <mat-label>Content type</mat-label>
-            <mat-select [(ngModel)]="selectedContentType">
-              <mat-option value="application/json">application/json</mat-option>
-              <mat-option value="text/plain">text/plain</mat-option>
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field
-            appearance="outline"
-            class="field-block body-field"
-            *ngIf="hasRequestBody(active); else getHint">
-            <mat-label>Request body</mat-label>
-            <textarea
-              matInput
-              rows="12"
-              spellcheck="false"
-              [(ngModel)]="requestBody"
-              placeholder='{
-  "key": "value"
-}'></textarea>
-          </mat-form-field>
-
-          <ng-template #getHint>
-            <div class="get-note">
-              <mat-icon aria-hidden="true">info</mat-icon>
-              <span>This GET endpoint runs without a request body.</span>
-            </div>
-          </ng-template>
-        </div>
-
-        <div class="action-bar">
-          <button mat-stroked-button type="button" (click)="resetRequest()" [disabled]="isLoading">
-            <mat-icon aria-hidden="true">restart_alt</mat-icon>
-            Reset
+        <div class="button-row">
+          <button mat-raised-button color="primary" type="button" (click)="onTsplPrint()" [disabled]="isBusy">
+            <mat-icon>print</mat-icon>
+            TSPL Print
           </button>
+
+          <button mat-stroked-button type="button" (click)="onPrintInOne()" [disabled]="isBusy">
+            <mat-icon>receipt_long</mat-icon>
+            Print In One
+          </button>
+        </div>
+      </mat-card>
+
+      <!-- 2. Print Label Form -->
+      <mat-card class="panel form-panel">
+        <div class="panel-title">
+          <h2>Print Label API</h2>
+          <p>POST /api/Usb/print</p>
+        </div>
+
+        <form [formGroup]="printForm" class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Model No</mat-label>
+            <input matInput formControlName="modelNo" placeholder="W601" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>VIN Number</mat-label>
+            <input matInput formControlName="vinNo" placeholder="VIN Number" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Engine Sr No</mat-label>
+            <input matInput formControlName="engineSrNo" placeholder="Engine No" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <input matInput formControlName="description" placeholder="Description" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>QR Code</mat-label>
+            <input matInput formControlName="qr" placeholder="QR Payload" />
+          </mat-form-field>
+        </form>
+
+        <div class="button-row">
           <button
-            mat-flat-button
+            mat-raised-button
             color="primary"
             type="button"
-            (click)="executeActiveEndpoint()"
-            [disabled]="isLoading">
-            <mat-icon aria-hidden="true">{{ isLoading ? 'sync' : 'send' }}</mat-icon>
-            {{ isLoading ? 'Running...' : 'Send request' }}
+            (click)="onPrintLabel()"
+            [disabled]="isBusy || printForm.invalid">
+            <mat-icon>send</mat-icon>
+            Send Print
           </button>
         </div>
       </mat-card>
+    </div>
 
-      <mat-card
-        class="response-panel"
-        [class.is-idle]="responseState === 'idle'"
-        [class.is-loading]="responseState === 'loading'"
-        [class.is-success]="responseState === 'success'"
-        [class.is-error]="responseState === 'error'">
-        <div class="panel-title">
-          <div>
-            <span class="panel-kicker">Output</span>
-            <h2>API Response</h2>
-          </div>
+    <!-- Right Column: Response Console -->
+    <mat-card class="panel response-panel">
+      <div class="panel-title">
+        <h2>{{ responseTitle }}</h2>
+        <p>{{ isBusy ? 'Executing request...' : 'Ready' }}</p>
+      </div>
 
-          <span class="status-chip">
-            {{ responseStatusLabel }}
-          </span>
-        </div>
-
-        <div class="response-details">
-          <div>
-            <span>Status</span>
-            <strong>{{ responseDescription || 'Awaiting response' }}</strong>
-          </div>
-          <div>
-            <span>Last run</span>
-            <strong>{{ lastUpdatedAt || '-' }}</strong>
-          </div>
-        </div>
-
-        <pre class="response-console">{{ responseText || 'No response yet' }}</pre>
-      </mat-card>
-    </ng-container>
-  </section>
-
-  <ng-template #noEndpoints>
-    <section class="empty-state">
-      <mat-icon aria-hidden="true">usb_off</mat-icon>
-      <h2>No USB endpoints found</h2>
-      <p>Endpoint catalog is empty and fallback endpoints could not be loaded.</p>
-    </section>
-  </ng-template>
+      <pre class="response-console">{{ responseText }}</pre>
+    </mat-card>
+  </div>
 </div>

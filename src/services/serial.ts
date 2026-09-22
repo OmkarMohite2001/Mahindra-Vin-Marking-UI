@@ -10,6 +10,7 @@ export type ScannerFlowControl = 'None' | 'RTS/CTS' | 'XON/XOFF';
 export class Serial {
   private port: any;
   private reader: any;
+  private readableStreamClosed: Promise<void> | null = null;
   private keepReading = false;
   private buffer = '';
   private flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -20,12 +21,9 @@ export class Serial {
   constructor() {
     if (this.isSupported()) {
       (navigator as any).serial.addEventListener('disconnect', (event: any) => {
-        if (event.port === this.port) {
-          console.log('Device disconnected manually');
-          this.connectionState.next(false);
-          this.port = null;
-          this.keepReading = false;
-          this.clearFlushTimer();
+        if (!this.port || event.port === this.port) {
+          console.log('Device disconnected or unplugged');
+          void this.disconnect();
         }
       });
 
@@ -37,6 +35,31 @@ export class Serial {
 
   isSupported(): boolean {
     return 'serial' in navigator;
+  }
+
+  isConnected(): boolean {
+    return this.connectionState.getValue();
+  }
+
+  getPortDetails(): string {
+    if (!this.port) {
+      return 'No Device Connected';
+    }
+
+    const info = this.getPortInfo(this.port);
+    const details: string[] = [];
+    const comName = this.getPortName();
+    if (comName && comName !== 'COM') {
+      details.push(comName);
+    }
+    if (info.usbVendorId !== undefined) {
+      details.push(`VID 0x${info.usbVendorId.toString(16).toUpperCase()}`);
+    }
+    if (info.usbProductId !== undefined) {
+      details.push(`PID 0x${info.usbProductId.toString(16).toUpperCase()}`);
+    }
+
+    return details.length ? details.join(' | ') : 'Serial Device (Connected)';
   }
 
   getPortSummary(): string {
@@ -90,14 +113,31 @@ export class Serial {
       return false;
     }
 
+    let selectedPort: any = null;
     try {
-      this.port = await (navigator as any).serial.requestPort();
-      await this.connectToPort();
-      return this.connectionState.getValue();
-    } catch (error) {
-      console.error('Port selection failed', error);
+      // Must be called directly within user gesture without any preceding awaits
+      selectedPort = await (navigator as any).serial.requestPort();
+    } catch (error: any) {
+      if (error?.name === 'NotFoundError') {
+        console.log('User cancelled serial port selection');
+      } else {
+        console.error('Port selection failed', error);
+      }
       return false;
     }
+
+    if (!selectedPort) {
+      return false;
+    }
+
+    // If an existing port is open, disconnect it before switching to the newly selected one
+    if (this.port && this.port !== selectedPort) {
+      await this.disconnect();
+    }
+
+    this.port = selectedPort;
+    await this.connectToPort();
+    return this.connectionState.getValue();
   }
 
   async autoConnect(): Promise<boolean> {
@@ -105,14 +145,90 @@ export class Serial {
       return false;
     }
 
-    const ports = await (navigator as any).serial.getPorts();
-    if (!ports.length) {
-      return false;
+    if (this.isConnected()) {
+      return true;
     }
 
-    this.port = ports[0];
-    await this.connectToPort();
-    return this.connectionState.getValue();
+    try {
+      const ports = await (navigator as any).serial.getPorts();
+      if (!ports || !ports.length) {
+        return false;
+      }
+
+      // If a port is already open and readable, reuse it immediately
+      const alreadyOpen = ports.find((p: any) => p.readable);
+      if (alreadyOpen) {
+        this.port = alreadyOpen;
+        await this.connectToPort();
+        return this.connectionState.getValue();
+      }
+
+      // Prioritize USB scanner/devices over Bluetooth
+      const usbPort = ports.find((p: any) => {
+        const info = this.getPortInfo(p);
+        return info.usbVendorId !== undefined;
+      });
+      const candidates = usbPort ? [usbPort, ...ports.filter((p: any) => p !== usbPort)] : ports;
+
+      for (const p of candidates) {
+        try {
+          this.port = p;
+          await this.connectToPort();
+          if (this.connectionState.getValue()) {
+            return true;
+          }
+        } catch {
+          this.port = null;
+        }
+      }
+
+      return false;
+    } catch (err) {
+      console.warn('Auto-connect failed:', err);
+      this.port = null;
+      this.connectionState.next(false);
+      return false;
+    }
+  }
+
+  async disconnect(): Promise<boolean> {
+    this.keepReading = false;
+    this.clearFlushTimer();
+
+    // 1. Cancel the reader so read loop unblocks
+    if (this.reader) {
+      try {
+        await this.reader.cancel();
+      } catch (err) {
+        console.warn('Error cancelling serial reader:', err);
+      }
+    }
+
+    // 2. Wait for the stream pipe to fully close and unlock port.readable
+    if (this.readableStreamClosed) {
+      try {
+        await this.readableStreamClosed.catch(() => {});
+      } catch (err) {
+        // ignore cancellation error
+      } finally {
+        this.readableStreamClosed = null;
+      }
+    }
+
+    // 3. Now that the stream is unlocked, close the native serial port
+    if (this.port) {
+      try {
+        await this.port.close();
+        console.log('Serial port closed successfully');
+      } catch (err) {
+        console.warn('Error closing serial port:', err);
+      }
+    }
+
+    this.port = null;
+    this.reader = null;
+    this.connectionState.next(false);
+    return true;
   }
 
   private async connectToPort() {
@@ -122,30 +238,44 @@ export class Serial {
 
     if (this.port.readable) {
       this.connectionState.next(true);
+      if (!this.keepReading || !this.reader) {
+        this.keepReading = true;
+        void this.readLoop();
+      }
       return;
     }
 
     try {
-      await this.port.open({
+      const openPromise = this.port.open({
         baudRate: 9600,
         dataBits: 8,
         stopBits: 1,
         parity: 'none',
         flowControl: 'none',
       });
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Serial port open timed out')), 4000)
+      );
+      await Promise.race([openPromise, timeoutPromise]);
+
       console.log('Port connected!');
       this.connectionState.next(true);
       this.keepReading = true;
       void this.readLoop();
     } catch (error) {
       console.error('Error opening port:', error);
+      this.port = null;
       this.connectionState.next(false);
     }
   }
 
   private async readLoop() {
+    if (!this.port || !this.port.readable) {
+      return;
+    }
+
     const textDecoder = new TextDecoderStream();
-    const readableStreamClosed = this.port.readable.pipeTo(textDecoder.writable);
+    this.readableStreamClosed = this.port.readable.pipeTo(textDecoder.writable);
     const reader = textDecoder.readable.getReader();
     this.reader = reader;
 
@@ -163,14 +293,17 @@ export class Serial {
         }
       }
     } catch (error) {
-      console.error('Read error (device lost?):', error);
-      this.connectionState.next(false);
-      this.port = null;
+      if (this.keepReading) {
+        console.error('Read error (device lost?):', error);
+        this.connectionState.next(false);
+        this.port = null;
+      }
     } finally {
       this.flushBuffer();
       this.clearFlushTimer();
-      reader.releaseLock();
-      await readableStreamClosed.catch(() => {});
+      try {
+        reader.releaseLock();
+      } catch (e) {}
       this.reader = null;
     }
   }

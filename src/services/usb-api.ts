@@ -18,7 +18,6 @@ export class UsbApi {
   private readonly baseUrl = API_BASE_URL;
 
   readonly defaultEndpoints: UsbEndpointConfig[] = [
-    { method: 'GET', path: '/api/Usb/devices', tone: 'blue', locked: true },
     { method: 'POST', path: '/api/Usb/tspl_print', tone: 'green', locked: true },
     { method: 'POST', path: '/api/Usb/print', tone: 'green', locked: true },
     { method: 'POST', path: '/api/Usb/printinone', tone: 'green', locked: true },

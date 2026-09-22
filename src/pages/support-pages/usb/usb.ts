@@ -1,16 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSelectModule } from '@angular/material/select';
-import { Observable } from 'rxjs';
-import { UsbApi, UsbEndpointConfig } from '../../../services/usb-api';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { UsbApi } from '../../../services/usb-api';
 
 @Component({
   selector: 'app-usb',
@@ -19,294 +17,152 @@ import { UsbApi, UsbEndpointConfig } from '../../../services/usb-api';
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatIconModule,
     MatProgressBarModule,
   ],
   templateUrl: './usb.html',
   styleUrls: ['./usb.scss'],
 })
-export class Usb implements OnInit {
+export class Usb {
   private readonly usbApi = inject(UsbApi);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly fb = inject(FormBuilder);
 
-  endpoints: UsbEndpointConfig[] = [];
-  expandedIndex: number | null = 0;
-  requestBody = '';
-  responseText = '';
-  responseCode = 0;
-  responseDescription = 'Awaiting response';
-  responseState: 'idle' | 'loading' | 'success' | 'error' = 'idle';
-  selectedContentType = 'application/json';
-  isLoading = false;
-  lastUpdatedAt = '';
+  isBusy = false;
+  statusMessage = 'Click a button below to test USB printer APIs.';
+  statusTone: 'info' | 'success' | 'error' = 'info';
 
-  ngOnInit(): void {
-    this.usbApi.getEndpointCatalog().subscribe({
-      next: (response) => {
-        this.endpoints = this.resolveEndpoints(response);
-        this.expandedIndex = this.endpoints.length > 0 ? 0 : null;
-        this.applyDefaultRequestBody();
-        this.refreshView(true);
-      },
-      error: () => {
-        this.endpoints = this.usbApi.getFallbackEndpoints();
-        this.expandedIndex = 0;
-        this.applyDefaultRequestBody();
-        this.refreshView(true);
-      },
-    });
-  }
+  responseTitle = 'Response Console';
+  responseText = 'Waiting for action...';
 
-  cleanPath(path: string): string {
-    return path ? path.replace(/^\//, '') : path;
-  }
+  // Form for /api/Usb/print
+  printForm = this.fb.group({
+    modelNo: ['W601', Validators.required],
+    vinNo: ['MA1TESTVIN1234567', Validators.required],
+    engineSrNo: ['ENG987654321', Validators.required],
+    description: ['MAHINDRA SCORPIO-N'],
+    qr: ['USB-QR-TEST-2026'],
+  });
 
-  toggleEndpoint(index: number): void {
-    this.expandedIndex = index;
-    this.applyDefaultRequestBody();
-    this.refreshView();
-  }
+  /**
+   * 1. TSPL Print Action (POST /api/Usb/tspl_print)
+   */
+  onTsplPrint(): void {
+    const defaultTsplPayload = {
+      printData: 'TEST TSPL PRINT',
+      vendorId: '1203',
+      productId: '0230',
+      useMacValidation: false,
+      macAddressList: '',
+      matchMacAddress: '',
+      noOfBytes: 0,
+    };
 
-  getActiveEndpoint(): UsbEndpointConfig | null {
-    if (this.expandedIndex === null || !this.endpoints[this.expandedIndex]) {
-      return null;
-    }
-
-    return this.endpoints[this.expandedIndex];
-  }
-
-  hasRequestBody(endpoint: UsbEndpointConfig): boolean {
-    return endpoint.method !== 'GET';
-  }
-
-  get responseStatusLabel(): string {
-    if (this.responseState === 'loading') {
-      return 'Running';
-    }
-
-    return this.responseCode ? String(this.responseCode) : 'Ready';
-  }
-
-  get getEndpointCount(): number {
-    return this.endpoints.filter((endpoint) => endpoint.method === 'GET').length;
-  }
-
-  get postEndpointCount(): number {
-    return this.endpoints.filter((endpoint) => endpoint.method === 'POST').length;
-  }
-
-  get activeEndpointLabel(): string {
-    const active = this.getActiveEndpoint();
-    return active ? `${active.method} /${this.cleanPath(active.path)}` : 'No endpoint selected';
-  }
-
-  executeActiveEndpoint(): void {
-    const active = this.getActiveEndpoint();
-    if (!active) {
-      return;
-    }
-
-    const payload = this.parseRequestBody();
-    const request$ = this.getEndpointRequest$(active, payload);
-
-    if (!request$) {
-      this.responseCode = 400;
-      this.responseDescription = 'Unsupported endpoint';
-      this.responseText = JSON.stringify({
-        message: 'No matching USB API method was found for the selected endpoint.',
-      }, null, 2);
-      this.responseState = 'error';
-      this.lastUpdatedAt = this.getCurrentTime();
-      this.refreshView();
-      return;
-    }
-
-    this.isLoading = true;
-    this.responseCode = 0;
-    this.responseDescription = `Running ${active.method} /${this.cleanPath(active.path)}`;
-    this.responseText = 'Waiting for API response...';
-    this.responseState = 'loading';
-    this.lastUpdatedAt = this.getCurrentTime();
-    this.refreshView(true);
-
-    request$.subscribe({
-      next: (result) => {
-        this.responseCode = 200;
-        this.responseDescription = 'Success';
-        this.responseText = this.stringifyResponse(result);
-        this.responseState = 'success';
-        this.isLoading = false;
-        this.lastUpdatedAt = this.getCurrentTime();
-        this.refreshView(true);
-      },
-      error: (error: HttpErrorResponse) => {
-        this.responseCode = error.status || 500;
-        this.responseDescription = error.statusText || 'Request failed';
-        this.responseText = this.stringifyResponse({
-          error: error.error ?? error.message,
-          status: error.status,
-          message: error.message,
-        });
-        this.responseState = 'error';
-        this.isLoading = false;
-        this.lastUpdatedAt = this.getCurrentTime();
-        this.refreshView(true);
-      },
-    });
-  }
-
-  resetRequest(): void {
-    this.applyDefaultRequestBody();
-    this.responseText = '';
-    this.responseCode = 0;
-    this.responseDescription = 'Awaiting response';
-    this.responseState = 'idle';
-    this.lastUpdatedAt = '';
-    this.refreshView();
-  }
-
-  private parseRequestBody(): unknown {
-    const trimmed = this.requestBody.trim();
-    if (this.selectedContentType === 'text/plain') {
-      return trimmed;
-    }
-
-    if (!trimmed) {
-      return {};
-    }
-
-    try {
-      return JSON.parse(trimmed);
-    } catch {
-      return trimmed;
-    }
-  }
-
-  private applyDefaultRequestBody(): void {
-    const active = this.getActiveEndpoint();
-    this.requestBody = active ? this.getDefaultRequestBody(active) : '';
-  }
-
-  private getDefaultRequestBody(endpoint: UsbEndpointConfig): string {
-    const normalizedPath = endpoint.path.toLowerCase();
-
-    if (!this.hasRequestBody(endpoint)) {
-      return '';
-    }
-
-    if (normalizedPath.includes('tspl_print')) {
-      return this.stringifyResponse({
-        printData: 'string',
-        vendorId: 'string',
-        productId: 'string',
-        useMacValidation: true,
-        macAddressList: 'string',
-        matchMacAddress: 'string',
-        noOfBytes: 0,
-      });
-    }
-
-    if (normalizedPath.includes('printinone') || normalizedPath.includes('printinfo')) {
-      return this.stringifyResponse({
-        command: '1203|0230|false||^^NO|45|CLS\r\nTEXT 10,10,"0",0,10,10,"www.credentialsintegrated.com"\r\nPRINT 1,1\r\nEOJ\r\n',
-      });
-    }
-
-    if (normalizedPath.includes('print')) {
-      return this.stringifyResponse({
-        modelNo: 'string',
-        vinNo: 'string',
-        engineSrNo: 'string',
-        description: 'string',
-        qr: 'string',
-      });
-    }
-
-    return '';
-  }
-
-  private resolveEndpoints(response: unknown): UsbEndpointConfig[] {
-    if (Array.isArray(response)) {
-      const endpoints = response.filter((item): item is UsbEndpointConfig =>
-        this.isEndpointConfig(item),
-      );
-
-      if (endpoints.length > 0) {
-        return endpoints;
-      }
-    }
-
-    return this.usbApi.getFallbackEndpoints();
-  }
-
-  private isEndpointConfig(value: unknown): value is UsbEndpointConfig {
-    if (!value || typeof value !== 'object') {
-      return false;
-    }
-
-    const endpoint = value as Partial<UsbEndpointConfig>;
-    const isMethodValid = endpoint.method === 'GET' || endpoint.method === 'POST';
-    const isToneValid = endpoint.tone === 'blue' || endpoint.tone === 'green';
-
-    return isMethodValid && typeof endpoint.path === 'string' && isToneValid;
-  }
-
-  private getEndpointRequest$(active: UsbEndpointConfig, payload: unknown): Observable<unknown> | null {
-    const normalizedPath = active.path.toLowerCase();
-
-    if (normalizedPath.includes('devices')) {
-      return this.usbApi.getDevices();
-    }
-
-    if (normalizedPath.includes('tspl_print')) {
-      return this.usbApi.printTspL(payload);
-    }
-
-    if (normalizedPath.includes('printinone')) {
-      return this.usbApi.printInOne(payload);
-    }
-
-    if (normalizedPath.includes('printinfo')) {
-      return this.usbApi.printInfo(payload);
-    }
-
-    if (normalizedPath.includes('print')) {
-      return this.usbApi.print(payload);
-    }
-
-    return null;
-  }
-
-  private stringifyResponse(value: unknown): string {
-    if (typeof value === 'string') {
-      return value;
-    }
-
-    try {
-      return JSON.stringify(value, null, 2);
-    } catch {
-      return String(value);
-    }
-  }
-
-  private getCurrentTime(): string {
-    return new Date().toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  }
-
-  private refreshView(immediate = false): void {
+    this.isBusy = true;
+    this.statusMessage = 'Executing TSPL Print...';
+    this.statusTone = 'info';
+    this.responseTitle = 'TSPL Print Output';
+    this.responseText = 'Sending POST /api/Usb/tspl_print...';
     this.cdr.markForCheck();
 
-    if (immediate) {
-      this.cdr.detectChanges();
+    this.usbApi.printTspL(defaultTsplPayload).subscribe({
+      next: (res: any) => {
+        this.isBusy = false;
+        this.statusMessage = res?.message || 'TSPL Print executed successfully!';
+        this.statusTone = 'success';
+        this.responseText = JSON.stringify(res || { ok: true, message: this.statusMessage }, null, 2);
+        this.snackBar.open(this.statusMessage, 'OK', { duration: 5000, verticalPosition: 'top' });
+        this.cdr.markForCheck();
+      },
+      error: (err: any) => {
+        this.isBusy = false;
+        const msg = err.error?.message || err.message || 'TSPL print failed';
+        this.statusMessage = `TSPL Print Error: ${msg}`;
+        this.statusTone = 'error';
+        this.responseText = JSON.stringify(err.error || { error: msg }, null, 2);
+        this.snackBar.open(this.statusMessage, 'Close', { duration: 5000, verticalPosition: 'top' });
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /**
+   * 2. Print In One Action (POST /api/Usb/printinone)
+   */
+  onPrintInOne(): void {
+    const defaultPrintInOnePayload = {
+      command: '1203|0230|false||^^NO|45|CLS\r\nTEXT 10,10,"0",0,10,10,"www.credentialsintegrated.com"\r\nPRINT 1,1\r\nEOJ\r\n',
+    };
+
+    this.isBusy = true;
+    this.statusMessage = 'Executing Print In One...';
+    this.statusTone = 'info';
+    this.responseTitle = 'Print In One Output';
+    this.responseText = 'Sending POST /api/Usb/printinone...';
+    this.cdr.markForCheck();
+
+    this.usbApi.printInOne(defaultPrintInOnePayload).subscribe({
+      next: (res: any) => {
+        this.isBusy = false;
+        this.statusMessage = res?.message || 'Print In One executed successfully!';
+        this.statusTone = 'success';
+        this.responseText = JSON.stringify(res || { ok: true, message: this.statusMessage }, null, 2);
+        this.snackBar.open(this.statusMessage, 'OK', { duration: 5000, verticalPosition: 'top' });
+        this.cdr.markForCheck();
+      },
+      error: (err: any) => {
+        this.isBusy = false;
+        const msg = err.error?.message || err.message || 'Print In One failed';
+        this.statusMessage = `Print In One Error: ${msg}`;
+        this.statusTone = 'error';
+        this.responseText = JSON.stringify(err.error || { error: msg }, null, 2);
+        this.snackBar.open(this.statusMessage, 'Close', { duration: 5000, verticalPosition: 'top' });
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  /**
+   * 3. Print Label Action (POST /api/Usb/print)
+   */
+  onPrintLabel(): void {
+    if (this.printForm.invalid) {
+      this.snackBar.open('Please fill in required fields.', 'Close', { duration: 3000, verticalPosition: 'top' });
+      return;
     }
+
+    const payload = this.printForm.getRawValue();
+    this.isBusy = true;
+    this.statusMessage = 'Sending USB print command...';
+    this.statusTone = 'info';
+    this.responseTitle = 'USB Print Output';
+    this.responseText = 'Sending POST /api/Usb/print...';
+    this.cdr.markForCheck();
+
+    this.usbApi.print(payload).subscribe({
+      next: (res: any) => {
+        this.isBusy = false;
+        this.statusMessage = res?.message || 'USB print command sent successfully!';
+        this.statusTone = 'success';
+        this.responseText = JSON.stringify(res || { ok: true, message: this.statusMessage }, null, 2);
+        this.snackBar.open(this.statusMessage, 'OK', { duration: 5000, verticalPosition: 'top' });
+        this.cdr.markForCheck();
+      },
+      error: (err: any) => {
+        this.isBusy = false;
+        const msg = err.error?.message || err.message || 'USB print failed';
+        this.statusMessage = `USB Print Error: ${msg}`;
+        this.statusTone = 'error';
+        this.responseText = JSON.stringify(err.error || { error: msg }, null, 2);
+        this.snackBar.open(this.statusMessage, 'Close', { duration: 5000, verticalPosition: 'top' });
+        this.cdr.markForCheck();
+      },
+    });
   }
 }

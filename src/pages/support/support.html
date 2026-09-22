@@ -18,6 +18,10 @@
   </nav>
 
   <section class="support-content">
+    <ng-container *ngIf="selectedTab === 'Printer'">
+      <app-printer-test></app-printer-test>
+    </ng-container>
+
     <ng-container *ngIf="selectedTab === 'USB'">
       <app-usb></app-usb>
     </ng-container>
@@ -40,6 +44,7 @@
 
     <ng-container
       *ngIf="
+        selectedTab !== 'Printer' &&
         selectedTab !== 'USB' &&
         selectedTab !== 'Serial Terminal' &&
         selectedTab !== 'Templates' &&
