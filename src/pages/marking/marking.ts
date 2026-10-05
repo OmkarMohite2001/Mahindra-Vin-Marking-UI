@@ -234,6 +234,23 @@ private latestPreviewRequestId = 0;
 
   // Process VIN scan
   private processVINScan(vinNumber: string) {
+    const cleanedVin = (vinNumber || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const existingEngine = (this.form.get('engineSrNo')?.value || '').toString().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+    if (existingEngine) {
+      const vinPrefix = cleanedVin.length >= 8 ? cleanedVin.slice(6, 8) : '';
+      const enginePrefix = existingEngine.slice(0, 2);
+
+      if (!vinPrefix || vinPrefix !== enginePrefix) {
+        this.snackBar.open('Please Scan Valid VIN Number', 'Close', {
+          duration: 5000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
+        return;
+      }
+    }
+
     this.form.patchValue({ vinNo: vinNumber });
     this.updateCanvas();
     this.fetchLabelPreview();
@@ -245,13 +262,18 @@ private latestPreviewRequestId = 0;
     const cleanedEngine = engineNumber.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
     const vinNumber = (this.form.get('vinNo')?.value || '').toString().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
 
-    if (vinNumber && !this.vehicleUtils.matchesVinEnginePrefix(vinNumber, cleanedEngine)) {
-      this.snackBar.open('Please Scan Valid Engine Number', 'Close', {
-        duration: 5000,
-        verticalPosition: 'top',
-        horizontalPosition: 'center'
-      });
-      return;
+    if (vinNumber) {
+      const vinPrefix = vinNumber.length >= 8 ? vinNumber.slice(6, 8) : '';
+      const enginePrefix = cleanedEngine.slice(0, 2);
+
+      if (!vinPrefix || vinPrefix !== enginePrefix) {
+        this.snackBar.open('Please Scan Valid Engine Number', 'Close', {
+          duration: 5000,
+          verticalPosition: 'top',
+          horizontalPosition: 'center'
+        });
+        return;
+      }
     }
 
     this.form.patchValue({ engineSrNo: engineNumber });
